@@ -2975,33 +2975,6 @@ glDisableVertexAttribArray(1LU);
 // expansion at
 .object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
 
-// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
-lhs == rhs
-
-// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
-lhs == rhs
-
-// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
-lhs < rhs
-
-// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
-lhs < rhs
-
-// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
-lhs == rhs
-
-// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
-lhs == rhs
-
-// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
-lhs < rhs
-
-// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
-lhs < rhs
-
-// expansion at
-.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
-
 // expansion at
 .object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
 
@@ -3022,6 +2995,33 @@ lhs < rhs
 
 // expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/core/atomic.d(561,9)
 *cast(T*)&val+=mod
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
+lhs == rhs
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
+lhs == rhs
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
+lhs < rhs
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
+lhs < rhs
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
+lhs == rhs
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
+lhs == rhs
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
+lhs < rhs
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
+lhs < rhs
 
 // expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
 lhs == rhs

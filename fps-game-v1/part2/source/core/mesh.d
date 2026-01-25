@@ -1,4 +1,7 @@
-/// This file represents a mesh abstraction.
+//-------------------------------------------
+// This file represents a mesh abstraction.
+//
+//-------------------------------------------
 module mesh;
 
 import std.stdio;
