@@ -40,7 +40,7 @@
  -->
 
 
-# Senior Project — Fly With Tai
+# Senior Project — Game Engine
 
 ## Table of Contents
 
