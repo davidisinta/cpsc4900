@@ -1,18 +1,37 @@
 {
-	"authors": [
-		"mike"
-	],
-	"copyright": "Copyright © 2025, mike",
-	"dependencies": {
-		"bindbc-opengl": "~>1.1.1",
-		"bindbc-sdl": "~>1.5.1"
-	},
-    "versions":[
+    "name": "prog",
+    "description": "3D game engine",
+    "license": "proprietary",
+
+    "authors": [
+        "David Isinta"
+    ],
+
+    "copyright": "Copyright © 2026, David Isinta",
+
+    "dependencies": {
+        "bindbc-opengl": "~>1.1.1",
+        "bindbc-sdl": "~>1.5.1"
+    },
+
+    "versions": [
         "GL_41"
     ],
-	"dflags":["-mixin=mixin.txt"],
-    "stringImportPaths":["."],
-	"description": "A minimal D application.",
-	"license": "proprietary",
-	"name": "prog"
+
+    "dflags": [
+        "-mixin=mixin.txt",
+        "-I/opt/homebrew/include"
+    ],
+
+    "stringImportPaths": [
+        "."
+    ],
+
+    "libs": [
+        "assimp"
+    ],
+
+    "lflags-osx": [
+        "-L/opt/homebrew/lib"
+    ]
 }
