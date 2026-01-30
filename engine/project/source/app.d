@@ -1,7 +1,7 @@
-import graphics_app;
+import graphics_engine;
 
 void main(string[] args)
 {
-    GraphicsApp app = GraphicsApp(4,1);
+    GraphicsEngine app = GraphicsEngine(4,1);
     app.Loop();
 }
