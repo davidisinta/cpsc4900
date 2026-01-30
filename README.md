@@ -86,28 +86,28 @@ A small FPS-style demo game is built on top of the engine to evaluate rendering,
 
 ### 1. Core Engine Features (Must-Have)
 
-- [x] Windowing and render loop (SDL + OpenGL)
-- [x] FPS camera and input system
-- [x] Scene and transform system
-- [x] Mesh + shader + material pipeline
-- [x] Resource manager (models, textures, audio)
-- [x] Model loading via Assimp
-- [x] Texture mipmapping
-- [x] Frustum culling
-- [x] Octree spatial partitioning
-- [x] Raycasting for gameplay
-- [x] Physics integration
-- [x] Audio system with attenuation
-- [x] Debug visualizations
+- [ ] Windowing and render loop (SDL + OpenGL)
+- [ ] FPS camera and input system
+- [ ] Scene and transform system
+- [ ] Mesh + shader + material pipeline
+- [ ] Resource manager (models, textures, audio)
+- [ ] Model loading via Assimp
+- [ ] Texture mipmapping
+- [ ] Frustum culling
+- [ ] Octree spatial partitioning
+- [ ] Raycasting for gameplay
+- [ ] Physics integration
+- [ ] Audio system with attenuation
+- [ ] Debug visualizations
 
 ### 2. Gameplay Systems
 
-- [x] FPS player controller
-- [x] Hitscan shooting system
-- [x] Target objects and collision
-- [x] Accuracy / scoring system
-- [x] HUD (crosshair, stats)
-- [x] Game state machine
+- [ ] FPS player controller
+- [ ] Hitscan shooting system
+- [ ] Target objects and collision
+- [ ] Accuracy / scoring system
+- [ ] HUD (crosshair, stats)
+- [ ] Game state machine
   - MENU
   - PLAYING
   - PAUSED
