@@ -8,12 +8,12 @@
 **Objective:** establish a stable runtime loop and modern OpenGL rendering baseline.
 
 **Deliverables (checklist):**
-- [ ] Project builds on your target machine (clean build, single command)
-- [ ] Window + OpenGL 3.3+ context creation (SDL/GLFW)
-- [ ] Main loop with fixed/variable timestep support (basic timing subsystem)
-- [ ] FPS camera + mouse/keyboard input
-- [ ] Basic shader pipeline (compile/link, hot-reload optional)
-- [ ] Render a simple scene (triangle/cube) + depth testing enabled
+- [X] Project builds on your target machine (clean build, single command)
+- [X] Window + OpenGL 3.3+ context creation (SDL/GLFW)
+- [X] Main loop with fixed/variable timestep support (basic timing subsystem)
+- [X] FPS camera + mouse/keyboard input
+- [X] Basic shader pipeline (compile/link, hot-reload optional)
+- [X] Render a simple scene (triangle/cube) + depth testing enabled
 
 **Definition of done:** you can move a camera in a 3D scene at stable FPS, with a minimal renderer.
 
