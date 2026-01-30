@@ -353,7 +353,7 @@ struct mat4{
 		static if(op=="/"){
 			e[i] /= value;
 		}
-        assert(0,"op not implemented for opIndexOpAssign(float value, size_t i)");
+		assert(0,"op not implemented for opIndexOpAssign(float value, size_t i)");
 	}
     /// Perform a binary operation (+,-,*,/) to each element of a matrix
     /// Usage: mat4[i,j] += value;
@@ -373,8 +373,15 @@ struct mat4{
         assert(0,"op not implemented for opIndexOpAssign(float value, size_t i, size_t j)");
 	}
 
-    /// Perform matrix multiplication
+    /// Perform matrix binary operations 
     mat4 opBinary(string op)(mat4 m){
+        static if(op=="+"){
+            mat4 result;	
+            for(int i=0; i < 16; i++){
+                    result[i] = this[i]+m[i];
+            }
+						return result;
+				}
         static if(op=="*"){
             mat4 result;	
             for(int i=0; i < 4; i++){

@@ -1,4 +1,4 @@
-/// Provides the base calss for any derived materials
+/// Provides the base class for any derived materials
 module material;
 
 import uniform;

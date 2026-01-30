@@ -1,18 +1,25 @@
 /// The main graphics application with the main graphics loop.
 module graphics_app;
 import std.stdio;
+import std.math;
 import core;
 import mesh, linear, scene, materials, geometry;
 import platform;
+import light;
 
 import bindbc.sdl;
 import bindbc.opengl;
 
+
+
 /// The main graphics application.
 struct GraphicsApp{
 		bool mGameIsRunning=true;
+		bool mRenderWireframe = false;
 		SDL_GLContext mContext;
 		SDL_Window* mWindow;
+		int i = 0;
+		// string bunnyFile;
 
 		// Scene
 		SceneTree mSceneTree;
@@ -20,6 +27,8 @@ struct GraphicsApp{
 		Camera mCamera;
 		// Renderer
 		Renderer mRenderer;
+
+		Light gLight; //the attributes of our light
 
 		/// Setup OpenGL and any libraries
 		this(int major_ogl_version, int minor_ogl_version){
@@ -76,17 +85,12 @@ struct GraphicsApp{
 								writeln("Exit event triggered (probably clicked 'x' at top of the window)");
 								mGameIsRunning= false;
 						}
-						if(event.type == SDL_MOUSEMOTION){
-							// writeln("mouse moved");
-							// Retrieve the mouse position
-							int mouseX,mouseY;
-							SDL_GetMouseState(&mouseX,&mouseY);
-							mCamera.MouseLook(mouseX,mouseY);
-						}
 						if(event.type == SDL_KEYDOWN){
 								if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE){
 										writeln("Pressed escape key and now exiting...");
 										mGameIsRunning= false;
+								}else if(event.key.keysym.sym == SDLK_TAB){
+										mRenderWireframe = !mRenderWireframe;
 								}
 								else if(event.key.keysym.sym == SDLK_DOWN){
 										mCamera.MoveBackward();
@@ -100,9 +104,20 @@ struct GraphicsApp{
 								else if(event.key.keysym.sym == SDLK_RIGHT){
 										mCamera.MoveRight();
 								}
+								else if(event.key.keysym.sym == SDLK_a){
+										mCamera.MoveUp();
+								}
+								else if(event.key.keysym.sym == SDLK_z){
+										mCamera.MoveDown();
+								}
 								writeln("Camera Position: ",mCamera.mEyePosition);
 						}
 				}
+
+                // Retrieve the mouse position
+                int mouseX,mouseY;
+                SDL_GetMouseState(&mouseX,&mouseY);
+                mCamera.MouseLook(mouseX,mouseY);
 		}
 
 		/// A helper function to setup a scene.
@@ -110,27 +125,71 @@ struct GraphicsApp{
 		///       data-driven.
 		void SetupScene(){
 
-				// Create some nodes to attach to the SceneTree
-				// Geometry Data
-				GLfloat[] vertexData=
-						[
-						-0.5f,  -0.5f, 0.0f, 	// Left vertex position
-						1.0f,   0.0f, 0.0f, 	// color
-						0.5f,  -0.5f, 0.0f,  	// right vertex position
-						0.0f,   1.0f, 0.0f,  	// color
-						0.0f,   0.5f, 0.0f,  	// Top vertex position
-						0.0f,   0.0f, 1.0f,  	// color
-						];
-
 				// Create a pipeline and associate it with a material
 				// that can be attached to meshes.
 				Pipeline basicPipeline = new Pipeline("basic","./pipelines/basic/basic.vert","./pipelines/basic/basic.frag");
 				IMaterial basicMaterial    = new BasicMaterial("basic");
 
+				// Create a pipeline for our light, this way the light
+				// itself remains unaffected by itself but lights other objects
+				Pipeline lightPipeline = new Pipeline("light","./pipelines/light/basic.vert","./pipelines/light/basic.frag");
+				IMaterial lightMaterial    = new BasicMaterial("light");
+
 				// Create an object and add it to our scene tree
-				ISurface triangle = new SurfaceTriangle(vertexData); 
-				MeshNode  m        = new MeshNode("triangle",triangle,basicMaterial);
+				ISurface obj = new SurfaceOBJ("./assets/bunny_centered.obj"); 
+				MeshNode  m        = new MeshNode("bunny",obj,basicMaterial);
 				mSceneTree.GetRootNode().AddChildSceneNode(m);
+
+				//we create another object for our light box and add it to scene tree
+				//create vbo for this obj
+				GLfloat[] lightboxVBO = [
+					-0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+					0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+					0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+					0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+					-0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+					-0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+
+					-0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+					0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+					0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+					0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+					-0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+					-0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+
+					-0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
+					-0.5f,  0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
+					-0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
+					-0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
+					-0.5f, -0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
+					-0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
+
+					0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+					0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+					0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+					0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+					0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+					0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+
+					-0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
+					0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
+					0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
+					0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
+					-0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
+					-0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
+
+					-0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+					0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+					0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+					0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+					-0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+					-0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f
+				];
+				ISurface lightBox = new SurfaceTriangle(lightboxVBO);
+
+				//slight problem with light shader
+				MeshNode light = new MeshNode("light", lightBox, lightMaterial);
+				mSceneTree.GetRootNode().AddChildSceneNode(light);
 
 				// Add three uniforms to the basic material.
 				// The 4th parameter is set to the pointer where the value will be updated each frame.
@@ -140,26 +199,45 @@ struct GraphicsApp{
 				basicMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
 				basicMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
 
-				// Create a second object
-				GLfloat[] vertexData2 =
-						[
-						-0.5f,  -0.5f, 0.0f, 	// Left vertex position
-						0.0f, 0.0f,						  // vertex texture(vt) coordinate
-						0.5f,  -0.5f, 0.0f,  	// right vertex position
-						1.0f, 0.0f,						  // vertex texture(vt) coordinate
-						0.0f,   0.5f, 0.0f,  	// Top vertex position
-						0.5f, 1.0f,						  // vertex texture(vt) coordinate
-						];
-				Pipeline texturePipeline = new Pipeline("texturePipeline","./pipelines/texture/basic.vert","./pipelines/texture/basic.frag");
-				IMaterial textureMaterial = new TextureMaterial("texturePipeline","./assets/sample.ppm");
-				textureMaterial.AddUniform(new Uniform("sampler1", 0));
-				textureMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-				textureMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-				textureMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+				//Add uniforms to our light shader as well
+				lightMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+				lightMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+				lightMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+		}
 
-				ISurface triangle2  			= new SurfaceTexturedTriangle(vertexData2); 
-				MeshNode  m2        			= new MeshNode("triangle2",triangle2,textureMaterial);
-				mSceneTree.GetRootNode().AddChildSceneNode(m2);
+		void setUpLights(){
+
+			GLuint shaderProgramID = Pipeline.sPipeline["basic"];
+			glUseProgram(shaderProgramID);
+
+			GLint field1 = glGetUniformLocation(shaderProgramID, "uLight1.mColor");
+			GLint field2 = glGetUniformLocation(shaderProgramID, "uLight1.mPosition");
+			GLint field3 = glGetUniformLocation(shaderProgramID, "uLight1.mAmbientIntensity");
+			GLint field4 = glGetUniformLocation(shaderProgramID, "uLight1.mSpecularIntensity");
+			GLint field5 = glGetUniformLocation(shaderProgramID, "uLight1.mSpecularExponent");
+			GLint field6 = glGetUniformLocation(shaderProgramID, "viewpos");
+
+			foreach(value ; [field1,field2,field3,field4,field5]){
+				if(value < 0){
+					writeln("Failed to find: ",value);
+				}else{
+					writeln("Light Uniform Location(s): ",value);
+				}
+			}
+		
+			// Postion light to move in a circle
+			static float inc = 0.0f;
+			float radius = 3.0f;
+			inc+=0.01;
+			gLight.mPosition = [radius*cos(inc),0.0f,radius*sin(inc)];
+
+			glUniform1fv(field1,3,gLight.mColor.ptr);
+			glUniform1fv(field2,3,gLight.mPosition.ptr);
+			glUniform1f (field3,gLight.mAmbientIntensity);
+			glUniform1f (field4,gLight.mSpecularIntensity);
+			glUniform1f (field5,gLight.mSpecularExponent);
+			glUniform3f(field6, mCamera.mEyePosition.x, mCamera.mEyePosition.y, mCamera.mEyePosition.z);
+
 		}
 
 		/// Update gamestate
@@ -167,21 +245,32 @@ struct GraphicsApp{
 				// A rotation value that 'updates' every frame to give some animation in our scene
 				static float yRotation = 0.0f;   yRotation += 0.01f;
 
-				// Update our first object
-				MeshNode m = cast(MeshNode)mSceneTree.FindNode("triangle");
-				m.mModelMatrix = MatrixMakeTranslation(vec3(0.0f,0.0f,-1.0f));
-				m.mModelMatrix = m.mModelMatrix * MatrixMakeYRotation(yRotation);
+				// Update our bunny
+				MeshNode m = cast(MeshNode)mSceneTree.FindNode("bunny");
+				// m.mModelMatrix = MatrixMakeTranslation(vec3(0.0f,0.0f,-1.0f));
+				// m.mModelMatrix = m.mModelMatrix * MatrixMakeYRotation(yRotation);
 
-				// Update our second object
-				MeshNode m2 = cast(MeshNode)mSceneTree.FindNode("triangle2");
-				m2.mModelMatrix = MatrixMakeTranslation(vec3(0.0,-6.0f,-5.0f));
-				m2.mModelMatrix = m2.mModelMatrix * MatrixMakeScale(vec3(100.0f,100.0f,100.0f));
-				m2.mModelMatrix = m2.mModelMatrix * MatrixMakeXRotation(90.0.ToRadians);
+				//update our light object
+				MeshNode lightNode = cast(MeshNode)mSceneTree.FindNode("light");
+
+				//ensure the light box follows point light
+				GLfloat x = gLight.mPosition[0];
+				GLfloat y = gLight.mPosition[1];
+				GLfloat z = gLight.mPosition[2];
+				lightNode.mModelMatrix = MatrixMakeTranslation(vec3(x, y, z));
 		}
 
 		/// Render our scene by traversing the scene tree from a specific viewpoint
 		void Render(){
-				mRenderer.Render(mSceneTree,mCamera);
+				if(mRenderWireframe){
+						glPolygonMode(GL_FRONT_AND_BACK,GL_LINE); 
+				}else{
+						glPolygonMode(GL_FRONT_AND_BACK,GL_FILL); 
+				}
+
+				//set up lights for the scene
+				setUpLights();	
+				mRenderer.Render(mSceneTree,mCamera);	
 		}
 
 		/// Process 1 frame
@@ -211,4 +300,3 @@ struct GraphicsApp{
 				}
 		}
 }
-

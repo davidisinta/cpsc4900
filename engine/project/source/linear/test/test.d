@@ -136,7 +136,7 @@ unittest{
 unittest{
     writeln("====== Matrix Y Rotation=====");
     vec4 position   = vec4(vec3(1.0,2.0,3.0),1.0f);
-    mat4 rotY       = MatrixMakeYRotation(ToRadians(33));
+    mat4 rotY       = MatrixMakeYRotation(90.ToRadians);
 
 
     vec4 worldSpace = rotY * position;

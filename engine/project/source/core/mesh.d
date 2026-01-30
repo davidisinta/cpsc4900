@@ -20,6 +20,11 @@ class MeshNode : ISceneNode{
         mNodeName = name;
         mGeometry = geometry;
         mMaterial = material;
+
+        //printing our model matrix for debgging
+        writeln("model matrix:");
+        writeln(mModelMatrix.toString());
+        writeln("---------------");
     }
 
     override void Update(){

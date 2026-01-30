@@ -1,6 +1,8 @@
 /// Module to handle texture loading
 module texture;
 
+import image;
+
 import bindbc.opengl;
 
 /// Abstraction for generating an OpenGL texture on GPU memory from an image filename.
@@ -12,7 +14,8 @@ class Texture{
 				glGenTextures(1,&mTextureID);
 				glBindTexture(GL_TEXTURE_2D, mTextureID);
 
-				ubyte[] image_data = LoadPPMImage(filename);
+				PPM ppm;
+				ubyte[] image_data = ppm.LoadPPMImage(filename);
 
 				glTexImage2D(
 								GL_TEXTURE_2D, 	 // 2D Texture
@@ -27,32 +30,15 @@ class Texture{
 
 				glGenerateMipmap(GL_TEXTURE_2D);
 
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR);	
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);	
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR);	
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_CLAMP_TO_BORDER);	
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_CLAMP_TO_BORDER);	
-		}
-		// Simple PPM image loader
-		ubyte[] LoadPPMImage(string filename){
-				import std.file, std.conv, std.algorithm, std.range, std.stdio;
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_REPEAT);	
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_REPEAT);	
 
-				ubyte[] result;
-				auto f = File(filename);
-				int counter=0;
-				foreach(line ; f.byLine()){
-						counter++;
-						if(counter >= 5){
-								result ~= line.to!ubyte;
-						}
-				}
-				// Flip the image pixels from image space to screen space
-				result = result.reverse;
-				// Swizzle the bytes back to RGB order	
-				foreach(rgb ; result.slide(3)){
-						rgb.reverse;
-				}
-
-				return result;
+//				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR);	
+//				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR);	
+//				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_CLAMP_TO_BORDER);	
+//				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_CLAMP_TO_BORDER);	
 		}
 
 }

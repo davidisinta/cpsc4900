@@ -77,10 +77,29 @@ class SceneTree{
             assert(0,"Error: No camera attached to Scene tree for traversal, use SetCamera()");
         }
 
+        
         foreach(child ; mRootNode.mChildren){
             child.Update();
         }
 
+
+        /* TODO for students
+        // Perform a depth-first traversal
+        ISceneNode current = mRootNode;
+        current.Update();
+        ISceneNode[] stack = current.mChildren;
+
+        while(stack.length > 0){
+            /// End of array (top of stack) is now current node.
+            current = stack[$-1];
+            // Remove the current node from stack
+            stack.popBack();
+            // Perform update on current node
+            current.Update();
+            // Append all of the children to the back of the stack
+            stack ~= current.mChildren;
+        }
+        */
     }
 
 }
