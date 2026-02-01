@@ -1,5 +1,5 @@
 /// The main graphics application with the main graphics loop.
-module graphics_app;
+module graphics_engine;
 import std.stdio;
 import std.math;
 import core;
@@ -13,7 +13,7 @@ import bindbc.opengl;
 
 
 /// The main graphics application.
-struct GraphicsApp{
+struct GraphicsEngine{
 		bool mGameIsRunning=true;
 		bool mRenderWireframe = false;
 		SDL_GLContext mContext;
