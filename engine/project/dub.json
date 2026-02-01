@@ -1,37 +1,30 @@
 {
-    "name": "prog",
-    "description": "3D game engine",
-    "license": "proprietary",
-
-    "authors": [
-        "David Isinta"
-    ],
-
-    "copyright": "Copyright © 2026, David Isinta",
-
-    "dependencies": {
-        "bindbc-opengl": "~>1.1.1",
-        "bindbc-sdl": "~>1.5.1"
-    },
-
-    "versions": [
-        "GL_41"
-    ],
-
-    "dflags": [
-        "-mixin=mixin.txt",
-        "-I/opt/homebrew/include"
-    ],
-
-    "stringImportPaths": [
-        "."
-    ],
-
-    "libs": [
-        "assimp"
-    ],
-
-    "lflags-osx": [
-        "-L/opt/homebrew/lib"
-    ]
+	"authors": [
+		"David Isinta"
+	],
+	"copyright": "Copyright © 2026, David Isinta",
+	"dependencies": {
+		"bindbc-imgui": "~>0.7.0",
+		"bindbc-opengl": "~>1.1.1",
+		"bindbc-sdl": "~>1.5.1"
+	},
+	"description": "3D game engine",
+	"dflags": [
+		"-mixin=mixin.txt",
+		"-I/opt/homebrew/include"
+	],
+	"lflags-osx": [
+		"-L/opt/homebrew/lib"
+	],
+	"libs": [
+		"assimp"
+	],
+	"license": "proprietary",
+	"name": "prog",
+	"stringImportPaths": [
+		"."
+	],
+	"versions": [
+		"GL_41"
+	]
 }

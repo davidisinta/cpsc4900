@@ -13,8 +13,6 @@ import std.conv;
 import std.string : toStringz;
 
 
-
-
 /// The main graphics application.
 struct GraphicsEngine{
 		bool mGameIsRunning=true;

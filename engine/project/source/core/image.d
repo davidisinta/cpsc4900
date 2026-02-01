@@ -53,15 +53,7 @@ struct PPM{
 							mPixels ~= token.to!ubyte;
 						}
 				}
-
-
-				// Flip the image pixels from image space to screen space
-				//				result = result.reverse;
-				// Swizzle the bytes back to RGB order	
-				// foreach(rgb ; mPixels.slide(3)){
-						//						rgb.reverse;
-				//}
-
+				
 				return mPixels;
 		}
 
