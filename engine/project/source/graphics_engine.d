@@ -9,6 +9,9 @@ import light;
 
 import bindbc.sdl;
 import bindbc.opengl;
+import std.conv;
+import std.string : toStringz;
+
 
 
 
@@ -19,7 +22,8 @@ struct GraphicsEngine{
 		SDL_GLContext mContext;
 		SDL_Window* mWindow;
 		int i = 0;
-		// string bunnyFile;
+		int fps = 0;
+		int MS_PER_FRAME = 16;
 
 		// Scene
 		SceneTree mSceneTree;
@@ -275,12 +279,51 @@ struct GraphicsEngine{
 
 		/// Process 1 frame
 		void AdvanceFrame(){
-				Input();
-				Update();
-				Render();
-				
-				SDL_Delay(16);	// NOTE: This is a simple way to cap framerate at 60 FPS,
-								// 		  you might be inclined to improve things a bit.
+
+			// get original state in time
+			int startTime = SDL_GetTicks();	
+
+			Input();
+			Update();
+			Render();
+
+			int elapsed_time = SDL_GetTicks() - startTime;
+
+
+			//to do: check if this is the best way to implement frame capping
+
+			//apply frame capping to 60 fps, if the game is running too fast:
+			if(elapsed_time < 16){
+				//if our program was too fast, delay it
+				SDL_Delay(16 - elapsed_time);
+
+				int curr_fps = 1000/(SDL_GetTicks() - startTime);
+
+				//update window with fps
+				if(this.fps!=curr_fps)
+				{
+					this.fps = curr_fps;
+					writeln("fps: ", curr_fps);
+					string fps_title = "FPS: " ~ curr_fps.to!string;
+					SDL_SetWindowTitle(mWindow,
+                        fps_title.toStringz);
+				}
+			} //end if
+			
+			else { //calculate the fps, and update the window title with current fps
+				int curr_fps = 1000/elapsed_time;
+
+				//update window with fps
+				if(this.fps!=curr_fps)
+				{
+					this.fps = curr_fps;
+						writeln("fps: ", curr_fps);
+					string fps_title = "FPS: " ~ curr_fps.to!string;
+					SDL_SetWindowTitle(mWindow,
+                        fps_title.toStringz);
+					
+				}
+			}
 		}
 
 		/// Main application loop
