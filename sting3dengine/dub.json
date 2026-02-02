@@ -1,0 +1,30 @@
+{
+	"authors": [
+		"David Isinta"
+	],
+	"copyright": "Copyright © 2026, David Isinta",
+	"dependencies": {
+		"bindbc-imgui": "~>0.7.0",
+		"bindbc-opengl": "~>1.1.1",
+		"bindbc-sdl": "~>1.5.1"
+	},
+	"description": "3D game engine",
+	"dflags": [
+		"-mixin=mixin.txt",
+		"-I/opt/homebrew/include"
+	],
+	"lflags-osx": [
+		"-L/opt/homebrew/lib"
+	],
+	"libs": [
+		"assimp"
+	],
+	"license": "proprietary",
+	"name": "prog",
+	"stringImportPaths": [
+		"."
+	],
+	"versions": [
+		"GL_41"
+	]
+}

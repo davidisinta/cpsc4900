@@ -95,7 +95,7 @@ class Pipeline{
     }
 }
 
-/// Select a pipelie for use. 
+/// Select a pipeline for use. 
 /// Note: You may consider
 ///       'alias' 'Bind' for 'Use' for consistency to match your API
 ///       i.e. 
