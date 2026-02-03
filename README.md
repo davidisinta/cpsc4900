@@ -60,27 +60,6 @@ This project is a **real-time 3D game engine developed for first-person shooter 
 
 A small FPS-style demo game is built on top of the engine to evaluate rendering, physics, audio, and gameplay systems under stress. The demo is used as a controlled environment to measure how different engine-level design decisions impact performance.
 
-### App Evaluation
-
-#### Engine Motivation
-- Built from scratch to understand **how modern game engines work internally**
-- Focus on **systems-level tradeoffs** rather than only visual output
-- Emphasis on **measurable optimization**, not just features
-
-#### Core Value
-- Demonstrates practical engine architecture
-- Serves as a research vehicle for:
-  - Rendering optimization
-  - Spatial data structures
-  - CPU/GPU workload reduction
-  - Gameplay-system performance
-
-#### Scope
-- Engine-first project
-- Game exists to **drive and evaluate the engine**
-- Clear separation between engine systems and gameplay logic
-
----
 
 ## Product Spec
 
