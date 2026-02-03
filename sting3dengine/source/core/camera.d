@@ -25,7 +25,7 @@ class Camera{
         mProjectionMatrix = MatrixMakePerspective(90.0f.ToRadians,480.0f/640.0f, 0.1f, 1000.0f);
 
         /// Initial Camera setup
-        mEyePosition    = vec3(0.0f, 0.0f, 0.0f);
+        mEyePosition    = vec3(1.0f, 1.0f, 1.0f);
         // Eye position
         // Forward vector matching the positive z-axis
         mForwardVector  = vec3(0.0f, 0.0f, 1.0f);
