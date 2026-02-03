@@ -1,16 +1,23 @@
 /// The main graphics application with the main graphics loop.
 module graphics_engine;
+
+// standard libraries
 import std.stdio;
 import std.math;
+import std.conv;
+import std.string : toStringz;
+
+// Third-party libraries
+import bindbc.sdl;
+import bindbc.opengl;
+
+// Project libraries
 import core;
 import mesh, linear, scene, materials, geometry;
 import platform;
 import light;
+import gameapplication;
 
-import bindbc.sdl;
-import bindbc.opengl;
-import std.conv;
-import std.string : toStringz;
 
 
 /// The main graphics application.
@@ -22,6 +29,7 @@ struct GraphicsEngine{
 		int i = 0;
 		int fps = 0;
 		int MS_PER_FRAME = 16;
+		GameApplication mGame;
 
 		// Scene
 		SceneTree mSceneTree;
@@ -68,6 +76,12 @@ struct GraphicsEngine{
 
 				// Create (or load) a Scene Tree
 				mSceneTree = new SceneTree("root");
+
+
+				// Add the game to the engine
+				// I heap allocate the game struct for performance reasons
+				mGame = new GameApplication("topshotaa");
+
 		}
 
 		/// Destructor

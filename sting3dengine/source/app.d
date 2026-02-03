@@ -2,6 +2,7 @@ import graphics_engine;
 
 void main(string[] args)
 {
+    // Set up the engine, and run main loop (Engine has edit mode and play mode, which plays a game within the engine)
     GraphicsEngine app = GraphicsEngine(4,1);
     app.Loop();
 }
