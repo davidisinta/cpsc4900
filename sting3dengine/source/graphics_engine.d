@@ -1,16 +1,22 @@
 /// The main graphics application with the main graphics loop.
 module graphics_engine;
+
+// standard libraries
 import std.stdio;
 import std.math;
+import std.conv;
+import std.string : toStringz;
+
+// Third-party libraries
+import bindbc.sdl;
+import bindbc.opengl;
+
+// Project libraries
 import core;
 import mesh, linear, scene, materials, geometry;
 import platform;
 import light;
-
-import bindbc.sdl;
-import bindbc.opengl;
-import std.conv;
-import std.string : toStringz;
+import firstpersonshootergame;
 
 
 /// The main graphics application.
@@ -22,6 +28,7 @@ struct GraphicsEngine{
 		int i = 0;
 		int fps = 0;
 		int MS_PER_FRAME = 16;
+		GameApplication mGame;
 
 		// Scene
 		SceneTree mSceneTree;
@@ -68,6 +75,12 @@ struct GraphicsEngine{
 
 				// Create (or load) a Scene Tree
 				mSceneTree = new SceneTree("root");
+
+
+				// Add the game to the engine
+				// I heap allocate the game struct for performance reasons
+				mGame = new GameApplication("topshotaa");
+
 		}
 
 		/// Destructor
@@ -287,14 +300,11 @@ struct GraphicsEngine{
 
 			int elapsed_time = SDL_GetTicks() - startTime;
 
-
 			//to do: check if this is the best way to implement frame capping
-
 			//apply frame capping to 60 fps, if the game is running too fast:
 			if(elapsed_time < 16){
 				//if our program was too fast, delay it
 				SDL_Delay(16 - elapsed_time);
-
 				int curr_fps = 1000/(SDL_GetTicks() - startTime);
 
 				//update window with fps
@@ -303,8 +313,7 @@ struct GraphicsEngine{
 					this.fps = curr_fps;
 					writeln("fps: ", curr_fps);
 					string fps_title = "FPS: " ~ curr_fps.to!string;
-					SDL_SetWindowTitle(mWindow,
-                        fps_title.toStringz);
+					SDL_SetWindowTitle(mWindow, fps_title.toStringz);
 				}
 			} //end if
 			
@@ -315,11 +324,9 @@ struct GraphicsEngine{
 				if(this.fps!=curr_fps)
 				{
 					this.fps = curr_fps;
-						writeln("fps: ", curr_fps);
+					writeln("fps: ", curr_fps);
 					string fps_title = "FPS: " ~ curr_fps.to!string;
-					SDL_SetWindowTitle(mWindow,
-                        fps_title.toStringz);
-					
+					SDL_SetWindowTitle(mWindow, fps_title.toStringz);
 				}
 			}
 		}

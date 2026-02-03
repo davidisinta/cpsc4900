@@ -7,9 +7,6 @@
 // expansion at
 .object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
 
-// expansion at
-.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
-
 // expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/bindbc/sdl/codegen.d(13,1)
 alias joinFnBinds = bindbc.common.codegen.joinFnBinds!false;
 alias FnBind = bindbc.common.codegen.FnBind;
@@ -39,6 +36,9 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GetAssertionReport, here.SDL_GetAssertionReport.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_ResetAssertionReport, here.SDL_ResetAssertionReport.mangleof);
 }
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
 
 // expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/stdinc.d(133,1)
 private nothrow @nogc{
