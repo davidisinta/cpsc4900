@@ -17,6 +17,7 @@ import platform;
 import light;
 import firstpersonshootergame;
 import editor;
+import audiosubsystem;
 
 
 /// The main graphics application.
