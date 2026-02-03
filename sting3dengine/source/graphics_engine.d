@@ -151,7 +151,7 @@ struct GraphicsEngine{
 				IMaterial lightMaterial    = new BasicMaterial("light");
 
 				// Create an object and add it to our scene tree
-				ISurface obj = new SurfaceOBJ("./assets/bunny_centered.obj"); 
+				ISurface obj = new SurfaceOBJ("./assets/meshes/bunny_centered.obj"); 
 				MeshNode  m        = new MeshNode("bunny",obj,basicMaterial);
 				mSceneTree.GetRootNode().AddChildSceneNode(m);
 
