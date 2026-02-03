@@ -16,8 +16,7 @@ import core;
 import mesh, linear, scene, materials, geometry;
 import platform;
 import light;
-import gameapplication;
-
+import firstpersonshootergame;
 
 
 /// The main graphics application.
@@ -303,7 +302,6 @@ struct GraphicsEngine{
 
 
 			//to do: check if this is the best way to implement frame capping
-
 			//apply frame capping to 60 fps, if the game is running too fast:
 			if(elapsed_time < 16){
 				//if our program was too fast, delay it
