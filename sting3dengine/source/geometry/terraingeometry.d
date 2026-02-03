@@ -4,7 +4,7 @@ module terraingeometry;
 import bindbc.opengl;
 import std.stdio;
 import geometry;
-import core;
+import enginecore;
 import error;
 
 /// Geometry stores all of the vertices and/or indices for a 3D object.

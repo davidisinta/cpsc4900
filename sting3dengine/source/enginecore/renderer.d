@@ -23,18 +23,18 @@ class Renderer{
 
     /// Sets state at the start of a frame
     void StartingFrame(){
-        glViewport(0,0,mScreenWidth, mScreenHeight);
-        // Clear the renderer each time we render
-        glClearColor(0.0f,0.6f,0.8f,1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glEnable(GL_DEPTH_TEST);
+        // glViewport(0,0,mScreenWidth, mScreenHeight);
+        // // Clear the renderer each time we render
+        // glClearColor(0.0f,0.6f,0.8f,1.0f);
+        // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // glEnable(GL_DEPTH_TEST);
     }
 
     /// Set or clear any state at end of a frame
     void EndingFrame(){
         // Final step is to present what we have copied into
         // video memory
-        SDL_GL_SwapWindow(mWindow);
+        // SDL_GL_SwapWindow(mWindow);
     }
 
     /// Encapsulation of the rendering process of a scene tree with a camera
