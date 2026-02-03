@@ -300,13 +300,11 @@ struct GraphicsEngine{
 
 			int elapsed_time = SDL_GetTicks() - startTime;
 
-
 			//to do: check if this is the best way to implement frame capping
 			//apply frame capping to 60 fps, if the game is running too fast:
 			if(elapsed_time < 16){
 				//if our program was too fast, delay it
 				SDL_Delay(16 - elapsed_time);
-
 				int curr_fps = 1000/(SDL_GetTicks() - startTime);
 
 				//update window with fps
@@ -315,8 +313,7 @@ struct GraphicsEngine{
 					this.fps = curr_fps;
 					writeln("fps: ", curr_fps);
 					string fps_title = "FPS: " ~ curr_fps.to!string;
-					SDL_SetWindowTitle(mWindow,
-                        fps_title.toStringz);
+					SDL_SetWindowTitle(mWindow, fps_title.toStringz);
 				}
 			} //end if
 			
@@ -327,11 +324,9 @@ struct GraphicsEngine{
 				if(this.fps!=curr_fps)
 				{
 					this.fps = curr_fps;
-						writeln("fps: ", curr_fps);
+					writeln("fps: ", curr_fps);
 					string fps_title = "FPS: " ~ curr_fps.to!string;
-					SDL_SetWindowTitle(mWindow,
-                        fps_title.toStringz);
-					
+					SDL_SetWindowTitle(mWindow, fps_title.toStringz);
 				}
 			}
 		}
