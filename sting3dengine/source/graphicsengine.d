@@ -16,6 +16,7 @@ import mesh, linear, scene, materials, geometry;
 import platform;
 import light;
 import firstpersonshootergame;
+import editor;
 
 
 /// The main graphics application.
@@ -296,15 +297,15 @@ struct GraphicsEngine{
 			//set up lights for the scene
 			setUpLights();
 
-
+			/// Sets state at the start of a frame
 			glViewport(0,0,mScreenWidth, mScreenHeight);
 			glClearColor(0.0f,0.6f,0.8f,1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glEnable(GL_DEPTH_TEST);	
 
-
 			mRenderer.Render(mSceneTree,mCamera);
 
+			// perform any cleanup and ultimately the double or triple buffering to display the final framebuffer.
 			SDL_GL_SwapWindow(mWindow);	
 		}
 

@@ -1,8 +1,8 @@
 {
 	"authors": [
-		"David Isinta"
+		"David Isinta Nyakawa"
 	],
-	"copyright": "Copyright © 2026, David Isinta",
+	"copyright": "Copyright © 2026, David Isinta Nyakawa",
 	"dependencies": {
 		"bindbc-imgui": "~>0.7.0",
 		"bindbc-opengl": "~>1.1.1",
