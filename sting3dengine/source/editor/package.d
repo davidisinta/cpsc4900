@@ -1,3 +1,3 @@
 module editor;
 
-public import editorentry;
+public import imgui_layer;

@@ -1,4 +1,4 @@
-module core;
+module enginecore;
 
 public import camera;
 public import error;

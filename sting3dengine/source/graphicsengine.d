@@ -1,5 +1,4 @@
-/// The main graphics application with the main graphics loop.
-module graphics_engine;
+module graphicsengine;
 
 // standard libraries
 import std.stdio;
@@ -12,11 +11,12 @@ import bindbc.sdl;
 import bindbc.opengl;
 
 // Project libraries
-import core;
+import enginecore;
 import mesh, linear, scene, materials, geometry;
 import platform;
 import light;
 import firstpersonshootergame;
+import editor;
 
 
 /// The main graphics application.
@@ -29,23 +29,26 @@ struct GraphicsEngine{
 		int fps = 0;
 		int MS_PER_FRAME = 16;
 		GameApplication mGame;
+		int mScreenWidth;
+		int mScreenHeight;
 
-		// Scene
 		SceneTree mSceneTree;
-		// Camera
 		Camera mCamera;
-		// Renderer
 		Renderer mRenderer;
-
-		Light gLight; //the attributes of our light
+		Light gLight;
 
 		/// Setup OpenGL and any libraries
 		this(int major_ogl_version, int minor_ogl_version){
+
+				//Set screen Width and Height
+				mScreenWidth = 640;
+				mScreenHeight = 480;
 
 				// Setup SDL OpenGL Version
 				SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, major_ogl_version );
 				SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, minor_ogl_version );
 				SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
+
 				// We want to request a double buffer for smooth updating.
 				SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 				SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
@@ -54,8 +57,8 @@ struct GraphicsEngine{
 				mWindow = SDL_CreateWindow( "dlang - OpenGL 4+ Graphics Framework",
 								SDL_WINDOWPOS_UNDEFINED,
 								SDL_WINDOWPOS_UNDEFINED,
-								640,
-								480,
+								mScreenWidth,
+								mScreenHeight,
 								SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
 
 				// Create the OpenGL context and associate it with our window
@@ -68,7 +71,7 @@ struct GraphicsEngine{
 				GetOpenGLVersionInfo();
 
 				// Create a renderer
-				mRenderer = new Renderer(mWindow,640,480);
+				mRenderer = new Renderer(mWindow,mScreenWidth,mScreenHeight);
 
 				// Create a camera
 				mCamera = new Camera();
@@ -76,11 +79,9 @@ struct GraphicsEngine{
 				// Create (or load) a Scene Tree
 				mSceneTree = new SceneTree("root");
 
-
 				// Add the game to the engine
 				// I heap allocate the game struct for performance reasons
 				mGame = new GameApplication("topshotaa");
-
 		}
 
 		/// Destructor
@@ -151,7 +152,7 @@ struct GraphicsEngine{
 				IMaterial lightMaterial    = new BasicMaterial("light");
 
 				// Create an object and add it to our scene tree
-				ISurface obj = new SurfaceOBJ("./assets/bunny_centered.obj"); 
+				ISurface obj = new SurfaceOBJ("./assets/meshes/bunny_centered.obj"); 
 				MeshNode  m        = new MeshNode("bunny",obj,basicMaterial);
 				mSceneTree.GetRootNode().AddChildSceneNode(m);
 
@@ -262,8 +263,8 @@ struct GraphicsEngine{
 
 				// Update our bunny
 				MeshNode m = cast(MeshNode)mSceneTree.FindNode("bunny");
-				// m.mModelMatrix = MatrixMakeTranslation(vec3(0.0f,0.0f,-1.0f));
-				// m.mModelMatrix = m.mModelMatrix * MatrixMakeYRotation(yRotation);
+				m.mModelMatrix = MatrixMakeTranslation(vec3(0.0f,0.0f,-1.0f));
+				m.mModelMatrix = m.mModelMatrix * MatrixMakeYRotation(yRotation);
 
 				//update our light object
 				MeshNode lightNode = cast(MeshNode)mSceneTree.FindNode("light");
@@ -277,15 +278,35 @@ struct GraphicsEngine{
 
 		/// Render our scene by traversing the scene tree from a specific viewpoint
 		void Render(){
-				if(mRenderWireframe){
-						glPolygonMode(GL_FRONT_AND_BACK,GL_LINE); 
-				}else{
-						glPolygonMode(GL_FRONT_AND_BACK,GL_FILL); 
-				}
 
-				//set up lights for the scene
-				setUpLights();	
-				mRenderer.Render(mSceneTree,mCamera);	
+
+			//to do: implement render function, to call imgui
+			// so that we render both the editor and the 3d stuff
+			// because of separation of concerns, renderer, should be 
+			// part of the engine, and imgui should be part of editor,
+			// so we can easily swap out our editor and engine does not depend
+			// on the editor tightly.
+
+
+			if(mRenderWireframe){
+					glPolygonMode(GL_FRONT_AND_BACK,GL_LINE); 
+			}else{
+					glPolygonMode(GL_FRONT_AND_BACK,GL_FILL); 
+			}
+
+			//set up lights for the scene
+			setUpLights();
+
+			/// Sets state at the start of a frame
+			glViewport(0,0,mScreenWidth, mScreenHeight);
+			glClearColor(0.0f,0.6f,0.8f,1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glEnable(GL_DEPTH_TEST);	
+
+			mRenderer.Render(mSceneTree,mCamera);
+
+			// perform any cleanup and ultimately the double or triple buffering to display the final framebuffer.
+			SDL_GL_SwapWindow(mWindow);	
 		}
 
 		/// Process 1 frame
