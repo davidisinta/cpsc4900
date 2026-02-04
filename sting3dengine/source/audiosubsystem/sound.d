@@ -13,6 +13,7 @@ interface ISound {
     void stopSound();
 }
 
+// to do: add fmod sound layer
 class Sound : ISound {
     private:
         alias SDL_AudioDeviceID = uint;
