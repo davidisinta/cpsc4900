@@ -238,7 +238,7 @@ struct GraphicsEngine{
 				if(value < 0){
 					writeln("Failed to find: ",value);
 				}else{
-					writeln("Light Uniform Location(s): ",value);
+					// writeln("Light Uniform Location(s): ",value);
 				}
 			}
 		
@@ -333,7 +333,7 @@ struct GraphicsEngine{
 				if(this.fps!=curr_fps)
 				{
 					this.fps = curr_fps;
-					writeln("fps: ", curr_fps);
+					// writeln("fps: ", curr_fps);
 					string fps_title = "FPS: " ~ curr_fps.to!string;
 					SDL_SetWindowTitle(mWindow, fps_title.toStringz);
 				}
@@ -346,7 +346,7 @@ struct GraphicsEngine{
 				if(this.fps!=curr_fps)
 				{
 					this.fps = curr_fps;
-					writeln("fps: ", curr_fps);
+					// writeln("fps: ", curr_fps);
 					string fps_title = "FPS: " ~ curr_fps.to!string;
 					SDL_SetWindowTitle(mWindow, fps_title.toStringz);
 				}

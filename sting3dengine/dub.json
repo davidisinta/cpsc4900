@@ -4,7 +4,6 @@
 	],
 	"copyright": "Copyright © 2026, David Isinta Nyakawa",
 	"dependencies": {
-		"bindbc-imgui": "~>0.7.0",
 		"bindbc-opengl": "~>1.1.1",
 		"bindbc-sdl": "~>1.5.1"
 	},
@@ -25,6 +24,7 @@
 		"."
 	],
 	"versions": [
-		"GL_41"
+		"GL_41",
+		"SDL_2016"
 	]
 }
