@@ -157,6 +157,9 @@ A small FPS-style demo game is built on top of the engine to evaluate rendering,
 - Audio Engine Slides:  
   https://docs.google.com/presentation/d/1QgJVSWqatjWddNBmk1fK_hyFIXsAoMNYJSL-AxIBv2c/edit
 
+- Fmod:
+  https://www.fmod.com/docs/2.03/api/studio-guide.html
+
 - GUI & Gameplay Systems:  
   https://docs.google.com/presentation/d/1DVZI1yKOU6VGJQg_ASB5ySa4DjUIUyMscYiJ926fmQE/edit
 
