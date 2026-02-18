@@ -4,7 +4,6 @@
 	],
 	"copyright": "Copyright © 2026, David Isinta Nyakawa",
 	"dependencies": {
-		"bindbc-imgui": "~>0.7.0",
 		"bindbc-opengl": "~>1.1.1",
 		"bindbc-sdl": "~>1.5.1"
 	},
@@ -13,8 +12,13 @@
 		"-mixin=mixin.txt",
 		"-I/opt/homebrew/include"
 	],
+	  "copyFiles": [
+		"third_party/bullet/lib/libbullet_capi_shim.dylib"
+	],
 	"lflags-osx": [
-		"-L/opt/homebrew/lib"
+		"-L/opt/homebrew/lib",
+		"-Wl,-rpath,@executable_path",
+		"third_party/bullet/lib/libbullet_capi_shim.dylib"
 	],
 	"libs": [
 		"assimp"
@@ -25,6 +29,7 @@
 		"."
 	],
 	"versions": [
-		"GL_41"
+		"GL_41",
+		"SDL_2016"
 	]
 }

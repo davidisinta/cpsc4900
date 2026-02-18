@@ -7,18 +7,17 @@
 // expansion at
 .object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
 
-// expansion at
-.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
-
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/bindbc/sdl/codegen.d(13,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/bindbc/sdl/codegen.d(13,1)
 alias joinFnBinds = bindbc.common.codegen.joinFnBinds!false;
 alias FnBind = bindbc.common.codegen.FnBind;
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/assert_.d(36,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/assert_.d(36,1)
 private nothrow @nogc{
 	alias _pSDL_SetAssertionHandler = extern(C) void function(SDL_AssertionHandler handler, void* userData);
 	alias _pSDL_GetAssertionReport = extern(C) const(SDL_assert_data)* function();
 	alias _pSDL_ResetAssertionReport = extern(C) void function();
+	alias _pSDL_GetAssertionHandler = extern(C) SDL_AssertionHandler function(void** pUserData);
+	alias _pSDL_GetDefaultAssertionHandler = extern(C) SDL_AssertionHandler function();
 }
 __gshared nothrow @nogc{
 	package _pSDL_SetAssertionHandler _SDL_SetAssertionHandler;
@@ -27,6 +26,10 @@ __gshared nothrow @nogc{
 	extern(C) const(SDL_assert_data)* SDL_GetAssertionReport(){ return _SDL_GetAssertionReport(__traits(parameters)); }
 	package _pSDL_ResetAssertionReport _SDL_ResetAssertionReport;
 	extern(C) void SDL_ResetAssertionReport(){ _SDL_ResetAssertionReport(__traits(parameters)); }
+	package _pSDL_GetAssertionHandler _SDL_GetAssertionHandler;
+	extern(C) SDL_AssertionHandler SDL_GetAssertionHandler(void** pUserData){ return _SDL_GetAssertionHandler(__traits(parameters)); }
+	package _pSDL_GetDefaultAssertionHandler _SDL_GetDefaultAssertionHandler;
+	extern(C) SDL_AssertionHandler SDL_GetDefaultAssertionHandler(){ return _SDL_GetDefaultAssertionHandler(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -38,9 +41,14 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_SetAssertionHandler, here.SDL_SetAssertionHandler.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_GetAssertionReport, here.SDL_GetAssertionReport.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_ResetAssertionReport, here.SDL_ResetAssertionReport.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetAssertionHandler, here.SDL_GetAssertionHandler.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetDefaultAssertionHandler, here.SDL_GetDefaultAssertionHandler.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/stdinc.d(133,1)
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/stdinc.d(133,1)
 private nothrow @nogc{
 	alias _pSDL_malloc = extern(C) void* function(size_t size);
 	alias _pSDL_calloc = extern(C) void* function(size_t nMemB, size_t size);
@@ -110,6 +118,57 @@ private nothrow @nogc{
 	alias _pSDL_iconv_close = extern(C) int function(SDL_iconv_t* cd);
 	alias _pSDL_iconv = extern(C) size_t function(SDL_iconv_t* cd, const(char)** inBuf, size_t* inBytesLeft, char** outBuf, size_t* outBytesLeft);
 	alias _pSDL_iconv_string = extern(C) char* function(const(char)* toCode, const(char)* fromCode, const(char)* inBuf, size_t inBytesLeft);
+	alias _pSDL_vsscanf = extern(C) int function(const(char)* text, const(char)* fmt, va_list ap);
+	alias _pSDL_acos = extern(C) double function(double x);
+	alias _pSDL_asin = extern(C) double function(double x);
+	alias _pSDL_tan = extern(C) double function(double x);
+	alias _pSDL_tanf = extern(C) float function(float x);
+	alias _pSDL_sqrtf = extern(C) float function(float x);
+	alias _pSDL_wcscmp = extern(C) int function(const(wchar_t)* str1, const(wchar_t)* str2);
+	alias _pSDL_utf8strlen = extern(C) size_t function(const(char)* str);
+	alias _pSDL_GetMemoryFunctions = extern(C) void function(SDL_malloc_func* mallocFunc, SDL_calloc_func* callocFunc, SDL_realloc_func* reallocFunc, SDL_free_func* freeFunc);
+	alias _pSDL_SetMemoryFunctions = extern(C) int function(SDL_malloc_func mallocFunc, SDL_calloc_func callocFunc, SDL_realloc_func reallocFunc, SDL_free_func freeFunc);
+	alias _pSDL_GetNumAllocations = extern(C) int function();
+	alias _pSDL_acosf = extern(C) float function(float x);
+	alias _pSDL_asinf = extern(C) float function(float x);
+	alias _pSDL_atanf = extern(C) float function(float x);
+	alias _pSDL_atan2f = extern(C) float function(float y, float x);
+	alias _pSDL_ceilf = extern(C) float function(float x);
+	alias _pSDL_copysignf = extern(C) float function(float x, float y);
+	alias _pSDL_fabsf = extern(C) float function(float x);
+	alias _pSDL_floorf = extern(C) float function(float x);
+	alias _pSDL_fmod = extern(C) double function(double x, double y);
+	alias _pSDL_fmodf = extern(C) float function(float x, float y);
+	alias _pSDL_logf = extern(C) float function(float x);
+	alias _pSDL_log10 = extern(C) double function(double x);
+	alias _pSDL_log10f = extern(C) float function(float x);
+	alias _pSDL_powf = extern(C) float function(float x, float y);
+	alias _pSDL_scalbnf = extern(C) float function(float x, int n);
+	alias _pSDL_wcsdup = extern(C) wchar_t* function(const(wchar_t)* wstr);
+	alias _pSDL_exp = extern(C) double function(double x);
+	alias _pSDL_expf = extern(C) float function(float x);
+	alias _pSDL_isupper = extern(C) int function(int x);
+	alias _pSDL_islower = extern(C) int function(int x);
+	alias _pSDL_wcsstr = extern(C) wchar_t* function(const(wchar_t)* haystack, const(wchar_t)* needle);
+	alias _pSDL_wcsncmp = extern(C) int function(const(wchar_t)* str1, const(wchar_t)* str2, size_t maxLen);
+	alias _pSDL_strtokr = extern(C) char* function(char* s1, const(char)* s2, char** savePtr);
+	alias _pSDL_crc32 = extern(C) uint function(uint crc, const(void)* data, size_t len);
+	alias _pSDL_wcscasecmp = extern(C) int function(const(wchar_t)* str1, const(wchar_t)* str2);
+	alias _pSDL_wcsncasecmp = extern(C) int function(const(wchar_t)* str1, const(wchar_t)* str2, size_t len);
+	alias _pSDL_trunc = extern(C) double function(double x);
+	alias _pSDL_truncf = extern(C) float function(float x);
+	alias _pSDL_isalpha = extern(C) int function(int x);
+	alias _pSDL_isalnum = extern(C) int function(int x);
+	alias _pSDL_isblank = extern(C) int function(int x);
+	alias _pSDL_iscntrl = extern(C) int function(int x);
+	alias _pSDL_isxdigit = extern(C) int function(int x);
+	alias _pSDL_ispunct = extern(C) int function(int x);
+	alias _pSDL_isprint = extern(C) int function(int x);
+	alias _pSDL_isgraph = extern(C) int function(int x);
+	alias _pSDL_round = extern(C) double function(double x);
+	alias _pSDL_roundf = extern(C) float function(float x);
+	alias _pSDL_lround = extern(C) long function(double x);
+	alias _pSDL_lroundf = extern(C) long function(float x);
 }
 __gshared nothrow @nogc{
 	package _pSDL_malloc _SDL_malloc;
@@ -246,6 +305,108 @@ __gshared nothrow @nogc{
 	extern(C) size_t SDL_iconv(SDL_iconv_t* cd, const(char)** inBuf, size_t* inBytesLeft, char** outBuf, size_t* outBytesLeft){ return _SDL_iconv(__traits(parameters)); }
 	package _pSDL_iconv_string _SDL_iconv_string;
 	extern(C) char* SDL_iconv_string(const(char)* toCode, const(char)* fromCode, const(char)* inBuf, size_t inBytesLeft){ return _SDL_iconv_string(__traits(parameters)); }
+	package _pSDL_vsscanf _SDL_vsscanf;
+	extern(C) int SDL_vsscanf(const(char)* text, const(char)* fmt, va_list ap){ return _SDL_vsscanf(__traits(parameters)); }
+	package _pSDL_acos _SDL_acos;
+	extern(C) double SDL_acos(double x){ return _SDL_acos(__traits(parameters)); }
+	package _pSDL_asin _SDL_asin;
+	extern(C) double SDL_asin(double x){ return _SDL_asin(__traits(parameters)); }
+	package _pSDL_tan _SDL_tan;
+	extern(C) double SDL_tan(double x){ return _SDL_tan(__traits(parameters)); }
+	package _pSDL_tanf _SDL_tanf;
+	extern(C) float SDL_tanf(float x){ return _SDL_tanf(__traits(parameters)); }
+	package _pSDL_sqrtf _SDL_sqrtf;
+	extern(C) float SDL_sqrtf(float x){ return _SDL_sqrtf(__traits(parameters)); }
+	package _pSDL_wcscmp _SDL_wcscmp;
+	extern(C) int SDL_wcscmp(const(wchar_t)* str1, const(wchar_t)* str2){ return _SDL_wcscmp(__traits(parameters)); }
+	package _pSDL_utf8strlen _SDL_utf8strlen;
+	extern(C) size_t SDL_utf8strlen(const(char)* str){ return _SDL_utf8strlen(__traits(parameters)); }
+	package _pSDL_GetMemoryFunctions _SDL_GetMemoryFunctions;
+	extern(C) void SDL_GetMemoryFunctions(SDL_malloc_func* mallocFunc, SDL_calloc_func* callocFunc, SDL_realloc_func* reallocFunc, SDL_free_func* freeFunc){ _SDL_GetMemoryFunctions(__traits(parameters)); }
+	package _pSDL_SetMemoryFunctions _SDL_SetMemoryFunctions;
+	extern(C) int SDL_SetMemoryFunctions(SDL_malloc_func mallocFunc, SDL_calloc_func callocFunc, SDL_realloc_func reallocFunc, SDL_free_func freeFunc){ return _SDL_SetMemoryFunctions(__traits(parameters)); }
+	package _pSDL_GetNumAllocations _SDL_GetNumAllocations;
+	extern(C) int SDL_GetNumAllocations(){ return _SDL_GetNumAllocations(__traits(parameters)); }
+	package _pSDL_acosf _SDL_acosf;
+	extern(C) float SDL_acosf(float x){ return _SDL_acosf(__traits(parameters)); }
+	package _pSDL_asinf _SDL_asinf;
+	extern(C) float SDL_asinf(float x){ return _SDL_asinf(__traits(parameters)); }
+	package _pSDL_atanf _SDL_atanf;
+	extern(C) float SDL_atanf(float x){ return _SDL_atanf(__traits(parameters)); }
+	package _pSDL_atan2f _SDL_atan2f;
+	extern(C) float SDL_atan2f(float y, float x){ return _SDL_atan2f(__traits(parameters)); }
+	package _pSDL_ceilf _SDL_ceilf;
+	extern(C) float SDL_ceilf(float x){ return _SDL_ceilf(__traits(parameters)); }
+	package _pSDL_copysignf _SDL_copysignf;
+	extern(C) float SDL_copysignf(float x, float y){ return _SDL_copysignf(__traits(parameters)); }
+	package _pSDL_fabsf _SDL_fabsf;
+	extern(C) float SDL_fabsf(float x){ return _SDL_fabsf(__traits(parameters)); }
+	package _pSDL_floorf _SDL_floorf;
+	extern(C) float SDL_floorf(float x){ return _SDL_floorf(__traits(parameters)); }
+	package _pSDL_fmod _SDL_fmod;
+	extern(C) double SDL_fmod(double x, double y){ return _SDL_fmod(__traits(parameters)); }
+	package _pSDL_fmodf _SDL_fmodf;
+	extern(C) float SDL_fmodf(float x, float y){ return _SDL_fmodf(__traits(parameters)); }
+	package _pSDL_logf _SDL_logf;
+	extern(C) float SDL_logf(float x){ return _SDL_logf(__traits(parameters)); }
+	package _pSDL_log10 _SDL_log10;
+	extern(C) double SDL_log10(double x){ return _SDL_log10(__traits(parameters)); }
+	package _pSDL_log10f _SDL_log10f;
+	extern(C) float SDL_log10f(float x){ return _SDL_log10f(__traits(parameters)); }
+	package _pSDL_powf _SDL_powf;
+	extern(C) float SDL_powf(float x, float y){ return _SDL_powf(__traits(parameters)); }
+	package _pSDL_scalbnf _SDL_scalbnf;
+	extern(C) float SDL_scalbnf(float x, int n){ return _SDL_scalbnf(__traits(parameters)); }
+	package _pSDL_wcsdup _SDL_wcsdup;
+	extern(C) wchar_t* SDL_wcsdup(const(wchar_t)* wstr){ return _SDL_wcsdup(__traits(parameters)); }
+	package _pSDL_exp _SDL_exp;
+	extern(C) double SDL_exp(double x){ return _SDL_exp(__traits(parameters)); }
+	package _pSDL_expf _SDL_expf;
+	extern(C) float SDL_expf(float x){ return _SDL_expf(__traits(parameters)); }
+	package _pSDL_isupper _SDL_isupper;
+	extern(C) int SDL_isupper(int x){ return _SDL_isupper(__traits(parameters)); }
+	package _pSDL_islower _SDL_islower;
+	extern(C) int SDL_islower(int x){ return _SDL_islower(__traits(parameters)); }
+	package _pSDL_wcsstr _SDL_wcsstr;
+	extern(C) wchar_t* SDL_wcsstr(const(wchar_t)* haystack, const(wchar_t)* needle){ return _SDL_wcsstr(__traits(parameters)); }
+	package _pSDL_wcsncmp _SDL_wcsncmp;
+	extern(C) int SDL_wcsncmp(const(wchar_t)* str1, const(wchar_t)* str2, size_t maxLen){ return _SDL_wcsncmp(__traits(parameters)); }
+	package _pSDL_strtokr _SDL_strtokr;
+	extern(C) char* SDL_strtokr(char* s1, const(char)* s2, char** savePtr){ return _SDL_strtokr(__traits(parameters)); }
+	package _pSDL_crc32 _SDL_crc32;
+	extern(C) uint SDL_crc32(uint crc, const(void)* data, size_t len){ return _SDL_crc32(__traits(parameters)); }
+	package _pSDL_wcscasecmp _SDL_wcscasecmp;
+	extern(C) int SDL_wcscasecmp(const(wchar_t)* str1, const(wchar_t)* str2){ return _SDL_wcscasecmp(__traits(parameters)); }
+	package _pSDL_wcsncasecmp _SDL_wcsncasecmp;
+	extern(C) int SDL_wcsncasecmp(const(wchar_t)* str1, const(wchar_t)* str2, size_t len){ return _SDL_wcsncasecmp(__traits(parameters)); }
+	package _pSDL_trunc _SDL_trunc;
+	extern(C) double SDL_trunc(double x){ return _SDL_trunc(__traits(parameters)); }
+	package _pSDL_truncf _SDL_truncf;
+	extern(C) float SDL_truncf(float x){ return _SDL_truncf(__traits(parameters)); }
+	package _pSDL_isalpha _SDL_isalpha;
+	extern(C) int SDL_isalpha(int x){ return _SDL_isalpha(__traits(parameters)); }
+	package _pSDL_isalnum _SDL_isalnum;
+	extern(C) int SDL_isalnum(int x){ return _SDL_isalnum(__traits(parameters)); }
+	package _pSDL_isblank _SDL_isblank;
+	extern(C) int SDL_isblank(int x){ return _SDL_isblank(__traits(parameters)); }
+	package _pSDL_iscntrl _SDL_iscntrl;
+	extern(C) int SDL_iscntrl(int x){ return _SDL_iscntrl(__traits(parameters)); }
+	package _pSDL_isxdigit _SDL_isxdigit;
+	extern(C) int SDL_isxdigit(int x){ return _SDL_isxdigit(__traits(parameters)); }
+	package _pSDL_ispunct _SDL_ispunct;
+	extern(C) int SDL_ispunct(int x){ return _SDL_ispunct(__traits(parameters)); }
+	package _pSDL_isprint _SDL_isprint;
+	extern(C) int SDL_isprint(int x){ return _SDL_isprint(__traits(parameters)); }
+	package _pSDL_isgraph _SDL_isgraph;
+	extern(C) int SDL_isgraph(int x){ return _SDL_isgraph(__traits(parameters)); }
+	package _pSDL_round _SDL_round;
+	extern(C) double SDL_round(double x){ return _SDL_round(__traits(parameters)); }
+	package _pSDL_roundf _SDL_roundf;
+	extern(C) float SDL_roundf(float x){ return _SDL_roundf(__traits(parameters)); }
+	package _pSDL_lround _SDL_lround;
+	extern(C) long SDL_lround(double x){ return _SDL_lround(__traits(parameters)); }
+	package _pSDL_lroundf _SDL_lroundf;
+	extern(C) long SDL_lroundf(float x){ return _SDL_lroundf(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -322,15 +483,73 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_iconv_close, here.SDL_iconv_close.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_iconv, here.SDL_iconv.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_iconv_string, here.SDL_iconv_string.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_vsscanf, here.SDL_vsscanf.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_acos, here.SDL_acos.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_asin, here.SDL_asin.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_tan, here.SDL_tan.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_tanf, here.SDL_tanf.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_sqrtf, here.SDL_sqrtf.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_wcscmp, here.SDL_wcscmp.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_utf8strlen, here.SDL_utf8strlen.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetMemoryFunctions, here.SDL_GetMemoryFunctions.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SetMemoryFunctions, here.SDL_SetMemoryFunctions.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetNumAllocations, here.SDL_GetNumAllocations.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_acosf, here.SDL_acosf.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_asinf, here.SDL_asinf.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_atanf, here.SDL_atanf.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_atan2f, here.SDL_atan2f.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_ceilf, here.SDL_ceilf.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_copysignf, here.SDL_copysignf.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_fabsf, here.SDL_fabsf.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_floorf, here.SDL_floorf.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_fmod, here.SDL_fmod.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_fmodf, here.SDL_fmodf.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_logf, here.SDL_logf.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_log10, here.SDL_log10.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_log10f, here.SDL_log10f.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_powf, here.SDL_powf.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_scalbnf, here.SDL_scalbnf.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_wcsdup, here.SDL_wcsdup.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_exp, here.SDL_exp.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_expf, here.SDL_expf.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_isupper, here.SDL_isupper.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_islower, here.SDL_islower.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_wcsstr, here.SDL_wcsstr.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_wcsncmp, here.SDL_wcsncmp.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_strtokr, here.SDL_strtokr.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_crc32, here.SDL_crc32.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_wcscasecmp, here.SDL_wcscasecmp.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_wcsncasecmp, here.SDL_wcsncasecmp.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_trunc, here.SDL_trunc.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_truncf, here.SDL_truncf.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_isalpha, here.SDL_isalpha.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_isalnum, here.SDL_isalnum.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_isblank, here.SDL_isblank.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_iscntrl, here.SDL_iscntrl.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_isxdigit, here.SDL_isxdigit.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_ispunct, here.SDL_ispunct.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_isprint, here.SDL_isprint.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_isgraph, here.SDL_isgraph.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_round, here.SDL_round.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_roundf, here.SDL_roundf.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_lround, here.SDL_lround.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_lroundf, here.SDL_lroundf.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/atomic.d(154,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/atomic.d(154,1)
 private nothrow @nogc{
 	alias _pSDL_AtomicTryLock = extern(C) SDL_bool function(SDL_SpinLock* lock);
 	alias _pSDL_AtomicLock = extern(C) void function(SDL_SpinLock* lock);
 	alias _pSDL_AtomicUnlock = extern(C) void function(SDL_SpinLock* lock);
 	alias _pSDL_AtomicCAS = extern(C) SDL_bool function(SDL_atomic_t* a, int oldVal, int newVal);
 	alias _pSDL_AtomicCASPtr = extern(C) SDL_bool function(void** a, void* oldVal, void* newVal);
+	alias _pSDL_AtomicSet = extern(C) int function(SDL_atomic_t* a, int v);
+	alias _pSDL_AtomicGet = extern(C) int function(SDL_atomic_t* a);
+	alias _pSDL_AtomicAdd = extern(C) int function(SDL_atomic_t* a, int v);
+	alias _pSDL_AtomicSetPtr = extern(C) void* function(void** a, void* v);
+	alias _pSDL_AtomicGetPtr = extern(C) void* function(void** a);
+	alias _pSDL_MemoryBarrierReleaseFunction = extern(C) void function();
+	alias _pSDL_MemoryBarrierAcquireFunction = extern(C) void function();
 }
 __gshared nothrow @nogc{
 	package _pSDL_AtomicTryLock _SDL_AtomicTryLock;
@@ -343,6 +562,20 @@ __gshared nothrow @nogc{
 	extern(C) SDL_bool SDL_AtomicCAS(SDL_atomic_t* a, int oldVal, int newVal){ return _SDL_AtomicCAS(__traits(parameters)); }
 	package _pSDL_AtomicCASPtr _SDL_AtomicCASPtr;
 	extern(C) SDL_bool SDL_AtomicCASPtr(void** a, void* oldVal, void* newVal){ return _SDL_AtomicCASPtr(__traits(parameters)); }
+	package _pSDL_AtomicSet _SDL_AtomicSet;
+	extern(C) int SDL_AtomicSet(SDL_atomic_t* a, int v){ return _SDL_AtomicSet(__traits(parameters)); }
+	package _pSDL_AtomicGet _SDL_AtomicGet;
+	extern(C) int SDL_AtomicGet(SDL_atomic_t* a){ return _SDL_AtomicGet(__traits(parameters)); }
+	package _pSDL_AtomicAdd _SDL_AtomicAdd;
+	extern(C) int SDL_AtomicAdd(SDL_atomic_t* a, int v){ return _SDL_AtomicAdd(__traits(parameters)); }
+	package _pSDL_AtomicSetPtr _SDL_AtomicSetPtr;
+	extern(C) void* SDL_AtomicSetPtr(void** a, void* v){ return _SDL_AtomicSetPtr(__traits(parameters)); }
+	package _pSDL_AtomicGetPtr _SDL_AtomicGetPtr;
+	extern(C) void* SDL_AtomicGetPtr(void** a){ return _SDL_AtomicGetPtr(__traits(parameters)); }
+	package _pSDL_MemoryBarrierReleaseFunction _SDL_MemoryBarrierReleaseFunction;
+	extern(C) void SDL_MemoryBarrierReleaseFunction(){ _SDL_MemoryBarrierReleaseFunction(__traits(parameters)); }
+	package _pSDL_MemoryBarrierAcquireFunction _SDL_MemoryBarrierAcquireFunction;
+	extern(C) void SDL_MemoryBarrierAcquireFunction(){ _SDL_MemoryBarrierAcquireFunction(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -356,9 +589,16 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_AtomicUnlock, here.SDL_AtomicUnlock.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_AtomicCAS, here.SDL_AtomicCAS.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_AtomicCASPtr, here.SDL_AtomicCASPtr.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_AtomicSet, here.SDL_AtomicSet.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_AtomicGet, here.SDL_AtomicGet.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_AtomicAdd, here.SDL_AtomicAdd.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_AtomicSetPtr, here.SDL_AtomicSetPtr.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_AtomicGetPtr, here.SDL_AtomicGetPtr.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_MemoryBarrierReleaseFunction, here.SDL_MemoryBarrierReleaseFunction.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_MemoryBarrierAcquireFunction, here.SDL_MemoryBarrierAcquireFunction.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/rwops.d(106,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/rwops.d(106,1)
 private nothrow @nogc{
 	alias _pSDL_RWFromFile = extern(C) SDL_RWops* function(const(char)* file, const(char)* mode);
 	alias _pSDL_RWFromMem = extern(C) SDL_RWops* function(void* mem, int size);
@@ -380,6 +620,13 @@ private nothrow @nogc{
 	alias _pSDL_WriteLE64 = extern(C) size_t function(SDL_RWops* context, ulong value);
 	alias _pSDL_WriteBE64 = extern(C) size_t function(SDL_RWops* context, ulong value);
 	alias _pSDL_RWFromFP = extern(C) SDL_RWops* function(FILE* ffp, SDL_bool autoClose);
+	alias _pSDL_LoadFile_RW = extern(C) void* function(SDL_RWops* context, size_t dataSize, int freeSrc);
+	alias _pSDL_RWsize = extern(C) long function(SDL_RWops* context);
+	alias _pSDL_RWseek = extern(C) long function(SDL_RWops* context, long offset, int whence);
+	alias _pSDL_RWtell = extern(C) long function(SDL_RWops* context);
+	alias _pSDL_RWread = extern(C) size_t function(SDL_RWops* context, void* ptr, size_t size, size_t maxNum);
+	alias _pSDL_RWwrite = extern(C) size_t function(SDL_RWops* context, const(void)* ptr, size_t size, size_t num);
+	alias _pSDL_RWclose = extern(C) int function(SDL_RWops* context);
 }
 __gshared nothrow @nogc{
 	package _pSDL_RWFromFile _SDL_RWFromFile;
@@ -422,6 +669,20 @@ __gshared nothrow @nogc{
 	extern(C) size_t SDL_WriteBE64(SDL_RWops* context, ulong value){ return _SDL_WriteBE64(__traits(parameters)); }
 	package _pSDL_RWFromFP _SDL_RWFromFP;
 	extern(C) SDL_RWops* SDL_RWFromFP(FILE* ffp, SDL_bool autoClose){ return _SDL_RWFromFP(__traits(parameters)); }
+	package _pSDL_LoadFile_RW _SDL_LoadFile_RW;
+	extern(C) void* SDL_LoadFile_RW(SDL_RWops* context, size_t dataSize, int freeSrc){ return _SDL_LoadFile_RW(__traits(parameters)); }
+	package _pSDL_RWsize _SDL_RWsize;
+	extern(C) long SDL_RWsize(SDL_RWops* context){ return _SDL_RWsize(__traits(parameters)); }
+	package _pSDL_RWseek _SDL_RWseek;
+	extern(C) long SDL_RWseek(SDL_RWops* context, long offset, int whence){ return _SDL_RWseek(__traits(parameters)); }
+	package _pSDL_RWtell _SDL_RWtell;
+	extern(C) long SDL_RWtell(SDL_RWops* context){ return _SDL_RWtell(__traits(parameters)); }
+	package _pSDL_RWread _SDL_RWread;
+	extern(C) size_t SDL_RWread(SDL_RWops* context, void* ptr, size_t size, size_t maxNum){ return _SDL_RWread(__traits(parameters)); }
+	package _pSDL_RWwrite _SDL_RWwrite;
+	extern(C) size_t SDL_RWwrite(SDL_RWops* context, const(void)* ptr, size_t size, size_t num){ return _SDL_RWwrite(__traits(parameters)); }
+	package _pSDL_RWclose _SDL_RWclose;
+	extern(C) int SDL_RWclose(SDL_RWops* context){ return _SDL_RWclose(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -450,9 +711,16 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_WriteLE64, here.SDL_WriteLE64.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_WriteBE64, here.SDL_WriteBE64.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_RWFromFP, here.SDL_RWFromFP.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_LoadFile_RW, here.SDL_LoadFile_RW.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RWsize, here.SDL_RWsize.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RWseek, here.SDL_RWseek.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RWtell, here.SDL_RWtell.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RWread, here.SDL_RWread.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RWwrite, here.SDL_RWwrite.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RWclose, here.SDL_RWclose.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/audio.d(142,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/audio.d(142,1)
 private nothrow @nogc{
 	alias _pSDL_GetNumAudioDrivers = extern(C) int function();
 	alias _pSDL_GetAudioDriver = extern(C) const(char)* function(int index);
@@ -479,6 +747,18 @@ private nothrow @nogc{
 	alias _pSDL_UnlockAudioDevice = extern(C) void function(SDL_AudioDeviceID dev);
 	alias _pSDL_CloseAudio = extern(C) void function();
 	alias _pSDL_CloseAudioDevice = extern(C) void function(SDL_AudioDeviceID dev);
+	alias _pSDL_QueueAudio = extern(C) int function(SDL_AudioDeviceID dev, const(void)* data, uint len);
+	alias _pSDL_ClearQueuedAudio = extern(C) int function(SDL_AudioDeviceID dev);
+	alias _pSDL_GetQueuedAudioSize = extern(C) int function(SDL_AudioDeviceID dev);
+	alias _pSDL_DequeueAudio = extern(C) uint function(SDL_AudioDeviceID dev, void* data, uint len);
+	alias _pSDL_NewAudioStream = extern(C) SDL_AudioStream* function(const SDL_AudioFormat srcFormat, const ubyte srcChannels, const int srcRate, const SDL_AudioFormat dstFormat, const ubyte dstChannels, const int dstRate);
+	alias _pSDL_AudioStreamPut = extern(C) int function(SDL_AudioStream* stream, const(void)* buf, int len);
+	alias _pSDL_AudioStreamGet = extern(C) int function(SDL_AudioStream* stream, void* buf, int len);
+	alias _pSDL_AudioStreamAvailable = extern(C) int function(SDL_AudioStream* stream);
+	alias _pSDL_AudioStreamFlush = extern(C) int function(SDL_AudioStream* stream);
+	alias _pSDL_AudioStreamClear = extern(C) void function(SDL_AudioStream* stream);
+	alias _pSDL_FreeAudioStream = extern(C) void function(SDL_AudioStream* stream);
+	alias _pSDL_GetAudioDeviceSpec = extern(C) int function(int index, int isCapture, SDL_AudioSpec* spec);
 }
 __gshared nothrow @nogc{
 	package _pSDL_GetNumAudioDrivers _SDL_GetNumAudioDrivers;
@@ -531,6 +811,30 @@ __gshared nothrow @nogc{
 	extern(C) void SDL_CloseAudio(){ _SDL_CloseAudio(__traits(parameters)); }
 	package _pSDL_CloseAudioDevice _SDL_CloseAudioDevice;
 	extern(C) void SDL_CloseAudioDevice(SDL_AudioDeviceID dev){ _SDL_CloseAudioDevice(__traits(parameters)); }
+	package _pSDL_QueueAudio _SDL_QueueAudio;
+	extern(C) int SDL_QueueAudio(SDL_AudioDeviceID dev, const(void)* data, uint len){ return _SDL_QueueAudio(__traits(parameters)); }
+	package _pSDL_ClearQueuedAudio _SDL_ClearQueuedAudio;
+	extern(C) int SDL_ClearQueuedAudio(SDL_AudioDeviceID dev){ return _SDL_ClearQueuedAudio(__traits(parameters)); }
+	package _pSDL_GetQueuedAudioSize _SDL_GetQueuedAudioSize;
+	extern(C) int SDL_GetQueuedAudioSize(SDL_AudioDeviceID dev){ return _SDL_GetQueuedAudioSize(__traits(parameters)); }
+	package _pSDL_DequeueAudio _SDL_DequeueAudio;
+	extern(C) uint SDL_DequeueAudio(SDL_AudioDeviceID dev, void* data, uint len){ return _SDL_DequeueAudio(__traits(parameters)); }
+	package _pSDL_NewAudioStream _SDL_NewAudioStream;
+	extern(C) SDL_AudioStream* SDL_NewAudioStream(const SDL_AudioFormat srcFormat, const ubyte srcChannels, const int srcRate, const SDL_AudioFormat dstFormat, const ubyte dstChannels, const int dstRate){ return _SDL_NewAudioStream(__traits(parameters)); }
+	package _pSDL_AudioStreamPut _SDL_AudioStreamPut;
+	extern(C) int SDL_AudioStreamPut(SDL_AudioStream* stream, const(void)* buf, int len){ return _SDL_AudioStreamPut(__traits(parameters)); }
+	package _pSDL_AudioStreamGet _SDL_AudioStreamGet;
+	extern(C) int SDL_AudioStreamGet(SDL_AudioStream* stream, void* buf, int len){ return _SDL_AudioStreamGet(__traits(parameters)); }
+	package _pSDL_AudioStreamAvailable _SDL_AudioStreamAvailable;
+	extern(C) int SDL_AudioStreamAvailable(SDL_AudioStream* stream){ return _SDL_AudioStreamAvailable(__traits(parameters)); }
+	package _pSDL_AudioStreamFlush _SDL_AudioStreamFlush;
+	extern(C) int SDL_AudioStreamFlush(SDL_AudioStream* stream){ return _SDL_AudioStreamFlush(__traits(parameters)); }
+	package _pSDL_AudioStreamClear _SDL_AudioStreamClear;
+	extern(C) void SDL_AudioStreamClear(SDL_AudioStream* stream){ _SDL_AudioStreamClear(__traits(parameters)); }
+	package _pSDL_FreeAudioStream _SDL_FreeAudioStream;
+	extern(C) void SDL_FreeAudioStream(SDL_AudioStream* stream){ _SDL_FreeAudioStream(__traits(parameters)); }
+	package _pSDL_GetAudioDeviceSpec _SDL_GetAudioDeviceSpec;
+	extern(C) int SDL_GetAudioDeviceSpec(int index, int isCapture, SDL_AudioSpec* spec){ return _SDL_GetAudioDeviceSpec(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -564,12 +868,27 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_UnlockAudioDevice, here.SDL_UnlockAudioDevice.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_CloseAudio, here.SDL_CloseAudio.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_CloseAudioDevice, here.SDL_CloseAudioDevice.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_QueueAudio, here.SDL_QueueAudio.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_ClearQueuedAudio, here.SDL_ClearQueuedAudio.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetQueuedAudioSize, here.SDL_GetQueuedAudioSize.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_DequeueAudio, here.SDL_DequeueAudio.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_NewAudioStream, here.SDL_NewAudioStream.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_AudioStreamPut, here.SDL_AudioStreamPut.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_AudioStreamGet, here.SDL_AudioStreamGet.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_AudioStreamAvailable, here.SDL_AudioStreamAvailable.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_AudioStreamFlush, here.SDL_AudioStreamFlush.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_AudioStreamClear, here.SDL_AudioStreamClear.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_FreeAudioStream, here.SDL_FreeAudioStream.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetAudioDeviceSpec, here.SDL_GetAudioDeviceSpec.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/blendmode.d(59,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/blendmode.d(59,1)
 private nothrow @nogc{
+	alias _pSDL_ComposeCustomBlendMode = extern(C) SDL_BlendMode function(SDL_BlendFactor srcColourFactor, SDL_BlendFactor dstColourFactor, SDL_BlendOperation colourOperation, SDL_BlendFactor srcAlphaFactor, SDL_BlendFactor dstAlphaFactor, SDL_BlendOperation alphaOperation);
 }
 __gshared nothrow @nogc{
+	package _pSDL_ComposeCustomBlendMode _SDL_ComposeCustomBlendMode;
+	extern(C) SDL_BlendMode SDL_ComposeCustomBlendMode(SDL_BlendFactor srcColourFactor, SDL_BlendFactor dstColourFactor, SDL_BlendOperation colourOperation, SDL_BlendFactor srcAlphaFactor, SDL_BlendFactor dstAlphaFactor, SDL_BlendOperation alphaOperation){ return _SDL_ComposeCustomBlendMode(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -578,9 +897,10 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	static if(__traits(compiles, typeof(this))) return __traits(identifier, typeof(this));
 	else return mod;
 }());
+	lib.bindSymbol(cast(void**)&_SDL_ComposeCustomBlendMode, here.SDL_ComposeCustomBlendMode.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/clipboard.d(15,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/clipboard.d(15,1)
 private nothrow @nogc{
 	alias _pSDL_SetClipboardText = extern(C) int function(const(char)* text);
 	alias _pSDL_GetClipboardText = extern(C) char* function();
@@ -606,7 +926,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_HasClipboardText, here.SDL_HasClipboardText.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/cpuinfo.d(17,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/cpuinfo.d(17,1)
 private nothrow @nogc{
 	alias _pSDL_GetCPUCount = extern(C) int function();
 	alias _pSDL_GetCPUCacheLineSize = extern(C) int function();
@@ -619,6 +939,16 @@ private nothrow @nogc{
 	alias _pSDL_HasSSE3 = extern(C) SDL_bool function();
 	alias _pSDL_HasSSE41 = extern(C) SDL_bool function();
 	alias _pSDL_HasSSE42 = extern(C) SDL_bool function();
+	alias _pSDL_GetSystemRAM = extern(C) int function();
+	alias _pSDL_HasAVX = extern(C) SDL_bool function();
+	alias _pSDL_HasAVX2 = extern(C) SDL_bool function();
+	alias _pSDL_HasNEON = extern(C) SDL_bool function();
+	alias _pSDL_HasAVX512F = extern(C) SDL_bool function();
+	alias _pSDL_SIMDGetAlignment = extern(C) size_t function();
+	alias _pSDL_SIMDAlloc = extern(C) void* function(const(size_t) len);
+	alias _pSDL_SIMDFree = extern(C) void function(void*);
+	alias _pSDL_HasARMSIMD = extern(C) SDL_bool function();
+	alias _pSDL_SIMDRealloc = extern(C) void* function(void* mem, const(size_t) len);
 }
 __gshared nothrow @nogc{
 	package _pSDL_GetCPUCount _SDL_GetCPUCount;
@@ -643,6 +973,26 @@ __gshared nothrow @nogc{
 	extern(C) SDL_bool SDL_HasSSE41(){ return _SDL_HasSSE41(__traits(parameters)); }
 	package _pSDL_HasSSE42 _SDL_HasSSE42;
 	extern(C) SDL_bool SDL_HasSSE42(){ return _SDL_HasSSE42(__traits(parameters)); }
+	package _pSDL_GetSystemRAM _SDL_GetSystemRAM;
+	extern(C) int SDL_GetSystemRAM(){ return _SDL_GetSystemRAM(__traits(parameters)); }
+	package _pSDL_HasAVX _SDL_HasAVX;
+	extern(C) SDL_bool SDL_HasAVX(){ return _SDL_HasAVX(__traits(parameters)); }
+	package _pSDL_HasAVX2 _SDL_HasAVX2;
+	extern(C) SDL_bool SDL_HasAVX2(){ return _SDL_HasAVX2(__traits(parameters)); }
+	package _pSDL_HasNEON _SDL_HasNEON;
+	extern(C) SDL_bool SDL_HasNEON(){ return _SDL_HasNEON(__traits(parameters)); }
+	package _pSDL_HasAVX512F _SDL_HasAVX512F;
+	extern(C) SDL_bool SDL_HasAVX512F(){ return _SDL_HasAVX512F(__traits(parameters)); }
+	package _pSDL_SIMDGetAlignment _SDL_SIMDGetAlignment;
+	extern(C) size_t SDL_SIMDGetAlignment(){ return _SDL_SIMDGetAlignment(__traits(parameters)); }
+	package _pSDL_SIMDAlloc _SDL_SIMDAlloc;
+	extern(C) void* SDL_SIMDAlloc(const(size_t) len){ return _SDL_SIMDAlloc(__traits(parameters)); }
+	package _pSDL_SIMDFree _SDL_SIMDFree;
+	extern(C) void SDL_SIMDFree(void*){ _SDL_SIMDFree(__traits(parameters)); }
+	package _pSDL_HasARMSIMD _SDL_HasARMSIMD;
+	extern(C) SDL_bool SDL_HasARMSIMD(){ return _SDL_HasARMSIMD(__traits(parameters)); }
+	package _pSDL_SIMDRealloc _SDL_SIMDRealloc;
+	extern(C) void* SDL_SIMDRealloc(void* mem, const(size_t) len){ return _SDL_SIMDRealloc(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -662,14 +1012,25 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_HasSSE3, here.SDL_HasSSE3.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_HasSSE41, here.SDL_HasSSE41.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_HasSSE42, here.SDL_HasSSE42.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetSystemRAM, here.SDL_GetSystemRAM.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_HasAVX, here.SDL_HasAVX.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_HasAVX2, here.SDL_HasAVX2.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_HasNEON, here.SDL_HasNEON.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_HasAVX512F, here.SDL_HasAVX512F.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SIMDGetAlignment, here.SDL_SIMDGetAlignment.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SIMDAlloc, here.SDL_SIMDAlloc.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SIMDFree, here.SDL_SIMDFree.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_HasARMSIMD, here.SDL_HasARMSIMD.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SIMDRealloc, here.SDL_SIMDRealloc.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/error.d(29,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/error.d(29,1)
 private nothrow @nogc{
 	alias _pSDL_SetError = extern(C) void function(const(char)* fmt, ...);
 	alias _pSDL_GetError = extern(C) const(char)* function();
 	alias _pSDL_ClearError = extern(C) void function();
 	alias _pSDL_Error = extern(C) int function(SDL_errorcode code);
+	alias _pSDL_GetErrorMsg = extern(C) char* function(char* errStr, int maxLen);
 }
 __gshared nothrow @nogc{
 	_pSDL_SetError SDL_SetError;
@@ -679,6 +1040,8 @@ __gshared nothrow @nogc{
 	extern(C) void SDL_ClearError(){ _SDL_ClearError(__traits(parameters)); }
 	package _pSDL_Error _SDL_Error;
 	extern(C) int SDL_Error(SDL_errorcode code){ return _SDL_Error(__traits(parameters)); }
+	package _pSDL_GetErrorMsg _SDL_GetErrorMsg;
+	extern(C) char* SDL_GetErrorMsg(char* errStr, int maxLen){ return _SDL_GetErrorMsg(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -691,14 +1054,16 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GetError, here.SDL_GetError.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_ClearError, here.SDL_ClearError.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_Error, here.SDL_Error.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetErrorMsg, here.SDL_GetErrorMsg.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/touch.d(37,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/touch.d(37,1)
 private nothrow @nogc{
 	alias _pSDL_GetNumTouchDevices = extern(C) int function();
 	alias _pSDL_GetTouchDevice = extern(C) SDL_TouchID function(int index);
 	alias _pSDL_GetNumTouchFingers = extern(C) int function(SDL_TouchID touchID);
 	alias _pSDL_GetTouchFinger = extern(C) SDL_Finger* function(SDL_TouchID touchID, int index);
+	alias _pSDL_GetTouchDeviceType = extern(C) SDL_TouchDeviceType function(SDL_TouchID touchID);
 }
 __gshared nothrow @nogc{
 	package _pSDL_GetNumTouchDevices _SDL_GetNumTouchDevices;
@@ -709,6 +1074,8 @@ __gshared nothrow @nogc{
 	extern(C) int SDL_GetNumTouchFingers(SDL_TouchID touchID){ return _SDL_GetNumTouchFingers(__traits(parameters)); }
 	package _pSDL_GetTouchFinger _SDL_GetTouchFinger;
 	extern(C) SDL_Finger* SDL_GetTouchFinger(SDL_TouchID touchID, int index){ return _SDL_GetTouchFinger(__traits(parameters)); }
+	package _pSDL_GetTouchDeviceType _SDL_GetTouchDeviceType;
+	extern(C) SDL_TouchDeviceType SDL_GetTouchDeviceType(SDL_TouchID touchID){ return _SDL_GetTouchDeviceType(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -721,9 +1088,10 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GetTouchDevice, here.SDL_GetTouchDevice.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_GetNumTouchFingers, here.SDL_GetNumTouchFingers.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_GetTouchFinger, here.SDL_GetTouchFinger.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetTouchDeviceType, here.SDL_GetTouchDeviceType.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/gesture.d(18,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/gesture.d(18,1)
 private nothrow @nogc{
 	alias _pSDL_RecordGesture = extern(C) int function(SDL_TouchID touchID);
 	alias _pSDL_SaveAllDollarTemplates = extern(C) int function(SDL_RWops* dst);
@@ -753,7 +1121,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_LoadDollarTemplates, here.SDL_LoadDollarTemplates.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/guid.d(16,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/guid.d(16,1)
 private nothrow @nogc{
 }
 __gshared nothrow @nogc{
@@ -767,7 +1135,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 }());
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/joystick.d(103,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/joystick.d(103,1)
 private nothrow @nogc{
 	alias _pSDL_NumJoysticks = extern(C) int function();
 	alias _pSDL_JoystickNameForIndex = extern(C) const(char)* function(int deviceIndex);
@@ -790,6 +1158,36 @@ private nothrow @nogc{
 	alias _pSDL_JoystickGetBall = extern(C) int function(SDL_Joystick* joystick, int ball, int* dx, int* dy);
 	alias _pSDL_JoystickGetButton = extern(C) ubyte function(SDL_Joystick* joystick, int button);
 	alias _pSDL_JoystickClose = extern(C) void function(SDL_Joystick* joystick);
+	alias _pSDL_JoystickCurrentPowerLevel = extern(C) SDL_JoystickPowerLevel function(SDL_Joystick* joystick);
+	alias _pSDL_JoystickFromInstanceID = extern(C) SDL_Joystick* function(SDL_JoystickID instanceID);
+	alias _pSDL_JoystickGetAxisInitialState = extern(C) SDL_bool function(SDL_Joystick* joystick, int axis, short* state);
+	alias _pSDL_JoystickGetDeviceProduct = extern(C) ushort function(int deviceIndex);
+	alias _pSDL_JoystickGetDeviceProductVersion = extern(C) ushort function(int deviceIndex);
+	alias _pSDL_JoystickGetDeviceType = extern(C) SDL_JoystickType function(int deviceIndex);
+	alias _pSDL_JoystickGetDeviceInstanceID = extern(C) SDL_JoystickType function(int deviceIndex);
+	alias _pSDL_JoystickGetDeviceVendor = extern(C) ushort function(int device_index);
+	alias _pSDL_JoystickGetProduct = extern(C) ushort function(SDL_Joystick* joystick);
+	alias _pSDL_JoystickGetProductVersion = extern(C) ushort function(SDL_Joystick* joystick);
+	alias _pSDL_JoystickGetType = extern(C) SDL_JoystickType function(SDL_Joystick* joystick);
+	alias _pSDL_JoystickGetVendor = extern(C) ushort function(SDL_Joystick* joystick);
+	alias _pSDL_LockJoysticks = extern(C) void function();
+	alias _pSDL_UnlockJoysticks = extern(C) void function();
+	alias _pSDL_JoystickRumble = extern(C) int function(SDL_Joystick* joystick, ushort lowFrequencyRumble, ushort highFrequencyRumble, uint durationMS);
+	alias _pSDL_JoystickGetDevicePlayerIndex = extern(C) int function(int deviceIndex);
+	alias _pSDL_JoystickGetPlayerIndex = extern(C) int function(SDL_Joystick* joystick);
+	alias _pSDL_JoystickFromPlayerIndex = extern(C) SDL_Joystick* function(int);
+	alias _pSDL_JoystickSetPlayerIndex = extern(C) void function(SDL_Joystick* joystick, int);
+	alias _pSDL_JoystickAttachVirtual = extern(C) int function(SDL_JoystickType type, int naxes, int nButtons, int nHats);
+	alias _pSDL_JoystickDetachVirtual = extern(C) int function(int deviceIndex);
+	alias _pSDL_JoystickIsVirtual = extern(C) SDL_bool function(int deviceIndex);
+	alias _pSDL_JoystickSetVirtualAxis = extern(C) int function(SDL_Joystick* joystick, int axis, short value);
+	alias _pSDL_JoystickSetVirtualButton = extern(C) int function(SDL_Joystick* joystick, int button, ubyte value);
+	alias _pSDL_JoystickSetVirtualHat = extern(C) int function(SDL_Joystick* joystick, int hat, ubyte value);
+	alias _pSDL_JoystickGetSerial = extern(C) const(char)* function(SDL_Joystick* joystick);
+	alias _pSDL_JoystickRumbleTriggers = extern(C) int function(SDL_Joystick* joystick, ushort leftRumble, ushort rightRumble, uint durationMS);
+	alias _pSDL_JoystickHasLED = extern(C) SDL_bool function(SDL_Joystick* joystick);
+	alias _pSDL_JoystickSetLED = extern(C) int function(SDL_Joystick* joystick, ubyte red, ubyte green, ubyte blue);
+	alias _pSDL_JoystickSendEffect = extern(C) int function(SDL_Joystick* joystick, const(void)* data, int size);
 }
 __gshared nothrow @nogc{
 	package _pSDL_NumJoysticks _SDL_NumJoysticks;
@@ -834,6 +1232,66 @@ __gshared nothrow @nogc{
 	extern(C) ubyte SDL_JoystickGetButton(SDL_Joystick* joystick, int button){ return _SDL_JoystickGetButton(__traits(parameters)); }
 	package _pSDL_JoystickClose _SDL_JoystickClose;
 	extern(C) void SDL_JoystickClose(SDL_Joystick* joystick){ _SDL_JoystickClose(__traits(parameters)); }
+	package _pSDL_JoystickCurrentPowerLevel _SDL_JoystickCurrentPowerLevel;
+	extern(C) SDL_JoystickPowerLevel SDL_JoystickCurrentPowerLevel(SDL_Joystick* joystick){ return _SDL_JoystickCurrentPowerLevel(__traits(parameters)); }
+	package _pSDL_JoystickFromInstanceID _SDL_JoystickFromInstanceID;
+	extern(C) SDL_Joystick* SDL_JoystickFromInstanceID(SDL_JoystickID instanceID){ return _SDL_JoystickFromInstanceID(__traits(parameters)); }
+	package _pSDL_JoystickGetAxisInitialState _SDL_JoystickGetAxisInitialState;
+	extern(C) SDL_bool SDL_JoystickGetAxisInitialState(SDL_Joystick* joystick, int axis, short* state){ return _SDL_JoystickGetAxisInitialState(__traits(parameters)); }
+	package _pSDL_JoystickGetDeviceProduct _SDL_JoystickGetDeviceProduct;
+	extern(C) ushort SDL_JoystickGetDeviceProduct(int deviceIndex){ return _SDL_JoystickGetDeviceProduct(__traits(parameters)); }
+	package _pSDL_JoystickGetDeviceProductVersion _SDL_JoystickGetDeviceProductVersion;
+	extern(C) ushort SDL_JoystickGetDeviceProductVersion(int deviceIndex){ return _SDL_JoystickGetDeviceProductVersion(__traits(parameters)); }
+	package _pSDL_JoystickGetDeviceType _SDL_JoystickGetDeviceType;
+	extern(C) SDL_JoystickType SDL_JoystickGetDeviceType(int deviceIndex){ return _SDL_JoystickGetDeviceType(__traits(parameters)); }
+	package _pSDL_JoystickGetDeviceInstanceID _SDL_JoystickGetDeviceInstanceID;
+	extern(C) SDL_JoystickType SDL_JoystickGetDeviceInstanceID(int deviceIndex){ return _SDL_JoystickGetDeviceInstanceID(__traits(parameters)); }
+	package _pSDL_JoystickGetDeviceVendor _SDL_JoystickGetDeviceVendor;
+	extern(C) ushort SDL_JoystickGetDeviceVendor(int device_index){ return _SDL_JoystickGetDeviceVendor(__traits(parameters)); }
+	package _pSDL_JoystickGetProduct _SDL_JoystickGetProduct;
+	extern(C) ushort SDL_JoystickGetProduct(SDL_Joystick* joystick){ return _SDL_JoystickGetProduct(__traits(parameters)); }
+	package _pSDL_JoystickGetProductVersion _SDL_JoystickGetProductVersion;
+	extern(C) ushort SDL_JoystickGetProductVersion(SDL_Joystick* joystick){ return _SDL_JoystickGetProductVersion(__traits(parameters)); }
+	package _pSDL_JoystickGetType _SDL_JoystickGetType;
+	extern(C) SDL_JoystickType SDL_JoystickGetType(SDL_Joystick* joystick){ return _SDL_JoystickGetType(__traits(parameters)); }
+	package _pSDL_JoystickGetVendor _SDL_JoystickGetVendor;
+	extern(C) ushort SDL_JoystickGetVendor(SDL_Joystick* joystick){ return _SDL_JoystickGetVendor(__traits(parameters)); }
+	package _pSDL_LockJoysticks _SDL_LockJoysticks;
+	extern(C) void SDL_LockJoysticks(){ _SDL_LockJoysticks(__traits(parameters)); }
+	package _pSDL_UnlockJoysticks _SDL_UnlockJoysticks;
+	extern(C) void SDL_UnlockJoysticks(){ _SDL_UnlockJoysticks(__traits(parameters)); }
+	package _pSDL_JoystickRumble _SDL_JoystickRumble;
+	extern(C) int SDL_JoystickRumble(SDL_Joystick* joystick, ushort lowFrequencyRumble, ushort highFrequencyRumble, uint durationMS){ return _SDL_JoystickRumble(__traits(parameters)); }
+	package _pSDL_JoystickGetDevicePlayerIndex _SDL_JoystickGetDevicePlayerIndex;
+	extern(C) int SDL_JoystickGetDevicePlayerIndex(int deviceIndex){ return _SDL_JoystickGetDevicePlayerIndex(__traits(parameters)); }
+	package _pSDL_JoystickGetPlayerIndex _SDL_JoystickGetPlayerIndex;
+	extern(C) int SDL_JoystickGetPlayerIndex(SDL_Joystick* joystick){ return _SDL_JoystickGetPlayerIndex(__traits(parameters)); }
+	package _pSDL_JoystickFromPlayerIndex _SDL_JoystickFromPlayerIndex;
+	extern(C) SDL_Joystick* SDL_JoystickFromPlayerIndex(int){ return _SDL_JoystickFromPlayerIndex(__traits(parameters)); }
+	package _pSDL_JoystickSetPlayerIndex _SDL_JoystickSetPlayerIndex;
+	extern(C) void SDL_JoystickSetPlayerIndex(SDL_Joystick* joystick, int){ _SDL_JoystickSetPlayerIndex(__traits(parameters)); }
+	package _pSDL_JoystickAttachVirtual _SDL_JoystickAttachVirtual;
+	extern(C) int SDL_JoystickAttachVirtual(SDL_JoystickType type, int naxes, int nButtons, int nHats){ return _SDL_JoystickAttachVirtual(__traits(parameters)); }
+	package _pSDL_JoystickDetachVirtual _SDL_JoystickDetachVirtual;
+	extern(C) int SDL_JoystickDetachVirtual(int deviceIndex){ return _SDL_JoystickDetachVirtual(__traits(parameters)); }
+	package _pSDL_JoystickIsVirtual _SDL_JoystickIsVirtual;
+	extern(C) SDL_bool SDL_JoystickIsVirtual(int deviceIndex){ return _SDL_JoystickIsVirtual(__traits(parameters)); }
+	package _pSDL_JoystickSetVirtualAxis _SDL_JoystickSetVirtualAxis;
+	extern(C) int SDL_JoystickSetVirtualAxis(SDL_Joystick* joystick, int axis, short value){ return _SDL_JoystickSetVirtualAxis(__traits(parameters)); }
+	package _pSDL_JoystickSetVirtualButton _SDL_JoystickSetVirtualButton;
+	extern(C) int SDL_JoystickSetVirtualButton(SDL_Joystick* joystick, int button, ubyte value){ return _SDL_JoystickSetVirtualButton(__traits(parameters)); }
+	package _pSDL_JoystickSetVirtualHat _SDL_JoystickSetVirtualHat;
+	extern(C) int SDL_JoystickSetVirtualHat(SDL_Joystick* joystick, int hat, ubyte value){ return _SDL_JoystickSetVirtualHat(__traits(parameters)); }
+	package _pSDL_JoystickGetSerial _SDL_JoystickGetSerial;
+	extern(C) const(char)* SDL_JoystickGetSerial(SDL_Joystick* joystick){ return _SDL_JoystickGetSerial(__traits(parameters)); }
+	package _pSDL_JoystickRumbleTriggers _SDL_JoystickRumbleTriggers;
+	extern(C) int SDL_JoystickRumbleTriggers(SDL_Joystick* joystick, ushort leftRumble, ushort rightRumble, uint durationMS){ return _SDL_JoystickRumbleTriggers(__traits(parameters)); }
+	package _pSDL_JoystickHasLED _SDL_JoystickHasLED;
+	extern(C) SDL_bool SDL_JoystickHasLED(SDL_Joystick* joystick){ return _SDL_JoystickHasLED(__traits(parameters)); }
+	package _pSDL_JoystickSetLED _SDL_JoystickSetLED;
+	extern(C) int SDL_JoystickSetLED(SDL_Joystick* joystick, ubyte red, ubyte green, ubyte blue){ return _SDL_JoystickSetLED(__traits(parameters)); }
+	package _pSDL_JoystickSendEffect _SDL_JoystickSendEffect;
+	extern(C) int SDL_JoystickSendEffect(SDL_Joystick* joystick, const(void)* data, int size){ return _SDL_JoystickSendEffect(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -863,9 +1321,39 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_JoystickGetBall, here.SDL_JoystickGetBall.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_JoystickGetButton, here.SDL_JoystickGetButton.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_JoystickClose, here.SDL_JoystickClose.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickCurrentPowerLevel, here.SDL_JoystickCurrentPowerLevel.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickFromInstanceID, here.SDL_JoystickFromInstanceID.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickGetAxisInitialState, here.SDL_JoystickGetAxisInitialState.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickGetDeviceProduct, here.SDL_JoystickGetDeviceProduct.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickGetDeviceProductVersion, here.SDL_JoystickGetDeviceProductVersion.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickGetDeviceType, here.SDL_JoystickGetDeviceType.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickGetDeviceInstanceID, here.SDL_JoystickGetDeviceInstanceID.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickGetDeviceVendor, here.SDL_JoystickGetDeviceVendor.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickGetProduct, here.SDL_JoystickGetProduct.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickGetProductVersion, here.SDL_JoystickGetProductVersion.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickGetType, here.SDL_JoystickGetType.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickGetVendor, here.SDL_JoystickGetVendor.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_LockJoysticks, here.SDL_LockJoysticks.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_UnlockJoysticks, here.SDL_UnlockJoysticks.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickRumble, here.SDL_JoystickRumble.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickGetDevicePlayerIndex, here.SDL_JoystickGetDevicePlayerIndex.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickGetPlayerIndex, here.SDL_JoystickGetPlayerIndex.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickFromPlayerIndex, here.SDL_JoystickFromPlayerIndex.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickSetPlayerIndex, here.SDL_JoystickSetPlayerIndex.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickAttachVirtual, here.SDL_JoystickAttachVirtual.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickDetachVirtual, here.SDL_JoystickDetachVirtual.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickIsVirtual, here.SDL_JoystickIsVirtual.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickSetVirtualAxis, here.SDL_JoystickSetVirtualAxis.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickSetVirtualButton, here.SDL_JoystickSetVirtualButton.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickSetVirtualHat, here.SDL_JoystickSetVirtualHat.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickGetSerial, here.SDL_JoystickGetSerial.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickRumbleTriggers, here.SDL_JoystickRumbleTriggers.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickHasLED, here.SDL_JoystickHasLED.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickSetLED, here.SDL_JoystickSetLED.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_JoystickSendEffect, here.SDL_JoystickSendEffect.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/rect.d(74,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/rect.d(74,1)
 private nothrow @nogc{
 	alias _pSDL_HasIntersection = extern(C) SDL_bool function(const(SDL_Rect)* a, const(SDL_Rect)* b);
 	alias _pSDL_IntersectRect = extern(C) SDL_bool function(const(SDL_Rect)* a, const(SDL_Rect)* b,SDL_Rect* result);
@@ -899,7 +1387,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_IntersectRectAndLine, here.SDL_IntersectRectAndLine.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/pixels.d(361,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/pixels.d(361,1)
 private nothrow @nogc{
 	alias _pSDL_GetPixelFormatName = extern(C) const(char)* function(SDL_PixelFormatEnum format);
 	alias _pSDL_PixelFormatEnumToMasks = extern(C) SDL_bool function(SDL_PixelFormatEnum format, int* bpp, uint* rMask, uint* gMask, uint* bMask, uint* aMask);
@@ -969,7 +1457,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_CalculateGammaRamp, here.SDL_CalculateGammaRamp.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/surface.d(78,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/surface.d(78,1)
 private nothrow @nogc{
 	alias _pSDL_CreateRGBSurface = extern(C) SDL_Surface* function(uint flags, int width, int height, int depth, uint rMask, uint gMask, uint bMask, uint aMask);
 	alias _pSDL_CreateRGBSurfaceFrom = extern(C) SDL_Surface* function(void* pixels, int width, int height, int depth, int pitch, uint rMask, uint gMask, uint bMask, uint aMask);
@@ -1000,6 +1488,14 @@ private nothrow @nogc{
 	alias _pSDL_SoftStretch = extern(C) int function(SDL_Surface* src, const(SDL_Rect)* srcRect, SDL_Surface* dst, const(SDL_Rect)* dstRect);
 	alias _pSDL_UpperBlitScaled = extern(C) int function(SDL_Surface* src, const(SDL_Rect)* srcRect, SDL_Surface* dst, SDL_Rect* dstRect);
 	alias _pSDL_LowerBlitScaled = extern(C) int function(SDL_Surface* src, SDL_Rect* srcRect, SDL_Surface* dst, SDL_Rect* dstRect);
+	alias _pSDL_CreateRGBSurfaceWithFormat = extern(C) SDL_Surface* function(uint flags, int width, int height, int depth, uint format);
+	alias _pSDL_CreateRGBSurfaceWithFormatFrom = extern(C) SDL_Surface* function(void* pixels, int width, int height, int depth, int pitch, uint format);
+	alias _pSDL_DuplicateSurface = extern(C) SDL_Surface* function(SDL_Surface* surface);
+	alias _pSDL_SetYUVConversionMode = extern(C) void function(SDL_YUV_CONVERSION_MODE mode);
+	alias _pSDL_GetYUVConversionMode = extern(C) SDL_YUV_CONVERSION_MODE function();
+	alias _pSDL_GetYUVConversionModeForResolution = extern(C) SDL_YUV_CONVERSION_MODE function(int width, int height);
+	alias _pSDL_HasColorKey = extern(C) SDL_bool function(SDL_Surface* surface);
+	alias _pSDL_SoftStretchLinear = extern(C) int function(SDL_Surface* src, const(SDL_Rect)* srcRect, SDL_Surface* dst, const(SDL_Rect)* dstRect);
 }
 __gshared nothrow @nogc{
 	package _pSDL_CreateRGBSurface _SDL_CreateRGBSurface;
@@ -1060,6 +1556,22 @@ __gshared nothrow @nogc{
 	extern(C) int SDL_UpperBlitScaled(SDL_Surface* src, const(SDL_Rect)* srcRect, SDL_Surface* dst, SDL_Rect* dstRect){ return _SDL_UpperBlitScaled(__traits(parameters)); }
 	package _pSDL_LowerBlitScaled _SDL_LowerBlitScaled;
 	extern(C) int SDL_LowerBlitScaled(SDL_Surface* src, SDL_Rect* srcRect, SDL_Surface* dst, SDL_Rect* dstRect){ return _SDL_LowerBlitScaled(__traits(parameters)); }
+	package _pSDL_CreateRGBSurfaceWithFormat _SDL_CreateRGBSurfaceWithFormat;
+	extern(C) SDL_Surface* SDL_CreateRGBSurfaceWithFormat(uint flags, int width, int height, int depth, uint format){ return _SDL_CreateRGBSurfaceWithFormat(__traits(parameters)); }
+	package _pSDL_CreateRGBSurfaceWithFormatFrom _SDL_CreateRGBSurfaceWithFormatFrom;
+	extern(C) SDL_Surface* SDL_CreateRGBSurfaceWithFormatFrom(void* pixels, int width, int height, int depth, int pitch, uint format){ return _SDL_CreateRGBSurfaceWithFormatFrom(__traits(parameters)); }
+	package _pSDL_DuplicateSurface _SDL_DuplicateSurface;
+	extern(C) SDL_Surface* SDL_DuplicateSurface(SDL_Surface* surface){ return _SDL_DuplicateSurface(__traits(parameters)); }
+	package _pSDL_SetYUVConversionMode _SDL_SetYUVConversionMode;
+	extern(C) void SDL_SetYUVConversionMode(SDL_YUV_CONVERSION_MODE mode){ _SDL_SetYUVConversionMode(__traits(parameters)); }
+	package _pSDL_GetYUVConversionMode _SDL_GetYUVConversionMode;
+	extern(C) SDL_YUV_CONVERSION_MODE SDL_GetYUVConversionMode(){ return _SDL_GetYUVConversionMode(__traits(parameters)); }
+	package _pSDL_GetYUVConversionModeForResolution _SDL_GetYUVConversionModeForResolution;
+	extern(C) SDL_YUV_CONVERSION_MODE SDL_GetYUVConversionModeForResolution(int width, int height){ return _SDL_GetYUVConversionModeForResolution(__traits(parameters)); }
+	package _pSDL_HasColorKey _SDL_HasColorKey;
+	extern(C) SDL_bool SDL_HasColorKey(SDL_Surface* surface){ return _SDL_HasColorKey(__traits(parameters)); }
+	package _pSDL_SoftStretchLinear _SDL_SoftStretchLinear;
+	extern(C) int SDL_SoftStretchLinear(SDL_Surface* src, const(SDL_Rect)* srcRect, SDL_Surface* dst, const(SDL_Rect)* dstRect){ return _SDL_SoftStretchLinear(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -1097,9 +1609,17 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_SoftStretch, here.SDL_SoftStretch.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_UpperBlitScaled, here.SDL_UpperBlitScaled.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_LowerBlitScaled, here.SDL_LowerBlitScaled.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_CreateRGBSurfaceWithFormat, here.SDL_CreateRGBSurfaceWithFormat.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_CreateRGBSurfaceWithFormatFrom, here.SDL_CreateRGBSurfaceWithFormatFrom.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_DuplicateSurface, here.SDL_DuplicateSurface.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SetYUVConversionMode, here.SDL_SetYUVConversionMode.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetYUVConversionMode, here.SDL_GetYUVConversionMode.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetYUVConversionModeForResolution, here.SDL_GetYUVConversionModeForResolution.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_HasColorKey, here.SDL_HasColorKey.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SoftStretchLinear, here.SDL_SoftStretchLinear.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/video.d(250,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/video.d(250,1)
 private nothrow @nogc{
 	alias _pSDL_GetNumVideoDrivers = extern(C) int function();
 	alias _pSDL_GetVideoDriver = extern(C) const(char)* function(int index);
@@ -1171,6 +1691,25 @@ private nothrow @nogc{
 	alias _pSDL_GL_GetSwapInterval = extern(C) int function();
 	alias _pSDL_GL_SwapWindow = extern(C) void function(SDL_Window* window);
 	alias _pSDL_GL_DeleteContext = extern(C) void function(SDL_GLContext context);
+	alias _pSDL_GL_GetDrawableSize = extern(C) void function(SDL_Window* window, int* w, int* h);
+	alias _pSDL_GL_ResetAttributes = extern(C) void function();
+	alias _pSDL_GetDisplayDPI = extern(C) int function(int displayIndex, float* ddpi, float* hdpi, float* vdpi);
+	alias _pSDL_GetGrabbedWindow = extern(C) SDL_Window* function();
+	alias _pSDL_SetWindowHitTest = extern(C) int function(SDL_Window* window, SDL_HitTest callback, void* callbackData);
+	alias _pSDL_GetDisplayUsableBounds = extern(C) int function(int displayIndex, SDL_Rect* rect);
+	alias _pSDL_GetWindowBordersSize = extern(C) int function(SDL_Window* window, int* top, int* left, int* bottom, int* right);
+	alias _pSDL_GetWindowOpacity = extern(C) int function(SDL_Window* window, float* opacity);
+	alias _pSDL_SetWindowInputFocus = extern(C) int function(SDL_Window* window);
+	alias _pSDL_SetWindowModalFor = extern(C) int function(SDL_Window* modalWindow, SDL_Window* parentWindow);
+	alias _pSDL_SetWindowOpacity = extern(C) int function(SDL_Window* window, float opacity);
+	alias _pSDL_SetWindowResizable = extern(C) void function(SDL_Window* window, SDL_bool resizable);
+	alias _pSDL_GetDisplayOrientation = extern(C) SDL_DisplayOrientation function(int displayIndex);
+	alias _pSDL_FlashWindow = extern(C) int function(SDL_Window* window, SDL_FlashOperation operation);
+	alias _pSDL_SetWindowAlwaysOnTop = extern(C) void function(SDL_Window* window, SDL_bool on_top);
+	alias _pSDL_SetWindowKeyboardGrab = extern(C) void function(SDL_Window* window, SDL_bool grabbed);
+	alias _pSDL_GetWindowKeyboardGrab = extern(C) SDL_bool function(SDL_Window * window);
+	alias _pSDL_SetWindowMouseGrab = extern(C) void function(SDL_Window* window, SDL_bool grabbed);
+	alias _pSDL_GetWindowMouseGrab = extern(C) SDL_bool function(SDL_Window* window);
 }
 __gshared nothrow @nogc{
 	package _pSDL_GetNumVideoDrivers _SDL_GetNumVideoDrivers;
@@ -1313,6 +1852,44 @@ __gshared nothrow @nogc{
 	extern(C) void SDL_GL_SwapWindow(SDL_Window* window){ _SDL_GL_SwapWindow(__traits(parameters)); }
 	package _pSDL_GL_DeleteContext _SDL_GL_DeleteContext;
 	extern(C) void SDL_GL_DeleteContext(SDL_GLContext context){ _SDL_GL_DeleteContext(__traits(parameters)); }
+	package _pSDL_GL_GetDrawableSize _SDL_GL_GetDrawableSize;
+	extern(C) void SDL_GL_GetDrawableSize(SDL_Window* window, int* w, int* h){ _SDL_GL_GetDrawableSize(__traits(parameters)); }
+	package _pSDL_GL_ResetAttributes _SDL_GL_ResetAttributes;
+	extern(C) void SDL_GL_ResetAttributes(){ _SDL_GL_ResetAttributes(__traits(parameters)); }
+	package _pSDL_GetDisplayDPI _SDL_GetDisplayDPI;
+	extern(C) int SDL_GetDisplayDPI(int displayIndex, float* ddpi, float* hdpi, float* vdpi){ return _SDL_GetDisplayDPI(__traits(parameters)); }
+	package _pSDL_GetGrabbedWindow _SDL_GetGrabbedWindow;
+	extern(C) SDL_Window* SDL_GetGrabbedWindow(){ return _SDL_GetGrabbedWindow(__traits(parameters)); }
+	package _pSDL_SetWindowHitTest _SDL_SetWindowHitTest;
+	extern(C) int SDL_SetWindowHitTest(SDL_Window* window, SDL_HitTest callback, void* callbackData){ return _SDL_SetWindowHitTest(__traits(parameters)); }
+	package _pSDL_GetDisplayUsableBounds _SDL_GetDisplayUsableBounds;
+	extern(C) int SDL_GetDisplayUsableBounds(int displayIndex, SDL_Rect* rect){ return _SDL_GetDisplayUsableBounds(__traits(parameters)); }
+	package _pSDL_GetWindowBordersSize _SDL_GetWindowBordersSize;
+	extern(C) int SDL_GetWindowBordersSize(SDL_Window* window, int* top, int* left, int* bottom, int* right){ return _SDL_GetWindowBordersSize(__traits(parameters)); }
+	package _pSDL_GetWindowOpacity _SDL_GetWindowOpacity;
+	extern(C) int SDL_GetWindowOpacity(SDL_Window* window, float* opacity){ return _SDL_GetWindowOpacity(__traits(parameters)); }
+	package _pSDL_SetWindowInputFocus _SDL_SetWindowInputFocus;
+	extern(C) int SDL_SetWindowInputFocus(SDL_Window* window){ return _SDL_SetWindowInputFocus(__traits(parameters)); }
+	package _pSDL_SetWindowModalFor _SDL_SetWindowModalFor;
+	extern(C) int SDL_SetWindowModalFor(SDL_Window* modalWindow, SDL_Window* parentWindow){ return _SDL_SetWindowModalFor(__traits(parameters)); }
+	package _pSDL_SetWindowOpacity _SDL_SetWindowOpacity;
+	extern(C) int SDL_SetWindowOpacity(SDL_Window* window, float opacity){ return _SDL_SetWindowOpacity(__traits(parameters)); }
+	package _pSDL_SetWindowResizable _SDL_SetWindowResizable;
+	extern(C) void SDL_SetWindowResizable(SDL_Window* window, SDL_bool resizable){ _SDL_SetWindowResizable(__traits(parameters)); }
+	package _pSDL_GetDisplayOrientation _SDL_GetDisplayOrientation;
+	extern(C) SDL_DisplayOrientation SDL_GetDisplayOrientation(int displayIndex){ return _SDL_GetDisplayOrientation(__traits(parameters)); }
+	package _pSDL_FlashWindow _SDL_FlashWindow;
+	extern(C) int SDL_FlashWindow(SDL_Window* window, SDL_FlashOperation operation){ return _SDL_FlashWindow(__traits(parameters)); }
+	package _pSDL_SetWindowAlwaysOnTop _SDL_SetWindowAlwaysOnTop;
+	extern(C) void SDL_SetWindowAlwaysOnTop(SDL_Window* window, SDL_bool on_top){ _SDL_SetWindowAlwaysOnTop(__traits(parameters)); }
+	package _pSDL_SetWindowKeyboardGrab _SDL_SetWindowKeyboardGrab;
+	extern(C) void SDL_SetWindowKeyboardGrab(SDL_Window* window, SDL_bool grabbed){ _SDL_SetWindowKeyboardGrab(__traits(parameters)); }
+	package _pSDL_GetWindowKeyboardGrab _SDL_GetWindowKeyboardGrab;
+	extern(C) SDL_bool SDL_GetWindowKeyboardGrab(SDL_Window * window){ return _SDL_GetWindowKeyboardGrab(__traits(parameters)); }
+	package _pSDL_SetWindowMouseGrab _SDL_SetWindowMouseGrab;
+	extern(C) void SDL_SetWindowMouseGrab(SDL_Window* window, SDL_bool grabbed){ _SDL_SetWindowMouseGrab(__traits(parameters)); }
+	package _pSDL_GetWindowMouseGrab _SDL_GetWindowMouseGrab;
+	extern(C) SDL_bool SDL_GetWindowMouseGrab(SDL_Window* window){ return _SDL_GetWindowMouseGrab(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -1391,9 +1968,28 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GL_GetSwapInterval, here.SDL_GL_GetSwapInterval.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_GL_SwapWindow, here.SDL_GL_SwapWindow.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_GL_DeleteContext, here.SDL_GL_DeleteContext.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GL_GetDrawableSize, here.SDL_GL_GetDrawableSize.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GL_ResetAttributes, here.SDL_GL_ResetAttributes.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetDisplayDPI, here.SDL_GetDisplayDPI.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetGrabbedWindow, here.SDL_GetGrabbedWindow.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SetWindowHitTest, here.SDL_SetWindowHitTest.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetDisplayUsableBounds, here.SDL_GetDisplayUsableBounds.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetWindowBordersSize, here.SDL_GetWindowBordersSize.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetWindowOpacity, here.SDL_GetWindowOpacity.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SetWindowInputFocus, here.SDL_SetWindowInputFocus.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SetWindowModalFor, here.SDL_SetWindowModalFor.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SetWindowOpacity, here.SDL_SetWindowOpacity.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SetWindowResizable, here.SDL_SetWindowResizable.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetDisplayOrientation, here.SDL_GetDisplayOrientation.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_FlashWindow, here.SDL_FlashWindow.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SetWindowAlwaysOnTop, here.SDL_SetWindowAlwaysOnTop.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SetWindowKeyboardGrab, here.SDL_SetWindowKeyboardGrab.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetWindowKeyboardGrab, here.SDL_GetWindowKeyboardGrab.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SetWindowMouseGrab, here.SDL_SetWindowMouseGrab.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetWindowMouseGrab, here.SDL_GetWindowMouseGrab.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/keyboard.d(26,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/keyboard.d(26,1)
 private nothrow @nogc{
 	alias _pSDL_GetKeyboardFocus = extern(C) SDL_Window* function();
 	alias _pSDL_GetKeyboardState = extern(C) ubyte* function(int* numKeys);
@@ -1471,7 +2067,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_SetTextInputRect, here.SDL_SetTextInputRect.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/syswm.d(244,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/syswm.d(244,1)
 private nothrow @nogc{
 	alias _pSDL_GetWindowWMInfo = extern(C) SDL_bool function(SDL_Window* window, SDL_SysWMinfo* info);
 }
@@ -1489,7 +2085,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GetWindowWMInfo, here.SDL_GetWindowWMInfo.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/events.d(517,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/events.d(517,1)
 private nothrow @nogc{
 	alias _pSDL_PumpEvents = extern(C) void function();
 	alias _pSDL_PeepEvents = extern(C) int function(SDL_Event* events, int numEvents, SDL_eventaction action, SDL_EventType minType, SDL_EventType maxType);
@@ -1571,10 +2167,16 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_RegisterEvents, here.SDL_RegisterEvents.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/filesystem.d(13,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/filesystem.d(13,1)
 private nothrow @nogc{
+	alias _pSDL_GetBasePath = extern(C) char* function();
+	alias _pSDL_GetPrefPath = extern(C) char* function(const(char)* org, const(char)* app);
 }
 __gshared nothrow @nogc{
+	package _pSDL_GetBasePath _SDL_GetBasePath;
+	extern(C) char* SDL_GetBasePath(){ return _SDL_GetBasePath(__traits(parameters)); }
+	package _pSDL_GetPrefPath _SDL_GetPrefPath;
+	extern(C) char* SDL_GetPrefPath(const(char)* org, const(char)* app){ return _SDL_GetPrefPath(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -1583,12 +2185,59 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	static if(__traits(compiles, typeof(this))) return __traits(identifier, typeof(this));
 	else return mod;
 }());
+	lib.bindSymbol(cast(void**)&_SDL_GetBasePath, here.SDL_GetBasePath.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetPrefPath, here.SDL_GetPrefPath.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/sensor.d(36,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/sensor.d(36,1)
 private nothrow @nogc{
+	alias _pSDL_NumSensors = extern(C) int function();
+	alias _pSDL_SensorGetDeviceName = extern(C) const(char)* function(int deviceIndex);
+	alias _pSDL_SensorGetDeviceType = extern(C) SDL_SensorType function(int deviceIndex);
+	alias _pSDL_SensorGetDeviceNonPortableType = extern(C) int function(int deviceIndex);
+	alias _pSDL_SensorGetDeviceInstanceID = extern(C) SDL_SensorID function(int deviceIndex);
+	alias _pSDL_SensorOpen = extern(C) SDL_Sensor* function(int deviceIndex);
+	alias _pSDL_SensorFromInstanceID = extern(C) SDL_Sensor* function(SDL_SensorID instanceID);
+	alias _pSDL_SensorGetName = extern(C) const(char)* function(SDL_Sensor* sensor);
+	alias _pSDL_SensorGetType = extern(C) SDL_SensorType function(SDL_Sensor* sensor);
+	alias _pSDL_SensorGetNonPortableType = extern(C) int function(SDL_Sensor* sensor);
+	alias _pSDL_SensorGetData = extern(C) int function(SDL_Sensor* sensor, float* data, int numValues);
+	alias _pSDL_SensorClose = extern(C) void function(SDL_Sensor* sensor);
+	alias _pSDL_SensorUpdate = extern(C) void function();
+	alias _pSDL_LockSensors = extern(C) void function();
+	alias _pSDL_UnlockSensors = extern(C) void function();
 }
 __gshared nothrow @nogc{
+	package _pSDL_NumSensors _SDL_NumSensors;
+	extern(C) int SDL_NumSensors(){ return _SDL_NumSensors(__traits(parameters)); }
+	package _pSDL_SensorGetDeviceName _SDL_SensorGetDeviceName;
+	extern(C) const(char)* SDL_SensorGetDeviceName(int deviceIndex){ return _SDL_SensorGetDeviceName(__traits(parameters)); }
+	package _pSDL_SensorGetDeviceType _SDL_SensorGetDeviceType;
+	extern(C) SDL_SensorType SDL_SensorGetDeviceType(int deviceIndex){ return _SDL_SensorGetDeviceType(__traits(parameters)); }
+	package _pSDL_SensorGetDeviceNonPortableType _SDL_SensorGetDeviceNonPortableType;
+	extern(C) int SDL_SensorGetDeviceNonPortableType(int deviceIndex){ return _SDL_SensorGetDeviceNonPortableType(__traits(parameters)); }
+	package _pSDL_SensorGetDeviceInstanceID _SDL_SensorGetDeviceInstanceID;
+	extern(C) SDL_SensorID SDL_SensorGetDeviceInstanceID(int deviceIndex){ return _SDL_SensorGetDeviceInstanceID(__traits(parameters)); }
+	package _pSDL_SensorOpen _SDL_SensorOpen;
+	extern(C) SDL_Sensor* SDL_SensorOpen(int deviceIndex){ return _SDL_SensorOpen(__traits(parameters)); }
+	package _pSDL_SensorFromInstanceID _SDL_SensorFromInstanceID;
+	extern(C) SDL_Sensor* SDL_SensorFromInstanceID(SDL_SensorID instanceID){ return _SDL_SensorFromInstanceID(__traits(parameters)); }
+	package _pSDL_SensorGetName _SDL_SensorGetName;
+	extern(C) const(char)* SDL_SensorGetName(SDL_Sensor* sensor){ return _SDL_SensorGetName(__traits(parameters)); }
+	package _pSDL_SensorGetType _SDL_SensorGetType;
+	extern(C) SDL_SensorType SDL_SensorGetType(SDL_Sensor* sensor){ return _SDL_SensorGetType(__traits(parameters)); }
+	package _pSDL_SensorGetNonPortableType _SDL_SensorGetNonPortableType;
+	extern(C) int SDL_SensorGetNonPortableType(SDL_Sensor* sensor){ return _SDL_SensorGetNonPortableType(__traits(parameters)); }
+	package _pSDL_SensorGetData _SDL_SensorGetData;
+	extern(C) int SDL_SensorGetData(SDL_Sensor* sensor, float* data, int numValues){ return _SDL_SensorGetData(__traits(parameters)); }
+	package _pSDL_SensorClose _SDL_SensorClose;
+	extern(C) void SDL_SensorClose(SDL_Sensor* sensor){ _SDL_SensorClose(__traits(parameters)); }
+	package _pSDL_SensorUpdate _SDL_SensorUpdate;
+	extern(C) void SDL_SensorUpdate(){ _SDL_SensorUpdate(__traits(parameters)); }
+	package _pSDL_LockSensors _SDL_LockSensors;
+	extern(C) void SDL_LockSensors(){ _SDL_LockSensors(__traits(parameters)); }
+	package _pSDL_UnlockSensors _SDL_UnlockSensors;
+	extern(C) void SDL_UnlockSensors(){ _SDL_UnlockSensors(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -1597,9 +2246,24 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	static if(__traits(compiles, typeof(this))) return __traits(identifier, typeof(this));
 	else return mod;
 }());
+	lib.bindSymbol(cast(void**)&_SDL_NumSensors, here.SDL_NumSensors.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SensorGetDeviceName, here.SDL_SensorGetDeviceName.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SensorGetDeviceType, here.SDL_SensorGetDeviceType.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SensorGetDeviceNonPortableType, here.SDL_SensorGetDeviceNonPortableType.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SensorGetDeviceInstanceID, here.SDL_SensorGetDeviceInstanceID.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SensorOpen, here.SDL_SensorOpen.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SensorFromInstanceID, here.SDL_SensorFromInstanceID.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SensorGetName, here.SDL_SensorGetName.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SensorGetType, here.SDL_SensorGetType.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SensorGetNonPortableType, here.SDL_SensorGetNonPortableType.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SensorGetData, here.SDL_SensorGetData.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SensorClose, here.SDL_SensorClose.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SensorUpdate, here.SDL_SensorUpdate.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_LockSensors, here.SDL_LockSensors.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_UnlockSensors, here.SDL_UnlockSensors.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/gamecontroller.d(127,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/gamecontroller.d(127,1)
 private nothrow @nogc{
 	alias _pSDL_GameControllerAddMapping = extern(C) int function(const(char)* mappingString);
 	alias _pSDL_GameControllerMappingForGUID = extern(C) char* function(SDL_JoystickGUID guid);
@@ -1621,6 +2285,34 @@ private nothrow @nogc{
 	alias _pSDL_GameControllerGetBindForButton = extern(C) SDL_GameControllerButtonBind function(SDL_GameController* gameController, SDL_GameControllerButton button);
 	alias _pSDL_GameControllerGetButton = extern(C) ubyte function(SDL_GameController* gameController, SDL_GameControllerButton button);
 	alias _pSDL_GameControllerClose = extern(C) void function(SDL_GameController* gameController);
+	alias _pSDL_GameControllerAddMappingsFromRW = extern(C) int function(SDL_RWops* rw, int freeRW);
+	alias _pSDL_GameControllerFromInstanceID = extern(C) SDL_GameController* function(SDL_JoystickID joyID);
+	alias _pSDL_GameControllerGetProduct = extern(C) ushort function(SDL_GameController* gameController);
+	alias _pSDL_GameControllerGetProductVersion = extern(C) ushort function(SDL_GameController* gameController);
+	alias _pSDL_GameControllerGetVendor = extern(C) ushort function(SDL_GameController* gameController);
+	alias _pSDL_GameControllerMappingForIndex = extern(C) char* function(int mappingIndex);
+	alias _pSDL_GameControllerNumMappings = extern(C) int function();
+	alias _pSDL_GameControllerMappingForDeviceIndex = extern(C) char* function(int joystickIndex);
+	alias _pSDL_GameControllerRumble = extern(C) int function(SDL_GameController* gameController, ushort lowFrequencyRumble, ushort highFrequencyRumble, uint durationMS);
+	alias _pSDL_GameControllerGetPlayerIndex = extern(C) int function(SDL_GameController* gameController);
+	alias _pSDL_GameControllerTypeForIndex = extern(C) SDL_GameControllerType function(int joystickIndex);
+	alias _pSDL_GameControllerFromPlayerIndex = extern(C) SDL_GameController* function(int playerIndex);
+	alias _pSDL_GameControllerGetType = extern(C) SDL_GameControllerType function(SDL_GameController* gameController);
+	alias _pSDL_GameControllerSetPlayerIndex = extern(C) void function(SDL_GameController* gameController, int playerIndex);
+	alias _pSDL_GameControllerHasAxis = extern(C) SDL_bool function(SDL_GameController* gameController, SDL_GameControllerAxis axis);
+	alias _pSDL_GameControllerHasButton = extern(C) SDL_bool function(SDL_GameController* gameController, SDL_GameControllerButton button);
+	alias _pSDL_GameControllerGetNumTouchpads = extern(C) int function(SDL_GameController* gameController);
+	alias _pSDL_GameControllerGetNumTouchpadFingers = extern(C) int function(SDL_GameController* gameController, int touchpad);
+	alias _pSDL_GameControllerGetTouchpadFinger = extern(C) int function(SDL_GameController* gameController, int touchpad, int finger, ubyte* state, float* x, float* y, float* pressure);
+	alias _pSDL_GameControllerHasSensor = extern(C) SDL_bool function(SDL_GameController* gameController, SDL_SensorType type);
+	alias _pSDL_GameControllerSetSensorEnabled = extern(C) int function(SDL_GameController* gameController, SDL_SensorType type, SDL_bool enabled);
+	alias _pSDL_GameControllerIsSensorEnabled = extern(C) SDL_bool function(SDL_GameController* gameController, SDL_SensorType type);
+	alias _pSDL_GameControllerGetSensorData = extern(C) int function(SDL_GameController* gameController, SDL_SensorType type, float* data, int numValues);
+	alias _pSDL_GameControllerRumbleTriggers = extern(C) int function(SDL_GameController* gameController, ushort leftRumble, ushort rightRumble, uint durationMS);
+	alias _pSDL_GameControllerHasLED = extern(C) SDL_bool function(SDL_GameController* gameController);
+	alias _pSDL_GameControllerSetLED = extern(C) int function(SDL_GameController* gameController, ubyte red, ubyte green, ubyte blue);
+	alias _pSDL_GameControllerSendEffect = extern(C) int function(SDL_GameController* gameController, const(void)* data, int size);
+	alias _pSDL_GameControllerGetSensorDataRate = extern(C) float function(SDL_GameController* gameController, SDL_SensorType type);
 }
 __gshared nothrow @nogc{
 	package _pSDL_GameControllerAddMapping _SDL_GameControllerAddMapping;
@@ -1663,6 +2355,62 @@ __gshared nothrow @nogc{
 	extern(C) ubyte SDL_GameControllerGetButton(SDL_GameController* gameController, SDL_GameControllerButton button){ return _SDL_GameControllerGetButton(__traits(parameters)); }
 	package _pSDL_GameControllerClose _SDL_GameControllerClose;
 	extern(C) void SDL_GameControllerClose(SDL_GameController* gameController){ _SDL_GameControllerClose(__traits(parameters)); }
+	package _pSDL_GameControllerAddMappingsFromRW _SDL_GameControllerAddMappingsFromRW;
+	extern(C) int SDL_GameControllerAddMappingsFromRW(SDL_RWops* rw, int freeRW){ return _SDL_GameControllerAddMappingsFromRW(__traits(parameters)); }
+	package _pSDL_GameControllerFromInstanceID _SDL_GameControllerFromInstanceID;
+	extern(C) SDL_GameController* SDL_GameControllerFromInstanceID(SDL_JoystickID joyID){ return _SDL_GameControllerFromInstanceID(__traits(parameters)); }
+	package _pSDL_GameControllerGetProduct _SDL_GameControllerGetProduct;
+	extern(C) ushort SDL_GameControllerGetProduct(SDL_GameController* gameController){ return _SDL_GameControllerGetProduct(__traits(parameters)); }
+	package _pSDL_GameControllerGetProductVersion _SDL_GameControllerGetProductVersion;
+	extern(C) ushort SDL_GameControllerGetProductVersion(SDL_GameController* gameController){ return _SDL_GameControllerGetProductVersion(__traits(parameters)); }
+	package _pSDL_GameControllerGetVendor _SDL_GameControllerGetVendor;
+	extern(C) ushort SDL_GameControllerGetVendor(SDL_GameController* gameController){ return _SDL_GameControllerGetVendor(__traits(parameters)); }
+	package _pSDL_GameControllerMappingForIndex _SDL_GameControllerMappingForIndex;
+	extern(C) char* SDL_GameControllerMappingForIndex(int mappingIndex){ return _SDL_GameControllerMappingForIndex(__traits(parameters)); }
+	package _pSDL_GameControllerNumMappings _SDL_GameControllerNumMappings;
+	extern(C) int SDL_GameControllerNumMappings(){ return _SDL_GameControllerNumMappings(__traits(parameters)); }
+	package _pSDL_GameControllerMappingForDeviceIndex _SDL_GameControllerMappingForDeviceIndex;
+	extern(C) char* SDL_GameControllerMappingForDeviceIndex(int joystickIndex){ return _SDL_GameControllerMappingForDeviceIndex(__traits(parameters)); }
+	package _pSDL_GameControllerRumble _SDL_GameControllerRumble;
+	extern(C) int SDL_GameControllerRumble(SDL_GameController* gameController, ushort lowFrequencyRumble, ushort highFrequencyRumble, uint durationMS){ return _SDL_GameControllerRumble(__traits(parameters)); }
+	package _pSDL_GameControllerGetPlayerIndex _SDL_GameControllerGetPlayerIndex;
+	extern(C) int SDL_GameControllerGetPlayerIndex(SDL_GameController* gameController){ return _SDL_GameControllerGetPlayerIndex(__traits(parameters)); }
+	package _pSDL_GameControllerTypeForIndex _SDL_GameControllerTypeForIndex;
+	extern(C) SDL_GameControllerType SDL_GameControllerTypeForIndex(int joystickIndex){ return _SDL_GameControllerTypeForIndex(__traits(parameters)); }
+	package _pSDL_GameControllerFromPlayerIndex _SDL_GameControllerFromPlayerIndex;
+	extern(C) SDL_GameController* SDL_GameControllerFromPlayerIndex(int playerIndex){ return _SDL_GameControllerFromPlayerIndex(__traits(parameters)); }
+	package _pSDL_GameControllerGetType _SDL_GameControllerGetType;
+	extern(C) SDL_GameControllerType SDL_GameControllerGetType(SDL_GameController* gameController){ return _SDL_GameControllerGetType(__traits(parameters)); }
+	package _pSDL_GameControllerSetPlayerIndex _SDL_GameControllerSetPlayerIndex;
+	extern(C) void SDL_GameControllerSetPlayerIndex(SDL_GameController* gameController, int playerIndex){ _SDL_GameControllerSetPlayerIndex(__traits(parameters)); }
+	package _pSDL_GameControllerHasAxis _SDL_GameControllerHasAxis;
+	extern(C) SDL_bool SDL_GameControllerHasAxis(SDL_GameController* gameController, SDL_GameControllerAxis axis){ return _SDL_GameControllerHasAxis(__traits(parameters)); }
+	package _pSDL_GameControllerHasButton _SDL_GameControllerHasButton;
+	extern(C) SDL_bool SDL_GameControllerHasButton(SDL_GameController* gameController, SDL_GameControllerButton button){ return _SDL_GameControllerHasButton(__traits(parameters)); }
+	package _pSDL_GameControllerGetNumTouchpads _SDL_GameControllerGetNumTouchpads;
+	extern(C) int SDL_GameControllerGetNumTouchpads(SDL_GameController* gameController){ return _SDL_GameControllerGetNumTouchpads(__traits(parameters)); }
+	package _pSDL_GameControllerGetNumTouchpadFingers _SDL_GameControllerGetNumTouchpadFingers;
+	extern(C) int SDL_GameControllerGetNumTouchpadFingers(SDL_GameController* gameController, int touchpad){ return _SDL_GameControllerGetNumTouchpadFingers(__traits(parameters)); }
+	package _pSDL_GameControllerGetTouchpadFinger _SDL_GameControllerGetTouchpadFinger;
+	extern(C) int SDL_GameControllerGetTouchpadFinger(SDL_GameController* gameController, int touchpad, int finger, ubyte* state, float* x, float* y, float* pressure){ return _SDL_GameControllerGetTouchpadFinger(__traits(parameters)); }
+	package _pSDL_GameControllerHasSensor _SDL_GameControllerHasSensor;
+	extern(C) SDL_bool SDL_GameControllerHasSensor(SDL_GameController* gameController, SDL_SensorType type){ return _SDL_GameControllerHasSensor(__traits(parameters)); }
+	package _pSDL_GameControllerSetSensorEnabled _SDL_GameControllerSetSensorEnabled;
+	extern(C) int SDL_GameControllerSetSensorEnabled(SDL_GameController* gameController, SDL_SensorType type, SDL_bool enabled){ return _SDL_GameControllerSetSensorEnabled(__traits(parameters)); }
+	package _pSDL_GameControllerIsSensorEnabled _SDL_GameControllerIsSensorEnabled;
+	extern(C) SDL_bool SDL_GameControllerIsSensorEnabled(SDL_GameController* gameController, SDL_SensorType type){ return _SDL_GameControllerIsSensorEnabled(__traits(parameters)); }
+	package _pSDL_GameControllerGetSensorData _SDL_GameControllerGetSensorData;
+	extern(C) int SDL_GameControllerGetSensorData(SDL_GameController* gameController, SDL_SensorType type, float* data, int numValues){ return _SDL_GameControllerGetSensorData(__traits(parameters)); }
+	package _pSDL_GameControllerRumbleTriggers _SDL_GameControllerRumbleTriggers;
+	extern(C) int SDL_GameControllerRumbleTriggers(SDL_GameController* gameController, ushort leftRumble, ushort rightRumble, uint durationMS){ return _SDL_GameControllerRumbleTriggers(__traits(parameters)); }
+	package _pSDL_GameControllerHasLED _SDL_GameControllerHasLED;
+	extern(C) SDL_bool SDL_GameControllerHasLED(SDL_GameController* gameController){ return _SDL_GameControllerHasLED(__traits(parameters)); }
+	package _pSDL_GameControllerSetLED _SDL_GameControllerSetLED;
+	extern(C) int SDL_GameControllerSetLED(SDL_GameController* gameController, ubyte red, ubyte green, ubyte blue){ return _SDL_GameControllerSetLED(__traits(parameters)); }
+	package _pSDL_GameControllerSendEffect _SDL_GameControllerSendEffect;
+	extern(C) int SDL_GameControllerSendEffect(SDL_GameController* gameController, const(void)* data, int size){ return _SDL_GameControllerSendEffect(__traits(parameters)); }
+	package _pSDL_GameControllerGetSensorDataRate _SDL_GameControllerGetSensorDataRate;
+	extern(C) float SDL_GameControllerGetSensorDataRate(SDL_GameController* gameController, SDL_SensorType type){ return _SDL_GameControllerGetSensorDataRate(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -1691,9 +2439,37 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GameControllerGetBindForButton, here.SDL_GameControllerGetBindForButton.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_GameControllerGetButton, here.SDL_GameControllerGetButton.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_GameControllerClose, here.SDL_GameControllerClose.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerAddMappingsFromRW, here.SDL_GameControllerAddMappingsFromRW.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerFromInstanceID, here.SDL_GameControllerFromInstanceID.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerGetProduct, here.SDL_GameControllerGetProduct.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerGetProductVersion, here.SDL_GameControllerGetProductVersion.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerGetVendor, here.SDL_GameControllerGetVendor.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerMappingForIndex, here.SDL_GameControllerMappingForIndex.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerNumMappings, here.SDL_GameControllerNumMappings.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerMappingForDeviceIndex, here.SDL_GameControllerMappingForDeviceIndex.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerRumble, here.SDL_GameControllerRumble.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerGetPlayerIndex, here.SDL_GameControllerGetPlayerIndex.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerTypeForIndex, here.SDL_GameControllerTypeForIndex.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerFromPlayerIndex, here.SDL_GameControllerFromPlayerIndex.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerGetType, here.SDL_GameControllerGetType.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerSetPlayerIndex, here.SDL_GameControllerSetPlayerIndex.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerHasAxis, here.SDL_GameControllerHasAxis.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerHasButton, here.SDL_GameControllerHasButton.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerGetNumTouchpads, here.SDL_GameControllerGetNumTouchpads.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerGetNumTouchpadFingers, here.SDL_GameControllerGetNumTouchpadFingers.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerGetTouchpadFinger, here.SDL_GameControllerGetTouchpadFinger.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerHasSensor, here.SDL_GameControllerHasSensor.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerSetSensorEnabled, here.SDL_GameControllerSetSensorEnabled.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerIsSensorEnabled, here.SDL_GameControllerIsSensorEnabled.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerGetSensorData, here.SDL_GameControllerGetSensorData.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerRumbleTriggers, here.SDL_GameControllerRumbleTriggers.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerHasLED, here.SDL_GameControllerHasLED.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerSetLED, here.SDL_GameControllerSetLED.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerSendEffect, here.SDL_GameControllerSendEffect.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GameControllerGetSensorDataRate, here.SDL_GameControllerGetSensorDataRate.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/hidapi.d(36,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/hidapi.d(36,1)
 private nothrow @nogc{
 }
 __gshared nothrow @nogc{
@@ -1707,7 +2483,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 }());
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/haptic.d(168,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/haptic.d(168,1)
 private nothrow @nogc{
 	alias _pSDL_NumHaptics = extern(C) int function();
 	alias _pSDL_HapticName = extern(C) const(char)* function(int deviceIndex);
@@ -1841,7 +2617,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_HapticRumbleStop, here.SDL_HapticRumbleStop.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/hints.d(278,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/hints.d(278,1)
 private nothrow @nogc{
 	alias _pSDL_SetHintWithPriority = extern(C) SDL_bool function(const(char)* name, const(char)* value, SDL_HintPriority priority);
 	alias _pSDL_SetHint = extern(C) SDL_bool function(const(char)* name, const(char)* value);
@@ -1849,6 +2625,7 @@ private nothrow @nogc{
 	alias _pSDL_AddHintCallback = extern(C) void function(const(char)* name, SDL_HintCallback callback, void* userData);
 	alias _pSDL_DelHintCallback = extern(C) void function(const(char)* name, SDL_HintCallback callback, void* userData);
 	alias _pSDL_ClearHints = extern(C) void function();
+	alias _pSDL_GetHintBoolean = extern(C) SDL_bool function(const(char)* name, SDL_bool defaultValue);
 }
 __gshared nothrow @nogc{
 	package _pSDL_SetHintWithPriority _SDL_SetHintWithPriority;
@@ -1863,6 +2640,8 @@ __gshared nothrow @nogc{
 	extern(C) void SDL_DelHintCallback(const(char)* name, SDL_HintCallback callback, void* userData){ _SDL_DelHintCallback(__traits(parameters)); }
 	package _pSDL_ClearHints _SDL_ClearHints;
 	extern(C) void SDL_ClearHints(){ _SDL_ClearHints(__traits(parameters)); }
+	package _pSDL_GetHintBoolean _SDL_GetHintBoolean;
+	extern(C) SDL_bool SDL_GetHintBoolean(const(char)* name, SDL_bool defaultValue){ return _SDL_GetHintBoolean(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -1877,9 +2656,10 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_AddHintCallback, here.SDL_AddHintCallback.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_DelHintCallback, here.SDL_DelHintCallback.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_ClearHints, here.SDL_ClearHints.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetHintBoolean, here.SDL_GetHintBoolean.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/loadso.d(13,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/loadso.d(13,1)
 private nothrow @nogc{
 	alias _pSDL_LoadObject = extern(C) void* function(const(char)* soFile);
 	alias _pSDL_LoadFunction = extern(C) void* function(void* handle,const(char*) name);
@@ -1905,10 +2685,13 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_UnloadObject, here.SDL_UnloadObject.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/locale.d(19,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/locale.d(19,1)
 private nothrow @nogc{
+	alias _pSDL_GetPreferredLocales = extern(C) SDL_Locale* function();
 }
 __gshared nothrow @nogc{
+	package _pSDL_GetPreferredLocales _SDL_GetPreferredLocales;
+	extern(C) SDL_Locale* SDL_GetPreferredLocales(){ return _SDL_GetPreferredLocales(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -1917,9 +2700,10 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	static if(__traits(compiles, typeof(this))) return __traits(identifier, typeof(this));
 	else return mod;
 }());
+	lib.bindSymbol(cast(void**)&_SDL_GetPreferredLocales, here.SDL_GetPreferredLocales.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/log.d(55,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/log.d(55,1)
 private nothrow @nogc{
 	alias _pSDL_LogSetAllPriority = extern(C) void function(SDL_LogPriority priority);
 	alias _pSDL_LogSetPriority = extern(C) void function(int category, SDL_LogPriority priority);
@@ -1985,7 +2769,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_LogSetOutputFunction, here.SDL_LogSetOutputFunction.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/messagebox.d(79,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/messagebox.d(79,1)
 private nothrow @nogc{
 	alias _pSDL_ShowMessageBox = extern(C) int function(const(SDL_MessageBoxData)* messageBoxData, int* buttonID);
 	alias _pSDL_ShowSimpleMessageBox = extern(C) int function(SDL_MessageBoxFlags flags, const(char)* title, const(char)* messsage, SDL_Window* window);
@@ -2007,10 +2791,22 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_ShowSimpleMessageBox, here.SDL_ShowSimpleMessageBox.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/metal.d(16,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/metal.d(16,1)
 private nothrow @nogc{
+	alias _pSDL_Metal_CreateView = extern(C) SDL_MetalView function(SDL_Window* window);
+	alias _pSDL_Metal_DestroyView = extern(C) void function(SDL_MetalView view);
+	alias _pSDL_Metal_GetLayer = extern(C) void* function(SDL_MetalView view);
+	alias _pSDL_Metal_GetDrawableSize = extern(C) void function(SDL_Window* window, int* w, int* h);
 }
 __gshared nothrow @nogc{
+	package _pSDL_Metal_CreateView _SDL_Metal_CreateView;
+	extern(C) SDL_MetalView SDL_Metal_CreateView(SDL_Window* window){ return _SDL_Metal_CreateView(__traits(parameters)); }
+	package _pSDL_Metal_DestroyView _SDL_Metal_DestroyView;
+	extern(C) void SDL_Metal_DestroyView(SDL_MetalView view){ _SDL_Metal_DestroyView(__traits(parameters)); }
+	package _pSDL_Metal_GetLayer _SDL_Metal_GetLayer;
+	extern(C) void* SDL_Metal_GetLayer(SDL_MetalView view){ return _SDL_Metal_GetLayer(__traits(parameters)); }
+	package _pSDL_Metal_GetDrawableSize _SDL_Metal_GetDrawableSize;
+	extern(C) void SDL_Metal_GetDrawableSize(SDL_Window* window, int* w, int* h){ _SDL_Metal_GetDrawableSize(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -2019,12 +2815,19 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	static if(__traits(compiles, typeof(this))) return __traits(identifier, typeof(this));
 	else return mod;
 }());
+	lib.bindSymbol(cast(void**)&_SDL_Metal_CreateView, here.SDL_Metal_CreateView.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_Metal_DestroyView, here.SDL_Metal_DestroyView.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_Metal_GetLayer, here.SDL_Metal_GetLayer.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_Metal_GetDrawableSize, here.SDL_Metal_GetDrawableSize.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/misc.d(13,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/misc.d(13,1)
 private nothrow @nogc{
+	alias _pSDL_OpenURL = extern(C) int function(const(char)* url);
 }
 __gshared nothrow @nogc{
+	package _pSDL_OpenURL _SDL_OpenURL;
+	extern(C) int SDL_OpenURL(const(char)* url){ return _SDL_OpenURL(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -2033,9 +2836,10 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	static if(__traits(compiles, typeof(this))) return __traits(identifier, typeof(this));
 	else return mod;
 }());
+	lib.bindSymbol(cast(void**)&_SDL_OpenURL, here.SDL_OpenURL.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/mouse.d(63,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/mouse.d(63,1)
 private nothrow @nogc{
 	alias _pSDL_GetMouseFocus = extern(C) SDL_Window* function();
 	alias _pSDL_GetMouseState = extern(C) uint function(int* x, int* y);
@@ -2051,6 +2855,9 @@ private nothrow @nogc{
 	alias _pSDL_GetDefaultCursor = extern(C) SDL_Cursor* function();
 	alias _pSDL_FreeCursor = extern(C) void function(SDL_Cursor* cursor);
 	alias _pSDL_ShowCursor = extern(C) int function(int toggle);
+	alias _pSDL_CaptureMouse = extern(C) int function(SDL_bool enabled);
+	alias _pSDL_GetGlobalMouseState = extern(C) uint function(int* x, int* y);
+	alias _pSDL_WarpMouseGlobal = extern(C) void function(int x, int y);
 }
 __gshared nothrow @nogc{
 	package _pSDL_GetMouseFocus _SDL_GetMouseFocus;
@@ -2081,6 +2888,12 @@ __gshared nothrow @nogc{
 	extern(C) void SDL_FreeCursor(SDL_Cursor* cursor){ _SDL_FreeCursor(__traits(parameters)); }
 	package _pSDL_ShowCursor _SDL_ShowCursor;
 	extern(C) int SDL_ShowCursor(int toggle){ return _SDL_ShowCursor(__traits(parameters)); }
+	package _pSDL_CaptureMouse _SDL_CaptureMouse;
+	extern(C) int SDL_CaptureMouse(SDL_bool enabled){ return _SDL_CaptureMouse(__traits(parameters)); }
+	package _pSDL_GetGlobalMouseState _SDL_GetGlobalMouseState;
+	extern(C) uint SDL_GetGlobalMouseState(int* x, int* y){ return _SDL_GetGlobalMouseState(__traits(parameters)); }
+	package _pSDL_WarpMouseGlobal _SDL_WarpMouseGlobal;
+	extern(C) void SDL_WarpMouseGlobal(int x, int y){ _SDL_WarpMouseGlobal(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -2103,9 +2916,12 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GetDefaultCursor, here.SDL_GetDefaultCursor.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_FreeCursor, here.SDL_FreeCursor.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_ShowCursor, here.SDL_ShowCursor.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_CaptureMouse, here.SDL_CaptureMouse.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetGlobalMouseState, here.SDL_GetGlobalMouseState.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_WarpMouseGlobal, here.SDL_WarpMouseGlobal.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/mutex.d(24,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/mutex.d(24,1)
 private nothrow @nogc{
 	alias _pSDL_CreateMutex = extern(C) SDL_mutex* function();
 	alias _pSDL_LockMutex = extern(C) int function(SDL_mutex* mutex);
@@ -2191,7 +3007,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_CondWaitTimeout, here.SDL_CondWaitTimeout.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/platform.d(13,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/platform.d(13,1)
 private nothrow @nogc{
 	alias _pSDL_GetPlatform = extern(C) const(char)* function();
 }
@@ -2209,7 +3025,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GetPlatform, here.SDL_GetPlatform.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/power.d(22,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/power.d(22,1)
 private nothrow @nogc{
 	alias _pSDL_GetPowerInfo = extern(C) SDL_PowerState function(int* seconds, int* percent);
 }
@@ -2227,7 +3043,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GetPowerInfo, here.SDL_GetPowerInfo.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/render.d(82,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/render.d(82,1)
 private nothrow @nogc{
 	alias _pSDL_GetNumRenderDrivers = extern(C) int function();
 	alias _pSDL_GetRenderDriverInfo = extern(C) int function(int index, SDL_RendererInfo* info);
@@ -2281,6 +3097,27 @@ private nothrow @nogc{
 	alias _pSDL_DestroyRenderer = extern(C) void function(SDL_Renderer* renderer);
 	alias _pSDL_GL_BindTexture = extern(C) int function(SDL_Texture* texture, float* texw, float* texh);
 	alias _pSDL_GL_UnbindTexture = extern(C) int function(SDL_Texture* texture);
+	alias _pSDL_UpdateYUVTexture = extern(C) int function(SDL_Texture* texture ,const(SDL_Rect)* rect, const(ubyte)* yPlane, int yPitch, const(ubyte)* uPlane, int uPitch, const(ubyte)* vPlane, int vPitch);
+	alias _pSDL_RenderIsClipEnabled = extern(C) SDL_bool function(SDL_Renderer* renderer);
+	alias _pSDL_RenderGetIntegerScale = extern(C) SDL_bool function(SDL_Renderer* renderer);
+	alias _pSDL_RenderSetIntegerScale = extern(C) int function(SDL_Renderer* renderer, SDL_bool);
+	alias _pSDL_RenderGetMetalLayer = extern(C) void* function(SDL_Renderer* renderer);
+	alias _pSDL_RenderGetMetalCommandEncoder = extern(C) void* function(SDL_Renderer* renderer);
+	alias _pSDL_RenderDrawPointF = extern(C) int function(SDL_Renderer* renderer, float x, float y);
+	alias _pSDL_RenderDrawPointsF = extern(C) int function(SDL_Renderer* renderer, const(SDL_FPoint)* points, int count);
+	alias _pSDL_RenderDrawLineF = extern(C) int function(SDL_Renderer* renderer, float x1, float y1, float x2, float y2);
+	alias _pSDL_RenderDrawLinesF = extern(C) int function(SDL_Renderer* renderer, const(SDL_FPoint)* points, int count);
+	alias _pSDL_RenderDrawRectF = extern(C) int function(SDL_Renderer* renderer, const(SDL_FRect)* rect);
+	alias _pSDL_RenderDrawRectsF = extern(C) int function(SDL_Renderer* renderer, const(SDL_FRect)* rects, int count);
+	alias _pSDL_RenderFillRectF = extern(C) int function(SDL_Renderer* renderer, const(SDL_FRect)* rect);
+	alias _pSDL_RenderFillRectsF = extern(C) int function(SDL_Renderer* renderer, const(SDL_FRect)* rects, int count);
+	alias _pSDL_RenderCopyF = extern(C) int function(SDL_Renderer* renderer, SDL_Texture* texture, const(SDL_Rect)* srcRect, const(SDL_FRect)* dstRect);
+	alias _pSDL_RenderCopyExF = extern(C) int function(SDL_Renderer* renderer, SDL_Texture* texture, const(SDL_Rect)* srcRect, const(SDL_FRect)* dstRect, const(double) angle, const(SDL_FPoint)* centre, const(SDL_RendererFlip) flip);
+	alias _pSDL_RenderFlush = extern(C) int function(SDL_Renderer* renderer);
+	alias _pSDL_SetTextureScaleMode = extern(C) int function(SDL_Texture* texture, SDL_ScaleMode scaleMode);
+	alias _pSDL_GetTextureScaleMode = extern(C) int function(SDL_Texture* texture, SDL_ScaleMode* scaleMode);
+	alias _pSDL_LockTextureToSurface = extern(C) int function(SDL_Texture* texture, const(SDL_Rect)* rect, SDL_Surface** surface);
+	alias _pSDL_UpdateNVTexture = extern(C) int function(SDL_Texture* texture, const(SDL_Rect)* rect, const(ubyte)* yPlane, int yPitch, const(ubyte)* uvPlane, int uvPitch);
 }
 __gshared nothrow @nogc{
 	package _pSDL_GetNumRenderDrivers _SDL_GetNumRenderDrivers;
@@ -2387,6 +3224,48 @@ __gshared nothrow @nogc{
 	extern(C) int SDL_GL_BindTexture(SDL_Texture* texture, float* texw, float* texh){ return _SDL_GL_BindTexture(__traits(parameters)); }
 	package _pSDL_GL_UnbindTexture _SDL_GL_UnbindTexture;
 	extern(C) int SDL_GL_UnbindTexture(SDL_Texture* texture){ return _SDL_GL_UnbindTexture(__traits(parameters)); }
+	package _pSDL_UpdateYUVTexture _SDL_UpdateYUVTexture;
+	extern(C) int SDL_UpdateYUVTexture(SDL_Texture* texture ,const(SDL_Rect)* rect, const(ubyte)* yPlane, int yPitch, const(ubyte)* uPlane, int uPitch, const(ubyte)* vPlane, int vPitch){ return _SDL_UpdateYUVTexture(__traits(parameters)); }
+	package _pSDL_RenderIsClipEnabled _SDL_RenderIsClipEnabled;
+	extern(C) SDL_bool SDL_RenderIsClipEnabled(SDL_Renderer* renderer){ return _SDL_RenderIsClipEnabled(__traits(parameters)); }
+	package _pSDL_RenderGetIntegerScale _SDL_RenderGetIntegerScale;
+	extern(C) SDL_bool SDL_RenderGetIntegerScale(SDL_Renderer* renderer){ return _SDL_RenderGetIntegerScale(__traits(parameters)); }
+	package _pSDL_RenderSetIntegerScale _SDL_RenderSetIntegerScale;
+	extern(C) int SDL_RenderSetIntegerScale(SDL_Renderer* renderer, SDL_bool){ return _SDL_RenderSetIntegerScale(__traits(parameters)); }
+	package _pSDL_RenderGetMetalLayer _SDL_RenderGetMetalLayer;
+	extern(C) void* SDL_RenderGetMetalLayer(SDL_Renderer* renderer){ return _SDL_RenderGetMetalLayer(__traits(parameters)); }
+	package _pSDL_RenderGetMetalCommandEncoder _SDL_RenderGetMetalCommandEncoder;
+	extern(C) void* SDL_RenderGetMetalCommandEncoder(SDL_Renderer* renderer){ return _SDL_RenderGetMetalCommandEncoder(__traits(parameters)); }
+	package _pSDL_RenderDrawPointF _SDL_RenderDrawPointF;
+	extern(C) int SDL_RenderDrawPointF(SDL_Renderer* renderer, float x, float y){ return _SDL_RenderDrawPointF(__traits(parameters)); }
+	package _pSDL_RenderDrawPointsF _SDL_RenderDrawPointsF;
+	extern(C) int SDL_RenderDrawPointsF(SDL_Renderer* renderer, const(SDL_FPoint)* points, int count){ return _SDL_RenderDrawPointsF(__traits(parameters)); }
+	package _pSDL_RenderDrawLineF _SDL_RenderDrawLineF;
+	extern(C) int SDL_RenderDrawLineF(SDL_Renderer* renderer, float x1, float y1, float x2, float y2){ return _SDL_RenderDrawLineF(__traits(parameters)); }
+	package _pSDL_RenderDrawLinesF _SDL_RenderDrawLinesF;
+	extern(C) int SDL_RenderDrawLinesF(SDL_Renderer* renderer, const(SDL_FPoint)* points, int count){ return _SDL_RenderDrawLinesF(__traits(parameters)); }
+	package _pSDL_RenderDrawRectF _SDL_RenderDrawRectF;
+	extern(C) int SDL_RenderDrawRectF(SDL_Renderer* renderer, const(SDL_FRect)* rect){ return _SDL_RenderDrawRectF(__traits(parameters)); }
+	package _pSDL_RenderDrawRectsF _SDL_RenderDrawRectsF;
+	extern(C) int SDL_RenderDrawRectsF(SDL_Renderer* renderer, const(SDL_FRect)* rects, int count){ return _SDL_RenderDrawRectsF(__traits(parameters)); }
+	package _pSDL_RenderFillRectF _SDL_RenderFillRectF;
+	extern(C) int SDL_RenderFillRectF(SDL_Renderer* renderer, const(SDL_FRect)* rect){ return _SDL_RenderFillRectF(__traits(parameters)); }
+	package _pSDL_RenderFillRectsF _SDL_RenderFillRectsF;
+	extern(C) int SDL_RenderFillRectsF(SDL_Renderer* renderer, const(SDL_FRect)* rects, int count){ return _SDL_RenderFillRectsF(__traits(parameters)); }
+	package _pSDL_RenderCopyF _SDL_RenderCopyF;
+	extern(C) int SDL_RenderCopyF(SDL_Renderer* renderer, SDL_Texture* texture, const(SDL_Rect)* srcRect, const(SDL_FRect)* dstRect){ return _SDL_RenderCopyF(__traits(parameters)); }
+	package _pSDL_RenderCopyExF _SDL_RenderCopyExF;
+	extern(C) int SDL_RenderCopyExF(SDL_Renderer* renderer, SDL_Texture* texture, const(SDL_Rect)* srcRect, const(SDL_FRect)* dstRect, const(double) angle, const(SDL_FPoint)* centre, const(SDL_RendererFlip) flip){ return _SDL_RenderCopyExF(__traits(parameters)); }
+	package _pSDL_RenderFlush _SDL_RenderFlush;
+	extern(C) int SDL_RenderFlush(SDL_Renderer* renderer){ return _SDL_RenderFlush(__traits(parameters)); }
+	package _pSDL_SetTextureScaleMode _SDL_SetTextureScaleMode;
+	extern(C) int SDL_SetTextureScaleMode(SDL_Texture* texture, SDL_ScaleMode scaleMode){ return _SDL_SetTextureScaleMode(__traits(parameters)); }
+	package _pSDL_GetTextureScaleMode _SDL_GetTextureScaleMode;
+	extern(C) int SDL_GetTextureScaleMode(SDL_Texture* texture, SDL_ScaleMode* scaleMode){ return _SDL_GetTextureScaleMode(__traits(parameters)); }
+	package _pSDL_LockTextureToSurface _SDL_LockTextureToSurface;
+	extern(C) int SDL_LockTextureToSurface(SDL_Texture* texture, const(SDL_Rect)* rect, SDL_Surface** surface){ return _SDL_LockTextureToSurface(__traits(parameters)); }
+	package _pSDL_UpdateNVTexture _SDL_UpdateNVTexture;
+	extern(C) int SDL_UpdateNVTexture(SDL_Texture* texture, const(SDL_Rect)* rect, const(ubyte)* yPlane, int yPitch, const(ubyte)* uvPlane, int uvPitch){ return _SDL_UpdateNVTexture(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -2447,9 +3326,30 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_DestroyRenderer, here.SDL_DestroyRenderer.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_GL_BindTexture, here.SDL_GL_BindTexture.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_GL_UnbindTexture, here.SDL_GL_UnbindTexture.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_UpdateYUVTexture, here.SDL_UpdateYUVTexture.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RenderIsClipEnabled, here.SDL_RenderIsClipEnabled.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RenderGetIntegerScale, here.SDL_RenderGetIntegerScale.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RenderSetIntegerScale, here.SDL_RenderSetIntegerScale.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RenderGetMetalLayer, here.SDL_RenderGetMetalLayer.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RenderGetMetalCommandEncoder, here.SDL_RenderGetMetalCommandEncoder.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RenderDrawPointF, here.SDL_RenderDrawPointF.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RenderDrawPointsF, here.SDL_RenderDrawPointsF.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RenderDrawLineF, here.SDL_RenderDrawLineF.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RenderDrawLinesF, here.SDL_RenderDrawLinesF.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RenderDrawRectF, here.SDL_RenderDrawRectF.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RenderDrawRectsF, here.SDL_RenderDrawRectsF.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RenderFillRectF, here.SDL_RenderFillRectF.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RenderFillRectsF, here.SDL_RenderFillRectsF.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RenderCopyF, here.SDL_RenderCopyF.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RenderCopyExF, here.SDL_RenderCopyExF.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_RenderFlush, here.SDL_RenderFlush.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_SetTextureScaleMode, here.SDL_SetTextureScaleMode.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_GetTextureScaleMode, here.SDL_GetTextureScaleMode.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_LockTextureToSurface, here.SDL_LockTextureToSurface.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_UpdateNVTexture, here.SDL_UpdateNVTexture.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/shape.d(50,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/shape.d(50,1)
 private nothrow @nogc{
 	alias _pSDL_CreateShapedWindow = extern(C) SDL_Window* function(const(char)* title, uint x, uint y, uint w, uint h, SDL_WindowFlags flags);
 	alias _pSDL_IsShapedWindow = extern(C) SDL_bool function(const(SDL_Window)* window);
@@ -2479,10 +3379,31 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GetShapedWindowMode, here.SDL_GetShapedWindowMode.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/system.d(66,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/system.d(66,1)
 private nothrow @nogc{
+	alias _pSDL_IsTablet = extern(C) SDL_bool function();
+	alias _pSDL_OnApplicationWillTerminate = extern(C) void function();
+	alias _pSDL_OnApplicationDidReceiveMemoryWarning = extern(C) void function();
+	alias _pSDL_OnApplicationWillResignActive = extern(C) void function();
+	alias _pSDL_OnApplicationDidEnterBackground = extern(C) void function();
+	alias _pSDL_OnApplicationWillEnterForeground = extern(C) void function();
+	alias _pSDL_OnApplicationDidBecomeActive = extern(C) void function();
 }
 __gshared nothrow @nogc{
+	package _pSDL_IsTablet _SDL_IsTablet;
+	extern(C) SDL_bool SDL_IsTablet(){ return _SDL_IsTablet(__traits(parameters)); }
+	package _pSDL_OnApplicationWillTerminate _SDL_OnApplicationWillTerminate;
+	extern(C) void SDL_OnApplicationWillTerminate(){ _SDL_OnApplicationWillTerminate(__traits(parameters)); }
+	package _pSDL_OnApplicationDidReceiveMemoryWarning _SDL_OnApplicationDidReceiveMemoryWarning;
+	extern(C) void SDL_OnApplicationDidReceiveMemoryWarning(){ _SDL_OnApplicationDidReceiveMemoryWarning(__traits(parameters)); }
+	package _pSDL_OnApplicationWillResignActive _SDL_OnApplicationWillResignActive;
+	extern(C) void SDL_OnApplicationWillResignActive(){ _SDL_OnApplicationWillResignActive(__traits(parameters)); }
+	package _pSDL_OnApplicationDidEnterBackground _SDL_OnApplicationDidEnterBackground;
+	extern(C) void SDL_OnApplicationDidEnterBackground(){ _SDL_OnApplicationDidEnterBackground(__traits(parameters)); }
+	package _pSDL_OnApplicationWillEnterForeground _SDL_OnApplicationWillEnterForeground;
+	extern(C) void SDL_OnApplicationWillEnterForeground(){ _SDL_OnApplicationWillEnterForeground(__traits(parameters)); }
+	package _pSDL_OnApplicationDidBecomeActive _SDL_OnApplicationDidBecomeActive;
+	extern(C) void SDL_OnApplicationDidBecomeActive(){ _SDL_OnApplicationDidBecomeActive(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -2491,9 +3412,16 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	static if(__traits(compiles, typeof(this))) return __traits(identifier, typeof(this));
 	else return mod;
 }());
+	lib.bindSymbol(cast(void**)&_SDL_IsTablet, here.SDL_IsTablet.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_OnApplicationWillTerminate, here.SDL_OnApplicationWillTerminate.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_OnApplicationDidReceiveMemoryWarning, here.SDL_OnApplicationDidReceiveMemoryWarning.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_OnApplicationWillResignActive, here.SDL_OnApplicationWillResignActive.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_OnApplicationDidEnterBackground, here.SDL_OnApplicationDidEnterBackground.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_OnApplicationWillEnterForeground, here.SDL_OnApplicationWillEnterForeground.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_OnApplicationDidBecomeActive, here.SDL_OnApplicationDidBecomeActive.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/thread.d(88,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/thread.d(88,1)
 private nothrow @nogc{
 	alias _pSDL_GetThreadName = extern(C) const(char)* function(SDL_Thread* thread);
 	alias _pSDL_ThreadID = extern(C) SDL_threadID function();
@@ -2504,6 +3432,9 @@ private nothrow @nogc{
 	alias _pSDL_TLSGet = extern(C) void* function(SDL_TLSID id);
 	alias _pSDL_TLSSet = extern(C) int function(SDL_TLSID id, const(void)* value, TLSDestructor destructor);
 	alias _pSDL_CreateThread = extern(C) SDL_Thread* function(SDL_ThreadFunction fn, const(char)* name, void* data);
+	alias _pSDL_CreateThreadWithStackSize = extern(C) SDL_Thread* function(SDL_ThreadFunction fn, const(char)* name, const size_t stackSize, void* data);
+	alias _pSDL_DetachThread = extern(C) void function(SDL_Thread* thread);
+	alias _pSDL_TLSCleanup = extern(C) void function();
 }
 __gshared nothrow @nogc{
 	package _pSDL_GetThreadName _SDL_GetThreadName;
@@ -2524,6 +3455,12 @@ __gshared nothrow @nogc{
 	extern(C) int SDL_TLSSet(SDL_TLSID id, const(void)* value, TLSDestructor destructor){ return _SDL_TLSSet(__traits(parameters)); }
 	package _pSDL_CreateThread _SDL_CreateThread;
 	extern(C) SDL_Thread* SDL_CreateThread(SDL_ThreadFunction fn, const(char)* name, void* data){ return _SDL_CreateThread(__traits(parameters)); }
+	package _pSDL_CreateThreadWithStackSize _SDL_CreateThreadWithStackSize;
+	extern(C) SDL_Thread* SDL_CreateThreadWithStackSize(SDL_ThreadFunction fn, const(char)* name, const size_t stackSize, void* data){ return _SDL_CreateThreadWithStackSize(__traits(parameters)); }
+	package _pSDL_DetachThread _SDL_DetachThread;
+	extern(C) void SDL_DetachThread(SDL_Thread* thread){ _SDL_DetachThread(__traits(parameters)); }
+	package _pSDL_TLSCleanup _SDL_TLSCleanup;
+	extern(C) void SDL_TLSCleanup(){ _SDL_TLSCleanup(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -2541,9 +3478,12 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_TLSGet, here.SDL_TLSGet.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_TLSSet, here.SDL_TLSSet.mangleof);
 	lib.bindSymbol(cast(void**)&_SDL_CreateThread, here.SDL_CreateThread.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_CreateThreadWithStackSize, here.SDL_CreateThreadWithStackSize.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_DetachThread, here.SDL_DetachThread.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_TLSCleanup, here.SDL_TLSCleanup.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/timer.d(22,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/timer.d(22,1)
 private nothrow @nogc{
 	alias _pSDL_GetTicks = extern(C) uint function();
 	alias _pSDL_GetPerformanceCounter = extern(C) ulong function();
@@ -2581,7 +3521,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_RemoveTimer, here.SDL_RemoveTimer.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/version_.d(36,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/version_.d(36,1)
 private nothrow @nogc{
 	alias _pSDL_GetVersion = extern(C) void function(SDL_version* ver);
 	alias _pSDL_GetRevision = extern(C) const(char)* function();
@@ -2607,10 +3547,28 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_GetRevisionNumber, here.SDL_GetRevisionNumber.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/vulkan.d(16,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/vulkan.d(16,1)
 private nothrow @nogc{
+	alias _pSDL_Vulkan_CreateSurface = extern(C) SDL_bool function(SDL_Window* window, void* instance, void* surface);
+	alias _pSDL_Vulkan_GetDrawableSize = extern(C) void function(SDL_Window* window, int* w, int* h);
+	alias _pSDL_Vulkan_GetInstanceExtensions = extern(C) SDL_bool function(SDL_Window* window, uint* pCount, const(char)** pNames);
+	alias _pSDL_Vulkan_GetVkGetInstanceProcAddr = extern(C) void* function();
+	alias _pSDL_Vulkan_LoadLibrary = extern(C) int function(const(char)* path);
+	alias _pSDL_Vulkan_UnloadLibrary = extern(C) void function();
 }
 __gshared nothrow @nogc{
+	package _pSDL_Vulkan_CreateSurface _SDL_Vulkan_CreateSurface;
+	extern(C) SDL_bool SDL_Vulkan_CreateSurface(SDL_Window* window, void* instance, void* surface){ return _SDL_Vulkan_CreateSurface(__traits(parameters)); }
+	package _pSDL_Vulkan_GetDrawableSize _SDL_Vulkan_GetDrawableSize;
+	extern(C) void SDL_Vulkan_GetDrawableSize(SDL_Window* window, int* w, int* h){ _SDL_Vulkan_GetDrawableSize(__traits(parameters)); }
+	package _pSDL_Vulkan_GetInstanceExtensions _SDL_Vulkan_GetInstanceExtensions;
+	extern(C) SDL_bool SDL_Vulkan_GetInstanceExtensions(SDL_Window* window, uint* pCount, const(char)** pNames){ return _SDL_Vulkan_GetInstanceExtensions(__traits(parameters)); }
+	package _pSDL_Vulkan_GetVkGetInstanceProcAddr _SDL_Vulkan_GetVkGetInstanceProcAddr;
+	extern(C) void* SDL_Vulkan_GetVkGetInstanceProcAddr(){ return _SDL_Vulkan_GetVkGetInstanceProcAddr(__traits(parameters)); }
+	package _pSDL_Vulkan_LoadLibrary _SDL_Vulkan_LoadLibrary;
+	extern(C) int SDL_Vulkan_LoadLibrary(const(char)* path){ return _SDL_Vulkan_LoadLibrary(__traits(parameters)); }
+	package _pSDL_Vulkan_UnloadLibrary _SDL_Vulkan_UnloadLibrary;
+	extern(C) void SDL_Vulkan_UnloadLibrary(){ _SDL_Vulkan_UnloadLibrary(__traits(parameters)); }
 }
 
 import bindbc.loader: SharedLib, bindSymbol;
@@ -2619,9 +3577,15 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	static if(__traits(compiles, typeof(this))) return __traits(identifier, typeof(this));
 	else return mod;
 }());
+	lib.bindSymbol(cast(void**)&_SDL_Vulkan_CreateSurface, here.SDL_Vulkan_CreateSurface.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_Vulkan_GetDrawableSize, here.SDL_Vulkan_GetDrawableSize.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_Vulkan_GetInstanceExtensions, here.SDL_Vulkan_GetInstanceExtensions.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_Vulkan_GetVkGetInstanceProcAddr, here.SDL_Vulkan_GetVkGetInstanceProcAddr.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_Vulkan_LoadLibrary, here.SDL_Vulkan_LoadLibrary.mangleof);
+	lib.bindSymbol(cast(void**)&_SDL_Vulkan_UnloadLibrary, here.SDL_Vulkan_UnloadLibrary.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/package.d(89,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/package.d(89,1)
 private nothrow @nogc{
 	alias _pSDL_Init = extern(C) int function(uint flags);
 	alias _pSDL_InitSubSystem = extern(C) int function(uint flags);
@@ -2655,7 +3619,7 @@ static void bindModuleSymbols(SharedLib lib) nothrow @nogc{
 	lib.bindSymbol(cast(void**)&_SDL_Quit, here.SDL_Quit.mangleof);
 }
 
-// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.1/bindbc-sdl/source/sdl/package.d(133,1)
+// expansion at ../../../../../.dub/packages/bindbc-sdl/1.5.2/bindbc-sdl/source/sdl/package.d(133,1)
 
 void unloadSDL(){ if(lib != invalidHandle) lib.unload(); }
 
@@ -3020,30 +3984,6 @@ glDisableVertexAttribArray(1LU);
 // expansion at
 .object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
 
-// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
-lhs == rhs
-
-// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
-lhs == rhs
-
-// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
-lhs < rhs
-
-// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
-lhs < rhs
-
-// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
-lhs == rhs
-
-// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
-lhs == rhs
-
-// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
-lhs < rhs
-
-// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
-lhs < rhs
-
 // expansion at
 .object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
 
@@ -3052,6 +3992,33 @@ lhs < rhs
 
 // expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/core/atomic.d(561,9)
 *cast(T*)&val+=mod
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
+lhs == rhs
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
+lhs == rhs
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
+lhs < rhs
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
+lhs < rhs
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
+lhs == rhs
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
+lhs == rhs
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
+lhs < rhs
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
+lhs < rhs
 
 // expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/typecons.d(526,31)
 lhs == rhs
