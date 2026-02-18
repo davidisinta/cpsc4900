@@ -12,8 +12,13 @@
 		"-mixin=mixin.txt",
 		"-I/opt/homebrew/include"
 	],
+	  "copyFiles": [
+		"third_party/bullet/lib/libbullet_capi_shim.dylib"
+	],
 	"lflags-osx": [
-		"-L/opt/homebrew/lib"
+		"-L/opt/homebrew/lib",
+		"-Wl,-rpath,@executable_path",
+		"third_party/bullet/lib/libbullet_capi_shim.dylib"
 	],
 	"libs": [
 		"assimp"

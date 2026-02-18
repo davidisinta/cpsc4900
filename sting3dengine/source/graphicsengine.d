@@ -5,6 +5,10 @@ import std.stdio;
 import std.math;
 import std.conv;
 import std.string : toStringz;
+import std.datetime.stopwatch : StopWatch, AutoStart;
+import core.thread : Thread;
+// import std.conv : to;
+import std.datetime : dur;
 
 // Third-party libraries
 import bindbc.sdl;
@@ -18,6 +22,60 @@ import light;
 import firstpersonshootergame;
 import editor;
 import audiosubsystem;
+import physics;
+
+
+
+
+
+// Bullet related setup, to be refactored.
+
+extern(C)
+{
+    // --- Connection/lifecycle ---
+    // Note: collision.d uses alias b3PhysicsClientHandle = void*;
+    b3PhysicsClientHandle b3ConnectPhysicsDirect();
+    void b3DisconnectSharedMemory(b3PhysicsClientHandle physClient);
+
+    // --- Command submission / status ---
+    void* b3SubmitClientCommandAndWaitStatus(b3PhysicsClientHandle physClient, b3SharedMemoryCommandHandle commandHandle);
+    int b3GetStatusType(void* statusHandle);
+    int b3GetStatusBodyIndex(void* statusHandle);
+
+    // --- Reset / physics params ---
+    b3SharedMemoryCommandHandle b3InitResetSimulationCommand(b3PhysicsClientHandle physClient);
+
+    b3SharedMemoryCommandHandle b3InitPhysicsParamCommand(b3PhysicsClientHandle physClient);
+    int b3PhysicsParamSetGravity(b3SharedMemoryCommandHandle cmd, double gx, double gy, double gz);
+    int b3PhysicsParamSetTimeStep(b3SharedMemoryCommandHandle cmd, double dt);
+
+    // --- Search path + URDF loading ---
+    b3SharedMemoryCommandHandle b3SetAdditionalSearchPath(b3PhysicsClientHandle physClient, const(char)* path);
+
+    b3SharedMemoryCommandHandle b3LoadUrdfCommandInit(b3PhysicsClientHandle physClient, const(char)* urdfFileName);
+    int b3LoadUrdfCommandSetStartPosition(b3SharedMemoryCommandHandle cmd, double x, double y, double z);
+    int b3LoadUrdfCommandSetStartOrientation(b3SharedMemoryCommandHandle cmd, double x, double y, double z, double w);
+
+    // --- Step simulation ---
+    b3SharedMemoryCommandHandle b3InitStepSimulationCommand(b3PhysicsClientHandle physClient);
+}
+
+// Status codes (EnumSharedMemoryServerStatus in SharedMemoryPublic.h)
+enum int CMD_URDF_LOADING_COMPLETED            = 6;
+enum int CMD_STEP_FORWARD_SIMULATION_COMPLETED = 26;
+enum int CMD_RESET_SIMULATION_COMPLETED        = 27;
+
+// end of bullet stuff
+
+
+
+
+
+
+
+
+
+
 
 
 /// The main graphics application.
@@ -32,6 +90,7 @@ struct GraphicsEngine{
 		GameApplication mGame;
 		int mScreenWidth;
 		int mScreenHeight;
+		b3PhysicsClientHandle mPhysicsClient;
 
 		SceneTree mSceneTree;
 		Camera mCamera;

@@ -1,2 +1,8 @@
 prog
 cimgui.dylib
+/bin
+libbullet_capi_shim.dylib
+
+
+# KEEP third_party dylibs
+!third_party/**/*.dylib
