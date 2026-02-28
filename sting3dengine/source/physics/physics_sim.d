@@ -1,10 +1,12 @@
 module physics_sim;
 
+//standard library files
 import std.stdio;
 import std.datetime.stopwatch : StopWatch, AutoStart;
 import std.datetime : dur;
 import core.thread : Thread;
 
+//project libraries
 import physicsworld;
 
 /**

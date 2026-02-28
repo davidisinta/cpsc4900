@@ -63,34 +63,21 @@ struct PhysicsWorld{
         }    
     }
 
-    // void setSearchPath()
-    // {
-    //     // string dataPath = "../bullet3/data";
-    //     string dataPath = "../assets/urdf";
+    void setSearchPath(){
+        string dataPath = "assets/urdf";
 
-    //     auto cmd = b3SetAdditionalSearchPath(mClient, dataPath.toStringz());
-    //     // Not all commands return a special status code; we just submit.
-    //     b3SubmitClientCommandAndWaitStatus(mClient, cmd);
-    // }
+        // Print current working directory (cwd)
+        auto cwd = environment.get("PWD", "<unknown>");
+        writeln("[PhysicsWorld] PWD = ", cwd);
+        writeln("[PhysicsWorld] searchPath = ", dataPath);
 
+        // Probe expected file
+        string probe = buildPath(dataPath, "plane.urdf");
+        writeln("[PhysicsWorld] probe: ", probe, " exists=", exists(probe));
 
-    void setSearchPath()
-{
-    // Start from what we *think* should work
-    string dataPath = "assets/urdf";
-
-    // Print current working directory (cwd)
-    auto cwd = environment.get("PWD", "<unknown>");
-    writeln("[PhysicsWorld] PWD = ", cwd);
-    writeln("[PhysicsWorld] searchPath = ", dataPath);
-
-    // Probe expected file
-    string probe = buildPath(dataPath, "plane.urdf");
-    writeln("[PhysicsWorld] probe: ", probe, " exists=", exists(probe));
-
-    auto cmd = b3SetAdditionalSearchPath(mClient, dataPath.toStringz());
-    b3SubmitClientCommandAndWaitStatus(mClient, cmd);
-}
+        auto cmd = b3SetAdditionalSearchPath(mClient, dataPath.toStringz());
+        b3SubmitClientCommandAndWaitStatus(mClient, cmd);
+    }
 
     void setPhysicsParams()
     {
@@ -99,9 +86,6 @@ struct PhysicsWorld{
         b3PhysicsParamSetTimeStep(cmd, mFixedDt);
         b3SubmitClientCommandAndWaitStatus(mClient, cmd);
     }
-
-
-
 
     /**
     * Physics must advance using a FIXED timestep rather than render frame dt.
@@ -194,8 +178,6 @@ struct PhysicsWorld{
             || status_type == EnumSharedMemoryServerStatus.CMD_CLIENT_COMMAND_COMPLETED;
     }
 
-
-
     //---------------------------------------------------------------------
     // Body Creation and Removal functions
     //---------------------------------------------------------------------
@@ -220,61 +202,35 @@ struct PhysicsWorld{
         if (mClient is null)
             throw new Exception(mWorldname ~ ": PhysicsWorld client is null (disconnected?)");
     }
-
     
-
-    
-    uint addURDF(uint entityId,
-             string urdfFile,
-             double px = 0,
-             double py = 0,
-             double pz = 0,
-             double qx = 0,
-             double qy = 0,
-             double qz = 0,
-             double qw = 1.0)
-    {
+    uint addURDF(uint entityId, string urdfFile, double px = 0, double py = 0,double pz = 0, double qx = 0, double qy = 0, double qz = 0, double qw = 1.0){
         requireClient();
 
-        auto cmd =
-            b3LoadUrdfCommandInit(
-                mClient,
-                urdfFile.toStringz());
+        auto cmd = b3LoadUrdfCommandInit(mClient, urdfFile.toStringz());
 
-        if (cmd is null)
-            throw new Exception(
-                mWorldname ~ ": b3LoadUrdfCommandInit failed");
-
+        if (cmd is null){
+            throw new Exception(mWorldname ~ ": b3LoadUrdfCommandInit failed");
+        }
+    
         b3LoadUrdfCommandSetStartPosition(cmd, px, py, pz);
-        b3LoadUrdfCommandSetStartOrientation(cmd,
-                                            qx, qy, qz, qw);
+        b3LoadUrdfCommandSetStartOrientation(cmd, qx, qy, qz, qw);
 
-        auto st =
-            b3SubmitClientCommandAndWaitStatus(
-                mClient, cmd);
-
+        auto st = b3SubmitClientCommandAndWaitStatus(mClient, cmd);
         int ty = b3GetStatusType(st);
 
-        if (ty != EnumSharedMemoryServerStatus
-                    .CMD_URDF_LOADING_COMPLETED)
-        {
-            throw new Exception(
-                mWorldname ~
-                ": URDF load failed status="
-                ~ ty.to!string);
+        if (ty != EnumSharedMemoryServerStatus.CMD_URDF_LOADING_COMPLETED){
+            throw new Exception( mWorldname ~ ": URDF load failed status=" ~ ty.to!string);
         }
 
         int bodyId = b3GetStatusBodyIndex(st);
 
-        if (bodyId < 0)
-            throw new Exception(
-                mWorldname ~ ": invalid bodyId");
-
+        if (bodyId < 0){
+            throw new Exception(mWorldname ~ ": invalid bodyId");
+        }
+        
         bindEntityToBody(entityId, bodyId);
-
         return entityId;
     }
-
 
     //---------------------------------------------------------------------
     // 
