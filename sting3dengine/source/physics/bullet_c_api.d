@@ -44,7 +44,32 @@ extern(C)
     b3SharedMemoryCommandHandle b3InitStepSimulationCommand(b3PhysicsClientHandle physClient);
 
     //---------------------------------------------------------------------
-    // 
+    // Body state query  (NEW — needed for transform sync)
+    //
+    // Workflow:
+    //   1. cmd = b3RequestActualStateCommandInit(client, bodyId)
+    //   2. status = b3SubmitClientCommandAndWaitStatus(client, cmd)
+    //   3. b3GetStatusActualState(status, &bodyId, ..., &actualStateQ, ...)
+    //   4. actualStateQ[0..3] = position (x,y,z)
+    //      actualStateQ[3..7] = orientation quaternion (x,y,z,w)
+    //      actualStateQ[7..$] = joint positions (if any)
+    //---------------------------------------------------------------------
+    b3SharedMemoryCommandHandle b3RequestActualStateCommandInit(
+        b3PhysicsClientHandle physClient,
+        int bodyUniqueId);
+
+    int b3GetStatusActualState(
+        void* statusHandle,
+        int* bodyUniqueId,
+        int* numDegreeOfFreedomQ,
+        int* numDegreeOfFreedomU,
+        const(double)** rootLocalInertialFrame,
+        const(double)** actualStateQ,
+        const(double)** actualStateQdot,
+        const(double)** jointReactionForces);
+
+    //---------------------------------------------------------------------
+    // (future: contact queries, applied forces, etc.)
     //---------------------------------------------------------------------
 
 
@@ -54,3 +79,22 @@ extern(C)
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

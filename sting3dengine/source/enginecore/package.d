@@ -9,3 +9,7 @@ public import scene;
 public import image;
 public import texture;
 public import uniform;
+public import entitymanager;
+public import transform;
+public import transformsync;
+public import entitymanager;
