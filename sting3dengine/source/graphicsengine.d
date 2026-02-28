@@ -25,22 +25,6 @@ import audiosubsystem;
 import physics;
 
 
-
-
-
-// Bullet related setup, to be refactored.
-
-
-
-
-
-
-
-
-
-
-
-
 /// The main graphics application.
 struct GraphicsEngine{
 		bool mGameIsRunning=true;
@@ -332,6 +316,13 @@ struct GraphicsEngine{
 			SDL_GL_SwapWindow(mWindow);	
 		}
 
+
+		//Run Boilerplate physics connecting with bullet
+		void runPhysicsDevSmokeTests(){
+
+			runPhysicsSimSmokeTestURDF(5.0, 60.0,"plane.urdf", "cube.urdf");
+		}
+
 		/// Process 1 frame
 		void AdvanceFrame(){
 
@@ -379,6 +370,10 @@ struct GraphicsEngine{
 		void Loop(){
 				// Setup the graphics scene
 				SetupScene();
+
+
+				//run physics tests here
+				runPhysicsDevSmokeTests();
 
 				// Lock mouse to center of screen
 				// This will help us get a continuous rotation.

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<robot name="plane">
+  <link name="planeLink">
+
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <plane normal="0 0 1" offset="0"/>
+      </geometry>
+    </collision>
+
+    <!-- optional visual -->
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="10 10 0.01"/>
+      </geometry>
+    </visual>
+
+  </link>
+</robot>
