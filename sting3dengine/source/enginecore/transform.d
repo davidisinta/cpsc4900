@@ -14,7 +14,10 @@
 ///
 module transform;
 
+// standard lib files
 import std.math : sqrt;
+
+//project files
 import linear;
 
 /// Quaternion stored as [x, y, z, w] to match Bullet's convention.

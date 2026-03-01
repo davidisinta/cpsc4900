@@ -1,5 +1,7 @@
 module bullet_c_api;
 
+import types; 
+
 extern(C)
 {
     //this is saying b3PhysicsClientHandle is another name for void*
@@ -44,7 +46,7 @@ extern(C)
     b3SharedMemoryCommandHandle b3InitStepSimulationCommand(b3PhysicsClientHandle physClient);
 
     //---------------------------------------------------------------------
-    // Body state query  (NEW — needed for transform sync)
+    // Body state query
     //
     // Workflow:
     //   1. cmd = b3RequestActualStateCommandInit(client, bodyId)
@@ -54,9 +56,7 @@ extern(C)
     //      actualStateQ[3..7] = orientation quaternion (x,y,z,w)
     //      actualStateQ[7..$] = joint positions (if any)
     //---------------------------------------------------------------------
-    b3SharedMemoryCommandHandle b3RequestActualStateCommandInit(
-        b3PhysicsClientHandle physClient,
-        int bodyUniqueId);
+    b3SharedMemoryCommandHandle b3RequestActualStateCommandInit(b3PhysicsClientHandle physClient, int bodyUniqueId);
 
     int b3GetStatusActualState(
         void* statusHandle,
@@ -69,32 +69,15 @@ extern(C)
         const(double)** jointReactionForces);
 
     //---------------------------------------------------------------------
-    // (future: contact queries, applied forces, etc.)
+    // Contact point queries (collision detection)
+    //---------------------------------------------------------------------
+    b3SharedMemoryCommandHandle b3InitRequestContactPointInformation(b3PhysicsClientHandle physClient);
+    void b3SetContactFilterBodyA(b3SharedMemoryCommandHandle cmd, int bodyUniqueIdA);
+    void b3SetContactFilterBodyB(b3SharedMemoryCommandHandle cmd, int bodyUniqueIdB);
+    void b3GetContactPointInformation(b3PhysicsClientHandle physClient, b3ContactInformation* contactInfo);
+
+    //---------------------------------------------------------------------
+    // (future)
     //---------------------------------------------------------------------
 
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
