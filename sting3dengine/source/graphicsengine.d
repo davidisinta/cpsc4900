@@ -180,11 +180,6 @@ struct GraphicsEngine{
                 Pipeline lightPipeline = new Pipeline("light","./pipelines/light/basic.vert","./pipelines/light/basic.frag");
                 IMaterial lightMaterial    = new BasicMaterial("light");
 
-                // Create an object and add it to our scene tree
-                // ISurface obj = new SurfaceOBJ("./assets/meshes/bunny_centered.obj"); 
-                // MeshNode  m        = new MeshNode("bunny",obj,mBasicMaterial);
-                // mSceneTree.GetRootNode().AddChildSceneNode(m);
-
                 //we create another object for our light box and add it to scene tree
                 GLfloat[] lightboxVBO = [
                     -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
@@ -344,8 +339,6 @@ struct GraphicsEngine{
                 vec3(0.0f, 10.0f, 0.0f)
             );
 
-
-
             //another cube for testing shooting
             vec3 testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -4.0f);
             mCubeEntity = spawnPhysicsObject(
@@ -372,37 +365,25 @@ struct GraphicsEngine{
         }
 
 
-        void debugTargetTransform()
-{
-    static int counter = 0;
-    counter++;
+        void debugTargetTransform(){
+            static int counter = 0;
+            counter++;
 
-    if (counter % 30 != 0) return;
+            if (counter % 30 != 0) return;
 
-    auto tcPtr = mCubeEntity in mEntityManager.transforms;
-    if (tcPtr is null)
-    {
-        writeln("[target-debug] no transform for entity ", mCubeEntity);
-        return;
-    }
+            auto tcPtr = mCubeEntity in mEntityManager.transforms;
+            if (tcPtr is null){
+                writeln("[target-debug] no transform for entity ", mCubeEntity);
+                return;
+            }
 
-    auto tc = *tcPtr;
+            auto tc = *tcPtr;
 
-    writeln("[target-debug] entity=", mCubeEntity,
-            " position=", tc.position,
-            " rotation=(", tc.rotation.x, ", ",
-                          tc.rotation.y, ", ",
-                          tc.rotation.z, ", ",
-                          tc.rotation.w, ")");
-}
+            writeln("[target-debug] entity=", mCubeEntity, " position=", tc.position, " rotation=(", tc.rotation.x, ", ", tc.rotation.y, ", ",tc.rotation.z, ", ", tc.rotation.w, ")");
 
+        }
 
-
-
-
-
-        void initCrosshair()
-        {
+        void initCrosshair(){
             // Create the crosshair shader
             new Pipeline("crosshair", "./pipelines/crosshair/crosshair.vert",
                                       "./pipelines/crosshair/crosshair.frag");
@@ -507,14 +488,6 @@ struct GraphicsEngine{
 
 			// A rotation value that 'updates' every frame to give some animation in our scene
 			static float yRotation = 0.0f;   yRotation += 0.01f;
-
-			// Update our bunny (only if it exists and isn't physics-driven)
-			// MeshNode m = cast(MeshNode)mSceneTree.FindNode("bunny");
-			// if (m !is null)
-			// {
-			// 	m.mModelMatrix = MatrixMakeTranslation(vec3(0.0f,0.0f,-1.0f));
-			// 	m.mModelMatrix = m.mModelMatrix * MatrixMakeYRotation(yRotation);
-			// }
 
 			//update our light object
 			MeshNode lightNode = cast(MeshNode)mSceneTree.FindNode("light");
