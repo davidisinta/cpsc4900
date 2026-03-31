@@ -10,15 +10,15 @@
 
 ### Day 1
 
-- [ ] Add raycast C API bindings to `bullet_c_api.d`
+- [X] Add raycast C API bindings to `bullet_c_api.d`
   - `b3CreateRaycastCommand`
   - `b3CreateRaycastBatchCommand`
   - `b3GetRaycastInformation`
   - `b3RayHitInfo` struct in `types.d`
   - `b3RaycastInformation` struct in `types.d`
-- [ ] Add `raycast(vec3 from, vec3 to)` method to `PhysicsWorld`
+- [X] Add `raycast(vec3 from, vec3 to)` method to `PhysicsWorld`
   - Returns: hit entity ID, hit position, hit normal (or miss)
-- [ ] Smoke test: cast ray straight down from cube, confirm it hits ground
+- [X] Smoke test: cast ray straight down from cube, confirm it hits ground
 
 ### Day 2
 
