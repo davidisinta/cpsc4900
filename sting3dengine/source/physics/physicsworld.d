@@ -358,25 +358,21 @@ struct PhysicsWorld{
     // Raycasting
     //---------------------------------------------------------------------
 
-    /// Cast a ray from `from` to `to` and return what it hits first.
     RaycastResult raycast(float fromX, float fromY, float fromZ,
                           float toX, float toY, float toZ)
     {
         requireClient();
 
-        // 1. Build raycast command
         auto cmd = b3CreateRaycastCommandInit(mClient,
             fromX, fromY, fromZ,
             toX, toY, toZ);
 
-        // 2. Submit and wait
         auto st = b3SubmitClientCommandAndWaitStatus(mClient, cmd);
         int ty  = b3GetStatusType(st);
 
         if (ty != EnumSharedMemoryServerStatus.CMD_REQUEST_RAY_CAST_INTERSECTIONS_COMPLETED)
             throw new Exception(mWorldname ~ ": raycast failed, statusType=" ~ ty.to!string);
 
-        // 3. Read results
         b3RaycastInformation rayInfo;
         b3GetRaycastInformation(mClient, &rayInfo);
 
@@ -387,13 +383,15 @@ struct PhysicsWorld{
             auto firstHit = rayInfo.m_rayHits[0];
             int bodyId = firstHit.m_hitObjectUniqueId;
 
-            result.hit = true;
-            result.hitPosition = firstHit.m_hitPositionWorld;
-            result.hitNormal   = firstHit.m_hitNormalWorld;
+            if (bodyId >= 0)
+            {
+                result.hit = true;
+                result.hitPosition = firstHit.m_hitPositionWorld;
+                result.hitNormal   = firstHit.m_hitNormalWorld;
 
-            // Look up engine entity from Bullet body ID
-            if (auto p = bodyId in bodyToEntity)
-                result.entityId = *p;
+                if (auto p = bodyId in bodyToEntity)
+                    result.entityId = *p;
+            }
         }
 
         return result;

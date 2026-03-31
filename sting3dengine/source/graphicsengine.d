@@ -8,6 +8,7 @@ import std.string : toStringz;
 import std.datetime.stopwatch : StopWatch, AutoStart;
 import core.thread : Thread;
 import std.datetime : dur;
+import std.datetime.systime : Clock;
 
 // Third-party libraries
 import bindbc.sdl;
@@ -154,6 +155,12 @@ struct GraphicsEngine{
                                 }
                                 writeln("Camera Position: ",mCamera.mEyePosition);
                         }
+
+                        if(event.type == SDL_MOUSEBUTTONDOWN){
+                            if(event.button.button == SDL_BUTTON_LEFT){
+                                shoot();
+                            }
+                        }
                 }
 
                 // Retrieve the mouse position
@@ -174,9 +181,9 @@ struct GraphicsEngine{
                 IMaterial lightMaterial    = new BasicMaterial("light");
 
                 // Create an object and add it to our scene tree
-                ISurface obj = new SurfaceOBJ("./assets/meshes/bunny_centered.obj"); 
-                MeshNode  m        = new MeshNode("bunny",obj,mBasicMaterial);
-                mSceneTree.GetRootNode().AddChildSceneNode(m);
+                // ISurface obj = new SurfaceOBJ("./assets/meshes/bunny_centered.obj"); 
+                // MeshNode  m        = new MeshNode("bunny",obj,mBasicMaterial);
+                // mSceneTree.GetRootNode().AddChildSceneNode(m);
 
                 //we create another object for our light box and add it to scene tree
                 GLfloat[] lightboxVBO = [
@@ -336,6 +343,16 @@ struct GraphicsEngine{
                 "./assets/meshes/bunny_centered.obj",
                 vec3(0.0f, 10.0f, 0.0f)
             );
+
+
+
+            //another cube for testing shooting
+            vec3 testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -4.0f);
+            mCubeEntity = spawnPhysicsObject(
+                "cube.urdf",
+                "./assets/meshes/bunny_centered.obj",
+                testPos
+            );
         }
 
 
@@ -353,6 +370,36 @@ struct GraphicsEngine{
                 //     contactInfo.m_contactPointData[0].m_normalForce);
             }
         }
+
+
+        void debugTargetTransform()
+{
+    static int counter = 0;
+    counter++;
+
+    if (counter % 30 != 0) return;
+
+    auto tcPtr = mCubeEntity in mEntityManager.transforms;
+    if (tcPtr is null)
+    {
+        writeln("[target-debug] no transform for entity ", mCubeEntity);
+        return;
+    }
+
+    auto tc = *tcPtr;
+
+    writeln("[target-debug] entity=", mCubeEntity,
+            " position=", tc.position,
+            " rotation=(", tc.rotation.x, ", ",
+                          tc.rotation.y, ", ",
+                          tc.rotation.z, ", ",
+                          tc.rotation.w, ")");
+}
+
+
+
+
+
 
         void initCrosshair()
         {
@@ -412,8 +459,37 @@ struct GraphicsEngine{
         }
 
 
+        // to do: modify to actually eliminate object
+        void shoot()
+        {
+            import std.datetime.systime : Clock;
 
-        
+            vec3 from = mCamera.mEyePosition;
+            vec3 dir  = mCamera.mForwardVector * -1.0f;  // negate — camera looks opposite to mForwardVector
+            dir = Normalize(dir);
+            vec3 to   = from + dir * 1000.0f;
+
+            writeln("[shoot-debug] eye=", from, " dir=", dir);
+
+            auto result = mPhysicsWorld.raycast(
+                from.x, from.y, from.z,
+                to.x, to.y, to.z);
+
+            auto now = Clock.currTime();
+
+            if (result.hit)
+            {
+                writeln("[shoot] ", now.toSimpleString(),
+                    " HIT entity=", result.entityId,
+                    " at pos=[", result.hitPosition[0],
+                    ", ", result.hitPosition[1],
+                    ", ", result.hitPosition[2], "]");
+            }
+            else
+            {
+                writeln("[shoot] ", now.toSimpleString(), " MISS");
+            }
+        }
 
         void Update(){
 
@@ -424,6 +500,8 @@ struct GraphicsEngine{
             // Optionally Set debugLog=true to print positions each frame for verification
             syncPhysicsToRender(mPhysicsWorld, mEntityManager, /*debugLog=*/ false);
 
+            // debugTargetTransform();
+
 			//check for collisions
 			checkCollisions();
 
@@ -431,12 +509,12 @@ struct GraphicsEngine{
 			static float yRotation = 0.0f;   yRotation += 0.01f;
 
 			// Update our bunny (only if it exists and isn't physics-driven)
-			MeshNode m = cast(MeshNode)mSceneTree.FindNode("bunny");
-			if (m !is null)
-			{
-				m.mModelMatrix = MatrixMakeTranslation(vec3(0.0f,0.0f,-1.0f));
-				m.mModelMatrix = m.mModelMatrix * MatrixMakeYRotation(yRotation);
-			}
+			// MeshNode m = cast(MeshNode)mSceneTree.FindNode("bunny");
+			// if (m !is null)
+			// {
+			// 	m.mModelMatrix = MatrixMakeTranslation(vec3(0.0f,0.0f,-1.0f));
+			// 	m.mModelMatrix = m.mModelMatrix * MatrixMakeYRotation(yRotation);
+			// }
 
 			//update our light object
 			MeshNode lightNode = cast(MeshNode)mSceneTree.FindNode("light");

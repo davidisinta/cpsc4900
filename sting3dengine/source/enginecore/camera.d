@@ -138,12 +138,12 @@ class Camera{
     void MoveUp(){
         UpdateViewMatrix();
 
-        SetCameraPosition(mEyePosition.x, mEyePosition.y +1.0f, mEyePosition.z);
+        SetCameraPosition(mEyePosition.x, mEyePosition.y +0.2f, mEyePosition.z);
     }
 
     void MoveDown(){
         UpdateViewMatrix();
 
-        SetCameraPosition(mEyePosition.x, mEyePosition.y - 1.0f, mEyePosition.z);
+        SetCameraPosition(mEyePosition.x, mEyePosition.y - 0.2f, mEyePosition.z);
     }
 }
