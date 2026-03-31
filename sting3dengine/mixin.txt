@@ -3695,8 +3695,50 @@ SDLSupport loadSDL(const(char)* libName){
 	return loadedVersion;
 }
 
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/core/atomic.d(561,9)
+*cast(T*)&val+=mod
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/stdio.d(5355,38)
+core.stdc.stdio.stdin
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/core/atomic.d(561,9)
+*cast(T*)&val+=mod
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/core/atomic.d(561,9)
+*cast(T*)&val-=mod
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/core/atomic.d(561,9)
+*cast(T*)&val+=mod
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/stdio.d(5355,38)
+core.stdc.stdio.stdout
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/core/atomic.d(561,9)
+*cast(T*)&val+=mod
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/core/atomic.d(561,9)
+*cast(T*)&val-=mod
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/core/atomic.d(561,9)
+*cast(T*)&val+=mod
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/stdio.d(5355,38)
+core.stdc.stdio.stderr
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/core/atomic.d(561,9)
+*cast(T*)&val+=mod
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/core/atomic.d(561,9)
+*cast(T*)&val-=mod
+
 // expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/object.d(4967,5)
 import imported = std.traits;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
 
 // expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/functional.d(455,16)
 cast(T)a < cast(T) b
@@ -3876,6 +3918,12 @@ private ubyte _flDash_flZero_flSpace_flPlus_flHash_flEqual_flSeparator__bf;@prop
 // expansion at
 .object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
 
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
 // expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/functional.d(225,13)
 alias a = __a ;
 
@@ -3965,6 +4013,39 @@ glDisableVertexAttribArray(1LU);
 
 // expansion at
 .object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at
+.object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/meta.d(965,13)
+auto e0LU = el;
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/meta.d(965,13)
+auto e1LU = el;
+
+// expansion at /opt/homebrew/Cellar/ldc/1.41.0_1/include/dlang/ldc/std/meta.d(965,13)
+auto e2LU = el;
 
 // expansion at
 .object.size_t h = 0;foreach (i, T; typeof(p.tupleof))    static if(is(T* : const(.object.Object)*))         h = h * 33 + typeid(const(.object.Object)).getHash(cast(const void*)&p.tupleof[i]);    else         h = h * 33 + typeid(T).getHash(cast(const void*)&p.tupleof[i]);return h;

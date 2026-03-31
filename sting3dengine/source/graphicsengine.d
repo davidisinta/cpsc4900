@@ -7,7 +7,6 @@ import std.conv;
 import std.string : toStringz;
 import std.datetime.stopwatch : StopWatch, AutoStart;
 import core.thread : Thread;
-// import std.conv : to;
 import std.datetime : dur;
 
 // Third-party libraries
@@ -25,407 +24,438 @@ import audiosubsystem;
 import physics;
 
 
-
-
-
-// Bullet related setup, to be refactored.
-
-extern(C)
-{
-    // --- Connection/lifecycle ---
-    // Note: collision.d uses alias b3PhysicsClientHandle = void*;
-    b3PhysicsClientHandle b3ConnectPhysicsDirect();
-    void b3DisconnectSharedMemory(b3PhysicsClientHandle physClient);
-
-    // --- Command submission / status ---
-    void* b3SubmitClientCommandAndWaitStatus(b3PhysicsClientHandle physClient, b3SharedMemoryCommandHandle commandHandle);
-    int b3GetStatusType(void* statusHandle);
-    int b3GetStatusBodyIndex(void* statusHandle);
-
-    // --- Reset / physics params ---
-    b3SharedMemoryCommandHandle b3InitResetSimulationCommand(b3PhysicsClientHandle physClient);
-
-    b3SharedMemoryCommandHandle b3InitPhysicsParamCommand(b3PhysicsClientHandle physClient);
-    int b3PhysicsParamSetGravity(b3SharedMemoryCommandHandle cmd, double gx, double gy, double gz);
-    int b3PhysicsParamSetTimeStep(b3SharedMemoryCommandHandle cmd, double dt);
-
-    // --- Search path + URDF loading ---
-    b3SharedMemoryCommandHandle b3SetAdditionalSearchPath(b3PhysicsClientHandle physClient, const(char)* path);
-
-    b3SharedMemoryCommandHandle b3LoadUrdfCommandInit(b3PhysicsClientHandle physClient, const(char)* urdfFileName);
-    int b3LoadUrdfCommandSetStartPosition(b3SharedMemoryCommandHandle cmd, double x, double y, double z);
-    int b3LoadUrdfCommandSetStartOrientation(b3SharedMemoryCommandHandle cmd, double x, double y, double z, double w);
-
-    // --- Step simulation ---
-    b3SharedMemoryCommandHandle b3InitStepSimulationCommand(b3PhysicsClientHandle physClient);
-}
-
-// Status codes (EnumSharedMemoryServerStatus in SharedMemoryPublic.h)
-enum int CMD_URDF_LOADING_COMPLETED            = 6;
-enum int CMD_STEP_FORWARD_SIMULATION_COMPLETED = 26;
-enum int CMD_RESET_SIMULATION_COMPLETED        = 27;
-
-// end of bullet stuff
-
-
-
-
-
-
-
-
-
-
-
-
 /// The main graphics application.
 struct GraphicsEngine{
-		bool mGameIsRunning=true;
-		bool mRenderWireframe = false;
-		SDL_GLContext mContext;
-		SDL_Window* mWindow;
-		int i = 0;
-		int fps = 0;
-		int MS_PER_FRAME = 16;
-		GameApplication mGame;
-		int mScreenWidth;
-		int mScreenHeight;
-		b3PhysicsClientHandle mPhysicsClient;
+        bool mGameIsRunning=true;
+        bool mRenderWireframe = false;
+        SDL_GLContext mContext;
+        SDL_Window* mWindow;
+        int i = 0;
+        int fps = 0;
+        int MS_PER_FRAME = 16;
+        GameApplication mGame;
+        int mScreenWidth;
+        int mScreenHeight;
 
-		SceneTree mSceneTree;
-		Camera mCamera;
-		Renderer mRenderer;
-		Light gLight;
+        SceneTree mSceneTree;
+        Camera mCamera;
+        Renderer mRenderer;
+        Light gLight;
 
-		/// Setup OpenGL and any libraries
-		this(int major_ogl_version, int minor_ogl_version){
+        //--------------------------------------------------------------
+        // Physics + entity management
+        //--------------------------------------------------------------
+        PhysicsWorld mPhysicsWorld;
+        EntityManager mEntityManager;
+        int mLastFrameTime;
+        IMaterial mBasicMaterial;
+		double mFrameDt;
+		uint mGroundEntity;
+        uint mCubeEntity;
 
-				//Set screen Width and Height
-				mScreenWidth = 640;
-				mScreenHeight = 480;
+        /// Setup OpenGL and any libraries
+        this(int major_ogl_version, int minor_ogl_version){
 
-				// Setup SDL OpenGL Version
-				SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, major_ogl_version );
-				SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, minor_ogl_version );
-				SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
+                //Set screen Width and Height
+                mScreenWidth = 640;
+                mScreenHeight = 480;
 
-				// We want to request a double buffer for smooth updating.
-				SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-				SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+                // Setup SDL OpenGL Version
+                SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, major_ogl_version );
+                SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, minor_ogl_version );
+                SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
 
-				// Create an application window using OpenGL that supports SDL
-				mWindow = SDL_CreateWindow( "dlang - OpenGL 4+ Graphics Framework",
-								SDL_WINDOWPOS_UNDEFINED,
-								SDL_WINDOWPOS_UNDEFINED,
-								mScreenWidth,
-								mScreenHeight,
-								SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
+                // We want to request a double buffer for smooth updating.
+                SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+                SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-				// Create the OpenGL context and associate it with our window
-				mContext = SDL_GL_CreateContext(mWindow);
+                // Create an application window using OpenGL that supports SDL
+                mWindow = SDL_CreateWindow( "dlang - OpenGL 4+ Graphics Framework",
+                                SDL_WINDOWPOS_UNDEFINED,
+                                SDL_WINDOWPOS_UNDEFINED,
+                                mScreenWidth,
+                                mScreenHeight,
+                                SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
 
-				// Load OpenGL Function calls
-				auto retVal = LoadOpenGLLib();
+                // Create the OpenGL context and associate it with our window
+                mContext = SDL_GL_CreateContext(mWindow);
 
-				// Check OpenGL version
-				GetOpenGLVersionInfo();
+                // Load OpenGL Function calls
+                auto retVal = LoadOpenGLLib();
 
-				// Create a renderer
-				mRenderer = new Renderer(mWindow,mScreenWidth,mScreenHeight);
+                // Check OpenGL version
+                GetOpenGLVersionInfo();
 
-				// Create a camera
-				mCamera = new Camera();
+                // Create a renderer
+                mRenderer = new Renderer(mWindow,mScreenWidth,mScreenHeight);
 
-				// Create (or load) a Scene Tree
-				mSceneTree = new SceneTree("root");
+                // Create a camera
+                mCamera = new Camera();
 
-				// Add the game to the engine
-				// I heap allocate the game struct for performance reasons
-				mGame = new GameApplication("topshotaa");
-		}
+                // Create (or load) a Scene Tree
+                mSceneTree = new SceneTree("root");
 
-		/// Destructor
-		~this(){
-				// Destroy our context
-				SDL_GL_DeleteContext(mContext);
-				// Destroy our window
-				SDL_DestroyWindow(mWindow);
-		}
+                // Add the game to the engine
+                mGame = new GameApplication("topshotaa");
 
-		/// Handle input
-		void Input(){
-				// Store an SDL Event
-				SDL_Event event;
-				while(SDL_PollEvent(&event)){
-						if(event.type == SDL_QUIT){
-								writeln("Exit event triggered (probably clicked 'x' at top of the window)");
-								mGameIsRunning= false;
-						}
-						if(event.type == SDL_KEYDOWN){
-								if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE){
-										writeln("Pressed escape key and now exiting...");
-										mGameIsRunning= false;
-								}else if(event.key.keysym.sym == SDLK_TAB){
-										mRenderWireframe = !mRenderWireframe;
-								}
-								else if(event.key.keysym.sym == SDLK_DOWN){
-										mCamera.MoveBackward();
-								}
-								else if(event.key.keysym.sym == SDLK_UP){
-										mCamera.MoveForward();
-								}
-								else if(event.key.keysym.sym == SDLK_LEFT){
-										mCamera.MoveLeft();
-								}
-								else if(event.key.keysym.sym == SDLK_RIGHT){
-										mCamera.MoveRight();
-								}
-								else if(event.key.keysym.sym == SDLK_a){
-										mCamera.MoveUp();
-								}
-								else if(event.key.keysym.sym == SDLK_z){
-										mCamera.MoveDown();
-								}
-								writeln("Camera Position: ",mCamera.mEyePosition);
-						}
-				}
+                //------------------------------------------------------
+                // Initialise physics world + entity manager
+                //------------------------------------------------------
+                mPhysicsWorld = PhysicsWorld("main-world");
+                mEntityManager = new EntityManager();
+                mLastFrameTime = SDL_GetTicks();
+        }
+
+        /// Destructor
+        ~this(){
+                // Shut down physics
+                mPhysicsWorld.shutdown();
+
+                // Destroy our context
+                SDL_GL_DeleteContext(mContext);
+                // Destroy our window
+                SDL_DestroyWindow(mWindow);
+        }
+
+        /// Handle input
+        void Input(){
+                // Store an SDL Event
+                SDL_Event event;
+                while(SDL_PollEvent(&event)){
+                        if(event.type == SDL_QUIT){
+                                writeln("Exit event triggered (probably clicked 'x' at top of the window)");
+                                mGameIsRunning= false;
+                        }
+                        if(event.type == SDL_KEYDOWN){
+                                if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE){
+                                        writeln("Pressed escape key and now exiting...");
+                                        mGameIsRunning= false;
+                                }else if(event.key.keysym.sym == SDLK_TAB){
+                                        mRenderWireframe = !mRenderWireframe;
+                                }
+                                else if(event.key.keysym.sym == SDLK_DOWN){
+                                        mCamera.MoveBackward();
+                                }
+                                else if(event.key.keysym.sym == SDLK_UP){
+                                        mCamera.MoveForward();
+                                }
+                                else if(event.key.keysym.sym == SDLK_LEFT){
+                                        mCamera.MoveLeft();
+                                }
+                                else if(event.key.keysym.sym == SDLK_RIGHT){
+                                        mCamera.MoveRight();
+                                }
+                                else if(event.key.keysym.sym == SDLK_a){
+                                        mCamera.MoveUp();
+                                }
+                                else if(event.key.keysym.sym == SDLK_z){
+                                        mCamera.MoveDown();
+                                }
+                                writeln("Camera Position: ",mCamera.mEyePosition);
+                        }
+                }
 
                 // Retrieve the mouse position
                 int mouseX,mouseY;
                 SDL_GetMouseState(&mouseX,&mouseY);
                 mCamera.MouseLook(mouseX,mouseY);
-		}
+        }
 
-		/// A helper function to setup a scene.
-		/// NOTE: In the future this can use a configuration file to otherwise make our graphics applications
-		///       data-driven.
-		void SetupScene(){
+        /// A helper function to setup a scene.
+        void SetupScene(){
 
-				// Create a pipeline and associate it with a material
-				// that can be attached to meshes.
-				Pipeline basicPipeline = new Pipeline("basic","./pipelines/basic/basic.vert","./pipelines/basic/basic.frag");
-				IMaterial basicMaterial    = new BasicMaterial("basic");
+                // Create a pipeline and associate it with a material
+                Pipeline basicPipeline = new Pipeline("basic","./pipelines/basic/basic.vert","./pipelines/basic/basic.frag");
+                mBasicMaterial = new BasicMaterial("basic");  // cache for spawning
 
-				// Create a pipeline for our light, this way the light
-				// itself remains unaffected by itself but lights other objects
-				Pipeline lightPipeline = new Pipeline("light","./pipelines/light/basic.vert","./pipelines/light/basic.frag");
-				IMaterial lightMaterial    = new BasicMaterial("light");
+                // Create a pipeline for our light
+                Pipeline lightPipeline = new Pipeline("light","./pipelines/light/basic.vert","./pipelines/light/basic.frag");
+                IMaterial lightMaterial    = new BasicMaterial("light");
 
-				// Create an object and add it to our scene tree
-				ISurface obj = new SurfaceOBJ("./assets/meshes/bunny_centered.obj"); 
-				MeshNode  m        = new MeshNode("bunny",obj,basicMaterial);
-				mSceneTree.GetRootNode().AddChildSceneNode(m);
+                // Create an object and add it to our scene tree
+                ISurface obj = new SurfaceOBJ("./assets/meshes/bunny_centered.obj"); 
+                MeshNode  m        = new MeshNode("bunny",obj,mBasicMaterial);
+                mSceneTree.GetRootNode().AddChildSceneNode(m);
 
-				//we create another object for our light box and add it to scene tree
-				//create vbo for this obj
-				GLfloat[] lightboxVBO = [
-					-0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-					0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-					0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-					0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-					-0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-					-0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+                //we create another object for our light box and add it to scene tree
+                GLfloat[] lightboxVBO = [
+                    -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+                     0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+                     0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+                     0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+                    -0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+                    -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
 
-					-0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-					0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-					0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-					0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-					-0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-					-0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                    -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                     0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                     0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                     0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                    -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                    -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
 
-					-0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
-					-0.5f,  0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
-					-0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
-					-0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
-					-0.5f, -0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
-					-0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
+                    -0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
+                    -0.5f,  0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
+                    -0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
+                    -0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
+                    -0.5f, -0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
+                    -0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
 
-					0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-					0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-					0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-					0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-					0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-					0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                     0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                     0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                     0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                     0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                     0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                     0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
 
-					-0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
-					0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
-					0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
-					0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
-					-0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
-					-0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
+                    -0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
+                     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
+                     0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
+                     0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
+                    -0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
+                    -0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
 
-					-0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-					0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-					0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-					0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-					-0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-					-0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f
-				];
-				ISurface lightBox = new SurfaceTriangle(lightboxVBO);
+                    -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                     0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                     0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                     0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                    -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                    -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f
+                ];
+                ISurface lightBox = new SurfaceTriangle(lightboxVBO);
+                MeshNode light = new MeshNode("light", lightBox, lightMaterial);
+                mSceneTree.GetRootNode().AddChildSceneNode(light);
 
-				//slight problem with light shader
-				MeshNode light = new MeshNode("light", lightBox, lightMaterial);
-				mSceneTree.GetRootNode().AddChildSceneNode(light);
+                // Add uniforms to the basic material
+                mBasicMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+                mBasicMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+                mBasicMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
 
-				// Add three uniforms to the basic material.
-				// The 4th parameter is set to the pointer where the value will be updated each frame.
-				// Becauses the model matrix will be different among models, then we will just leave
-				// this null for now.
-				basicMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-				basicMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-				basicMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+                //Add uniforms to our light shader as well
+                lightMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+                lightMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+                lightMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+        }
 
-				//Add uniforms to our light shader as well
-				lightMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-				lightMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-				lightMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
-		}
+        void setUpLights(){
 
-		void setUpLights(){
+            GLuint shaderProgramID = Pipeline.sPipeline["basic"];
+            glUseProgram(shaderProgramID);
 
-			GLuint shaderProgramID = Pipeline.sPipeline["basic"];
-			glUseProgram(shaderProgramID);
+            GLint field1 = glGetUniformLocation(shaderProgramID, "uLight1.mColor");
+            GLint field2 = glGetUniformLocation(shaderProgramID, "uLight1.mPosition");
+            GLint field3 = glGetUniformLocation(shaderProgramID, "uLight1.mAmbientIntensity");
+            GLint field4 = glGetUniformLocation(shaderProgramID, "uLight1.mSpecularIntensity");
+            GLint field5 = glGetUniformLocation(shaderProgramID, "uLight1.mSpecularExponent");
+            GLint field6 = glGetUniformLocation(shaderProgramID, "viewpos");
 
-			GLint field1 = glGetUniformLocation(shaderProgramID, "uLight1.mColor");
-			GLint field2 = glGetUniformLocation(shaderProgramID, "uLight1.mPosition");
-			GLint field3 = glGetUniformLocation(shaderProgramID, "uLight1.mAmbientIntensity");
-			GLint field4 = glGetUniformLocation(shaderProgramID, "uLight1.mSpecularIntensity");
-			GLint field5 = glGetUniformLocation(shaderProgramID, "uLight1.mSpecularExponent");
-			GLint field6 = glGetUniformLocation(shaderProgramID, "viewpos");
+            foreach(value ; [field1,field2,field3,field4,field5]){
+                if(value < 0){
+                    writeln("Failed to find: ",value);
+                }
+            }
+        
+            // Postion light to move in a circle
+            static float inc = 0.0f;
+            float radius = 3.0f;
+            inc+=0.01;
+            gLight.mPosition = [radius*cos(inc),0.0f,radius*sin(inc)];
 
-			foreach(value ; [field1,field2,field3,field4,field5]){
-				if(value < 0){
-					writeln("Failed to find: ",value);
-				}else{
-					// writeln("Light Uniform Location(s): ",value);
-				}
-			}
-		
-			// Postion light to move in a circle
-			static float inc = 0.0f;
-			float radius = 3.0f;
-			inc+=0.01;
-			gLight.mPosition = [radius*cos(inc),0.0f,radius*sin(inc)];
+            glUniform1fv(field1,3,gLight.mColor.ptr);
+            glUniform1fv(field2,3,gLight.mPosition.ptr);
+            glUniform1f (field3,gLight.mAmbientIntensity);
+            glUniform1f (field4,gLight.mSpecularIntensity);
+            glUniform1f (field5,gLight.mSpecularExponent);
+            glUniform3f(field6, mCamera.mEyePosition.x, mCamera.mEyePosition.y, mCamera.mEyePosition.z);
+        }
 
-			glUniform1fv(field1,3,gLight.mColor.ptr);
-			glUniform1fv(field2,3,gLight.mPosition.ptr);
-			glUniform1f (field3,gLight.mAmbientIntensity);
-			glUniform1f (field4,gLight.mSpecularIntensity);
-			glUniform1f (field5,gLight.mSpecularExponent);
-			glUniform3f(field6, mCamera.mEyePosition.x, mCamera.mEyePosition.y, mCamera.mEyePosition.z);
+        //--------------------------------------------------------------
+        // Spawn a physics-driven object with both visual + physics
+        //--------------------------------------------------------------
+        /// Creates an entity with:
+        ///   - a Bullet physics body (from URDF)
+        ///   - a rendered mesh (from .obj)
+        ///   - a TransformComponent synced each frame
+        ///
+        /// Returns the entity ID.
+        uint spawnPhysicsObject(
+            string urdfPath,
+            string objPath,
+            vec3 pos,
+            Quat orient = Quat.init)  // default = identity rotation
+        {
+            // Allocate entity
+            uint eid = mEntityManager.create();
 
-		}
+            // Physics side: load URDF into Bullet
+            mPhysicsWorld.addURDF(eid, urdfPath,
+                pos.x, pos.y, pos.z,
+                orient.x, orient.y, orient.z, orient.w);
+            mEntityManager.markPhysics(eid);
 
-		/// Update gamestate
-		void Update(){
-				// A rotation value that 'updates' every frame to give some animation in our scene
-				static float yRotation = 0.0f;   yRotation += 0.01f;
+            // Render side: load .obj mesh, attach to scene tree
+            ISurface surf = new SurfaceOBJ(objPath);
+            MeshNode node = new MeshNode("entity_" ~ eid.to!string, surf, mBasicMaterial);
+            mSceneTree.GetRootNode().AddChildSceneNode(node);
 
-				// Update our bunny
-				MeshNode m = cast(MeshNode)mSceneTree.FindNode("bunny");
+            // Register in EntityManager
+            TransformComponent tc;
+            tc.position = pos;
+            tc.rotation = orient;
+            mEntityManager.addTransform(eid, tc);
+            mEntityManager.addRenderable(eid, node);
+
+            // Set initial model matrix
+            node.mModelMatrix = tc.toModelMatrix();
+
+            writeln("[spawn] entity=", eid, " urdf=", urdfPath, " obj=", objPath, " pos=", pos);
+            return eid;
+        }
+
+        //--------------------------------------------------------------
+        // Setup physics scene
+        //--------------------------------------------------------------
+		void SetupPhysicsScene(){
+            mPhysicsWorld.setGravity(0.0, -1.0, 0.0);
+
+            // Ground plane
+            mGroundEntity = mEntityManager.create();
+            mPhysicsWorld.addURDF(mGroundEntity, "plane.urdf",
+                0, 0, 0,
+                0, 0, 0, 1);
+            mEntityManager.markPhysics(mGroundEntity);
+            TransformComponent planeTc;
+            mEntityManager.addTransform(mGroundEntity, planeTc);
+
+            // Cube falls on Y
+            mCubeEntity = spawnPhysicsObject(
+                "cube.urdf",
+                "./assets/meshes/bunny_centered.obj",
+                vec3(0.0f, 10.0f, 0.0f)
+            );
+        }
+
+
+		/// Check and log collisions between cube and ground.
+        /// Call this in AdvanceFrame after the sync.
+        void checkCollisions()
+        {
+            b3ContactInformation contactInfo;
+            int numContacts = mPhysicsWorld.getContacts(mCubeEntity, mGroundEntity, contactInfo);
+
+            if (numContacts > 0)
+            {
+                writefln("[collision] cube<->ground: %d contact(s), normal_force=%.3f",
+                    numContacts,
+                    contactInfo.m_contactPointData[0].m_normalForce);
+            }
+        }
+
+
+
+
+        void Update(){
+
+			// Step physics
+            mPhysicsWorld.updatePhysics(mFrameDt);
+
+            // Sync physics transforms → MeshNode model matrices
+            // Optionally Set debugLog=true to print positions each frame for verification
+            syncPhysicsToRender(mPhysicsWorld, mEntityManager, /*debugLog=*/ false);
+
+			//check for collisions
+			checkCollisions();
+
+			// A rotation value that 'updates' every frame to give some animation in our scene
+			static float yRotation = 0.0f;   yRotation += 0.01f;
+
+			// Update our bunny (only if it exists and isn't physics-driven)
+			MeshNode m = cast(MeshNode)mSceneTree.FindNode("bunny");
+			if (m !is null)
+			{
 				m.mModelMatrix = MatrixMakeTranslation(vec3(0.0f,0.0f,-1.0f));
 				m.mModelMatrix = m.mModelMatrix * MatrixMakeYRotation(yRotation);
+			}
 
-				//update our light object
-				MeshNode lightNode = cast(MeshNode)mSceneTree.FindNode("light");
-
-				//ensure the light box follows point light
+			//update our light object
+			MeshNode lightNode = cast(MeshNode)mSceneTree.FindNode("light");
+			if (lightNode !is null)
+			{
 				GLfloat x = gLight.mPosition[0];
 				GLfloat y = gLight.mPosition[1];
 				GLfloat z = gLight.mPosition[2];
 				lightNode.mModelMatrix = MatrixMakeTranslation(vec3(x, y, z));
-		}
-
-		/// Render our scene by traversing the scene tree from a specific viewpoint
-		void Render(){
-
-
-			//to do: implement render function, to call imgui
-			// so that we render both the editor and the 3d stuff
-			// because of separation of concerns, renderer, should be 
-			// part of the engine, and imgui should be part of editor,
-			// so we can easily swap out our editor and engine does not depend
-			// on the editor tightly.
-
-
-			if(mRenderWireframe){
-					glPolygonMode(GL_FRONT_AND_BACK,GL_LINE); 
-			}else{
-					glPolygonMode(GL_FRONT_AND_BACK,GL_FILL); 
 			}
+        }
 
-			//set up lights for the scene
-			setUpLights();
+        void Render(){
+            if(mRenderWireframe){
+                    glPolygonMode(GL_FRONT_AND_BACK,GL_LINE); 
+            }else{
+                    glPolygonMode(GL_FRONT_AND_BACK,GL_FILL); 
+            }
 
-			/// Sets state at the start of a frame
-			glViewport(0,0,mScreenWidth, mScreenHeight);
-			glClearColor(0.0f,0.6f,0.8f,1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glEnable(GL_DEPTH_TEST);	
+            setUpLights();
 
-			mRenderer.Render(mSceneTree,mCamera);
+            glViewport(0,0,mScreenWidth, mScreenHeight);
+            glClearColor(0.0f,0.6f,0.8f,1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glEnable(GL_DEPTH_TEST);	
 
-			// perform any cleanup and ultimately the double or triple buffering to display the final framebuffer.
-			SDL_GL_SwapWindow(mWindow);	
-		}
+            mRenderer.Render(mSceneTree,mCamera);
 
-		/// Process 1 frame
-		void AdvanceFrame(){
+            SDL_GL_SwapWindow(mWindow);	
+        }
 
-			// get original state in time
-			int startTime = SDL_GetTicks();	
+        void AdvanceFrame(){
 
-			Input();
-			Update();
-			Render();
+            // Compute real delta time
+            int now = SDL_GetTicks();
+            int elapsed = now - mLastFrameTime;
+            mLastFrameTime = now;
+            mFrameDt = elapsed / 1000.0;
 
-			int elapsed_time = SDL_GetTicks() - startTime;
+            Input();
+            Update();
+            Render();
 
-			//to do: check if this is the best way to implement frame capping
-			//apply frame capping to 60 fps, if the game is running too fast:
-			if(elapsed_time < 16){
-				//if our program was too fast, delay it
-				SDL_Delay(16 - elapsed_time);
-				int curr_fps = 1000/(SDL_GetTicks() - startTime);
+            // Frame cap
+            int frame_elapsed = SDL_GetTicks() - now;
+            if(frame_elapsed < 16){
+                SDL_Delay(16 - frame_elapsed);
+                int curr_fps = 1000/(SDL_GetTicks() - now);
+                if(this.fps!=curr_fps)
+                {
+                    this.fps = curr_fps;
+                    string fps_title = "FPS: " ~ curr_fps.to!string;
+                    SDL_SetWindowTitle(mWindow, fps_title.toStringz);
+                }
+            }
+            else {
+                int curr_fps = 1000/frame_elapsed;
+                if(this.fps!=curr_fps)
+                {
+                    this.fps = curr_fps;
+                    string fps_title = "FPS: " ~ curr_fps.to!string;
+                    SDL_SetWindowTitle(mWindow, fps_title.toStringz);
+                }
+            }
+        }
 
-				//update window with fps
-				if(this.fps!=curr_fps)
-				{
-					this.fps = curr_fps;
-					// writeln("fps: ", curr_fps);
-					string fps_title = "FPS: " ~ curr_fps.to!string;
-					SDL_SetWindowTitle(mWindow, fps_title.toStringz);
-				}
-			} //end if
-			
-			else { //calculate the fps, and update the window title with current fps
-				int curr_fps = 1000/elapsed_time;
+        /// Main application loop
+        void Loop(){
 
-				//update window with fps
-				if(this.fps!=curr_fps)
-				{
-					this.fps = curr_fps;
-					// writeln("fps: ", curr_fps);
-					string fps_title = "FPS: " ~ curr_fps.to!string;
-					SDL_SetWindowTitle(mWindow, fps_title.toStringz);
-				}
-			}
-		}
+                // Setup the graphics scene
+                SetupScene();
 
-		/// Main application loop
-		void Loop(){
-				// Setup the graphics scene
-				SetupScene();
+                // Setup physics scene (spawn ground + test objects)
+                SetupPhysicsScene();
 
-				// Lock mouse to center of screen
-				// This will help us get a continuous rotation.
-				// NOTE: On occasion folks on virtual machine or WSL may not have this work,
-				//       so you'll have to compute the 'diff' and reposition the mouse yourself.
-				SDL_WarpMouseInWindow(mWindow,640/2,320/2);
+                // Lock mouse to center of screen
+                SDL_WarpMouseInWindow(mWindow,640/2,320/2);
 
-				// Run the graphics application loop
-				while(mGameIsRunning){
-						AdvanceFrame();
-				}
-		}
+                // Run the graphics application loop
+                while(mGameIsRunning){
+                        AdvanceFrame();
+                }
+        }
 }

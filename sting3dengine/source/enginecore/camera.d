@@ -107,57 +107,43 @@ class Camera{
 
     void MoveForward(){
         UpdateViewMatrix();
-        // TODO 
+
 		vec3 direction = mForwardVector;
 		direction = direction * 1.0f;		
 
-        SetCameraPosition(mEyePosition.x - direction.x, 
-														mEyePosition.y - direction.y,
-														mEyePosition.z - direction.z);
+        SetCameraPosition(mEyePosition.x - direction.x, mEyePosition.y - direction.y, mEyePosition.z - direction.z);
     }
 
     void MoveBackward(){
         UpdateViewMatrix();
-        // TODO 
+
 		vec3 direction = mForwardVector;
 		direction = direction * 1.0f;		
 
-        SetCameraPosition(mEyePosition.x + direction.x, 
-												  mEyePosition.y + direction.y,
-												  mEyePosition.z + direction.z);
+        SetCameraPosition(mEyePosition.x + direction.x, mEyePosition.y + direction.y, mEyePosition.z + direction.z);
     }
 
     void MoveLeft(){
         UpdateViewMatrix();
-        // TODO 
 		
-        SetCameraPosition(mEyePosition.x - mRightVector.x, 
-										      mEyePosition.y - mRightVector.y,
-												  mEyePosition.z - mRightVector.z);
-
+        SetCameraPosition(mEyePosition.x - mRightVector.x, mEyePosition.y - mRightVector.y, mEyePosition.z - mRightVector.z);
     }
 
     void MoveRight(){
         UpdateViewMatrix();
-        // TODO 
-        SetCameraPosition(mEyePosition.x + mRightVector.x, 
-					      					mEyePosition.y + mRightVector.y,
-						  						mEyePosition.z + mRightVector.z);
+
+        SetCameraPosition(mEyePosition.x + mRightVector.x, mEyePosition.y + mRightVector.y,mEyePosition.z + mRightVector.z);
     }
 
     void MoveUp(){
         UpdateViewMatrix();
-        // TODO 
-        SetCameraPosition(mEyePosition.x, 
-					     						 mEyePosition.y +1.0f,
-						  						 mEyePosition.z);
+
+        SetCameraPosition(mEyePosition.x, mEyePosition.y +1.0f, mEyePosition.z);
     }
 
     void MoveDown(){
         UpdateViewMatrix();
-        // TODO 
-        SetCameraPosition(mEyePosition.x, 
-					     						 mEyePosition.y - 1.0f,
-						  						 mEyePosition.z);
+
+        SetCameraPosition(mEyePosition.x, mEyePosition.y - 1.0f, mEyePosition.z);
     }
 }
