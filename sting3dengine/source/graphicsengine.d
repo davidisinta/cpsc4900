@@ -562,7 +562,7 @@ struct GraphicsEngine{
                 // Setup the graphics scene
                 SetupScene();
 
-                // Setup physics scene (spawn ground + test objects)
+                // Setup physics scene
                 SetupPhysicsScene();
 
                 // Lock mouse to center of screen
