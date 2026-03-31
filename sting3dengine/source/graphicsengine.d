@@ -52,6 +52,9 @@ struct GraphicsEngine{
 		double mFrameDt;
 		uint mGroundEntity;
         uint mCubeEntity;
+        GLuint mCrosshairVAO;
+        GLuint mCrosshairVBO;
+        bool mCrosshairReady = false;
 
         /// Setup OpenGL and any libraries
         this(int major_ogl_version, int minor_ogl_version){
@@ -232,6 +235,9 @@ struct GraphicsEngine{
                 lightMaterial.AddUniform(new Uniform("uModel", "mat4", null));
                 lightMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
                 lightMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+
+                // initialize the crosshair
+                initCrosshair();
         }
 
         void setUpLights(){
@@ -342,11 +348,72 @@ struct GraphicsEngine{
 
             if (numContacts > 0)
             {
-                writefln("[collision] cube<->ground: %d contact(s), normal_force=%.3f",
-                    numContacts,
-                    contactInfo.m_contactPointData[0].m_normalForce);
+                // writefln("[collision] cube<->ground: %d contact(s), normal_force=%.3f",
+                //     numContacts,
+                //     contactInfo.m_contactPointData[0].m_normalForce);
             }
         }
+
+        void initCrosshair()
+        {
+            // Create the crosshair shader
+            new Pipeline("crosshair", "./pipelines/crosshair/crosshair.vert",
+                                      "./pipelines/crosshair/crosshair.frag");
+
+            // Crosshair geometry in NDC (-1 to 1 range)
+            // Gap in center, 4 line segments forming a + shape
+            float size = 0.03f;
+            float gap  = 0.008f;
+
+            float[] verts = [
+                // Horizontal left
+                -size, 0.0f,
+                -gap,  0.0f,
+                // Horizontal right
+                 gap,  0.0f,
+                 size, 0.0f,
+                // Vertical top
+                 0.0f, size,
+                 0.0f, gap,
+                // Vertical bottom
+                 0.0f, -gap,
+                 0.0f, -size,
+            ];
+
+            glGenVertexArrays(1, &mCrosshairVAO);
+            glGenBuffers(1, &mCrosshairVBO);
+
+            glBindVertexArray(mCrosshairVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, mCrosshairVBO);
+            glBufferData(GL_ARRAY_BUFFER, verts.length * float.sizeof,
+                         verts.ptr, GL_STATIC_DRAW);
+
+            // aPos at location 0, 2 floats per vertex
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, null);
+
+            glBindVertexArray(0);
+            mCrosshairReady = true;
+        }
+
+        void drawCrosshair()
+        {
+            if (!mCrosshairReady) return;
+
+            glDisable(GL_DEPTH_TEST);
+
+            glUseProgram(Pipeline.sPipeline["crosshair"]);
+            glBindVertexArray(mCrosshairVAO);
+            glLineWidth(2.0f);
+            glDrawArrays(GL_LINES, 0, 8);  // 4 line segments = 8 vertices
+            glBindVertexArray(0);
+
+            glEnable(GL_DEPTH_TEST);
+        }
+
+
+
+        
 
         void Update(){
 
@@ -397,6 +464,8 @@ struct GraphicsEngine{
             glEnable(GL_DEPTH_TEST);	
 
             mRenderer.Render(mSceneTree,mCamera);
+
+            drawCrosshair();
 
             SDL_GL_SwapWindow(mWindow);	
         }
