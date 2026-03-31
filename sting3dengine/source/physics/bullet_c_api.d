@@ -77,6 +77,18 @@ extern(C)
     void b3GetContactPointInformation(b3PhysicsClientHandle physClient, b3ContactInformation* contactInfo);
 
     //---------------------------------------------------------------------
+    // Raycasting
+    //---------------------------------------------------------------------
+    b3SharedMemoryCommandHandle b3CreateRaycastCommandInit(
+        b3PhysicsClientHandle physClient,
+        double rayFromWorldX, double rayFromWorldY, double rayFromWorldZ,
+        double rayToWorldX, double rayToWorldY, double rayToWorldZ);
+
+    void b3GetRaycastInformation(
+        b3PhysicsClientHandle physClient,
+        b3RaycastInformation* raycastInfo);
+
+    //---------------------------------------------------------------------
     // (future)
     //---------------------------------------------------------------------
 
