@@ -98,9 +98,7 @@ struct GraphicsEngine{
                 // Add the game to the engine
                 mGame = new GameApplication("topshotaa");
 
-                //------------------------------------------------------
                 // Initialise physics world + entity manager
-                //------------------------------------------------------
                 mPhysicsWorld = PhysicsWorld("main-world");
                 mEntityManager = new EntityManager();
                 mLastFrameTime = SDL_GetTicks();
@@ -349,9 +347,6 @@ struct GraphicsEngine{
                     contactInfo.m_contactPointData[0].m_normalForce);
             }
         }
-
-
-
 
         void Update(){
 
