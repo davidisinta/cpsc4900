@@ -22,14 +22,14 @@
 
 ### Day 2
 
-- [ ] Wire mouse click to raycast from camera position along forward vector
-- [ ] On hit, destroy target entity (remove from Bullet, EntityManager, SceneTree)
+- [X] Wire mouse click to raycast from camera position along forward vector
+- [X] On hit, destroy target entity (remove from Bullet, EntityManager, SceneTree)
   - Bind `b3InitRemoveBodyCommand` in `bullet_c_api.d`
   - Add `removeBody(uint entityId)` to `PhysicsWorld`
-- [ ] Spawn 10 cubes at various positions as targets
-- [ ] Add crosshair (ImGui overlay or OpenGL screen-space quad)
-- [ ] Add hit counter: track shots fired, shots hit
-- [ ] Print accuracy to console on each shot
+- [X] Spawn 10 cubes at various positions as targets
+- [X] Add crosshair (ImGui overlay or OpenGL screen-space quad)
+- [X] Add hit counter: track shots fired, shots hit
+- [X] Print accuracy to console on each shot
 
 **Day 1-2 Deliverable:** Click to shoot, objects disappear, accuracy tracked.
 
