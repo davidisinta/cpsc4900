@@ -132,6 +132,43 @@ class GameApplication : IGame{
             testPos,
             Quat.init
         );
+
+        // Another target for testing
+        testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -14.0f);
+        spawnPhysicsObject(
+            "cube.urdf",
+            "./assets/meshes/bunny_centered.obj",
+            testPos,
+            Quat.init
+        );
+
+         // Another target for testing
+        testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -24.0f);
+        spawnPhysicsObject(
+            "cube.urdf",
+            "./assets/meshes/bunny_centered.obj",
+            testPos,
+            Quat.init
+        );
+
+
+         // Another target for testing
+        testPos = mCamera.mEyePosition + vec3(10.0f, 0.0f, -4.0f);
+        spawnPhysicsObject(
+            "cube.urdf",
+            "./assets/meshes/bunny_centered.obj",
+            testPos,
+            Quat.init
+        );
+
+         // Another target for testing
+        testPos = mCamera.mEyePosition + vec3(20.0f, 0.0f, -4.0f);
+        spawnPhysicsObject(
+            "cube.urdf",
+            "./assets/meshes/bunny_centered.obj",
+            testPos,
+            Quat.init
+        );
     }
 
     override void HandleInput(){
