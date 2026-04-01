@@ -39,7 +39,7 @@ struct RaycastResult
 //------------------------------------------------------------------------
 // Main Physics World:
 //------------------------------------------------------------------------
-struct PhysicsWorld{
+class PhysicsWorld{
 
     b3PhysicsClientHandle mClient;
     // fixed timestep
@@ -395,6 +395,31 @@ struct PhysicsWorld{
         }
 
         return result;
+    }
+
+
+    //---------------------------------------------------------------------
+    // Body removal
+    //---------------------------------------------------------------------
+    void removeBody(uint entityId)
+    {
+        requireClient();
+
+        auto p = entityId in entityToBody;
+        if (p is null)
+            throw new Exception(mWorldname ~ ": entity " ~ entityId.to!string ~ " has no physics body");
+
+        int bodyId = *p;
+
+        auto cmd = b3InitRemoveBodyCommand(mClient, bodyId);
+        auto st  = b3SubmitClientCommandAndWaitStatus(mClient, cmd);
+        int ty   = b3GetStatusType(st);
+
+        if (ty != EnumSharedMemoryServerStatus.CMD_REMOVE_BODY_COMPLETED)
+            throw new Exception(mWorldname ~ ": removeBody failed for entity "
+                ~ entityId.to!string ~ " statusType=" ~ ty.to!string);
+
+        unbindEntity(entityId);
     }
 
     //---------------------------------------------------------------------

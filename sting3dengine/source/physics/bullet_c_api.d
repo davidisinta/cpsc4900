@@ -89,6 +89,11 @@ extern(C)
         b3RaycastInformation* raycastInfo);
 
     //---------------------------------------------------------------------
+    // Body removal
+    //---------------------------------------------------------------------
+    b3SharedMemoryCommandHandle b3InitRemoveBodyCommand(b3PhysicsClientHandle physClient, int bodyUniqueId);
+
+    //---------------------------------------------------------------------
     // (future)
     //---------------------------------------------------------------------
 

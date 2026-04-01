@@ -30,7 +30,7 @@ bool runPhysicsSimSmokeTestURDF(
 {
     writeln("[physics_sim] starting URDF smoke test...");
 
-    PhysicsWorld world = PhysicsWorld("physics-sim-urdf");
+    PhysicsWorld world = new PhysicsWorld("physics-sim-urdf");
 
     enum uint PLANE_ENTITY = 1;
     enum uint CUBE_ENTITY  = 2;
