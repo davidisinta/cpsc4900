@@ -5,7 +5,6 @@ import std.stdio;
 import std.conv;
 import std.datetime.systime : Clock;
 
-
 // project files
 import enginecore;
 import linear;
@@ -13,20 +12,17 @@ import physics;
 import geometry;
 import materials;
 
-
 // Third-party libraries
 import bindbc.sdl;
 import bindbc.opengl;
 
-class GameApplication : IGame
-{
+class GameApplication : IGame{
     // Refs to engine systems
     PhysicsWorld mPhysicsWorld;
     EntityManager mEntityManager;
     Camera mCamera;
     SceneTree mSceneTree;
     IMaterial mBasicMaterial;
-    
 
     // Game-specific state
     string gameName;
@@ -61,8 +57,7 @@ class GameApplication : IGame
         string urdfPath,
         string objPath,
         vec3 pos,
-        Quat orient = Quat.init)
-    {
+        Quat orient = Quat.init){
         // Allocate entity
         uint eid = mEntityManager.create();
 
@@ -110,7 +105,6 @@ class GameApplication : IGame
 
         initCrosshair();
 
-
         mPhysicsWorld.setGravity(0.0, -1.0, 0.0);
 
         // Ground plane
@@ -140,8 +134,7 @@ class GameApplication : IGame
         );
     }
 
-    override void HandleInput()
-    {
+    override void HandleInput(){
         if (mShootRequested)
         {
             shoot();
@@ -149,25 +142,19 @@ class GameApplication : IGame
         }
     }
 
-    override void Update(double frameDt)
-    {
+    override void Update(double frameDt){
         checkCollisions();
     }
 
-    override void RenderOverlay()
-    {
+    override void RenderOverlay(){
         drawCrosshair();
     }
 
-    // ----- Game methods -----
-
-    void requestShoot()
-    {
+    void requestShoot(){
         mShootRequested = true;
     }
 
-    private void shoot()
-    {
+    private void shoot(){
         vec3 from = mCamera.mEyePosition;
         vec3 dir  = mCamera.mForwardVector * -1.0f;
         dir = Normalize(dir);
@@ -181,17 +168,14 @@ class GameApplication : IGame
 
         auto now = Clock.currTime();
 
-        if (result.hit)
-        {
+        if (result.hit){
             mShotsHit++;
             writeln("[shoot] ", now.toSimpleString(),
                 " HIT entity=", result.entityId,
                 " at pos=[", result.hitPosition[0],
                 ", ", result.hitPosition[1],
                 ", ", result.hitPosition[2], "]");
-        }
-        else
-        {
+        } else{
             writeln("[shoot] ", now.toSimpleString(), " MISS");
         }
 
@@ -200,12 +184,10 @@ class GameApplication : IGame
                 " accuracy=", accuracy, "%");
     }
 
-    private void checkCollisions()
-    {
+    private void checkCollisions(){
         b3ContactInformation contactInfo;
         mPhysicsWorld.getContacts(mCubeEntity, mGroundEntity, contactInfo);
     }
-
 
     void initCrosshair(){
             // Create the crosshair shader
