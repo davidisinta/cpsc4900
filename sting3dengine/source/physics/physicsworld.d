@@ -39,7 +39,7 @@ struct RaycastResult
 //------------------------------------------------------------------------
 // Main Physics World:
 //------------------------------------------------------------------------
-struct PhysicsWorld{
+class PhysicsWorld{
 
     b3PhysicsClientHandle mClient;
     // fixed timestep

@@ -26,7 +26,7 @@ import physics;
 
 
 /// The main graphics application.
-struct GraphicsEngine{
+class GraphicsEngine{
         bool mGameIsRunning=true;
         bool mRenderWireframe = false;
         SDL_GLContext mContext;
@@ -34,7 +34,6 @@ struct GraphicsEngine{
         int i = 0;
         int fps = 0;
         int MS_PER_FRAME = 16;
-        GameApplication mGame;
         int mScreenWidth;
         int mScreenHeight;
 
@@ -51,11 +50,20 @@ struct GraphicsEngine{
         int mLastFrameTime;
         IMaterial mBasicMaterial;
 		double mFrameDt;
-		uint mGroundEntity;
-        uint mCubeEntity;
+		// uint mGroundEntity;
+        // uint mCubeEntity;
         GLuint mCrosshairVAO;
         GLuint mCrosshairVBO;
         bool mCrosshairReady = false;
+
+
+        //--------------------------------------------------------------
+        // First Person Shooter Game
+        //--------------------------------------------------------------
+        GameApplication mGame;
+
+
+
 
         /// Setup OpenGL and any libraries
         this(int major_ogl_version, int minor_ogl_version){
@@ -99,13 +107,16 @@ struct GraphicsEngine{
                 // Create (or load) a Scene Tree
                 mSceneTree = new SceneTree("root");
 
-                // Add the game to the engine
-                mGame = new GameApplication("topshotaa");
+                
 
                 // Initialise physics world + entity manager
-                mPhysicsWorld = PhysicsWorld("main-world");
+                mPhysicsWorld = new PhysicsWorld("main-world");
                 mEntityManager = new EntityManager();
                 mLastFrameTime = SDL_GetTicks();
+
+                // set this up last
+                // Add the game to the engine
+                // mGame = new GameApplication("topshotaa", mPhysicsWorld, mEntityManager, mCamera, mSceneTree, mBasicMaterial);
         }
 
         /// Destructor
@@ -158,7 +169,9 @@ struct GraphicsEngine{
 
                         if(event.type == SDL_MOUSEBUTTONDOWN){
                             if(event.button.button == SDL_BUTTON_LEFT){
-                                shoot();
+                                // shoot();
+
+                                mGame.requestShoot();
                             }
                         }
                 }
@@ -167,6 +180,11 @@ struct GraphicsEngine{
                 int mouseX,mouseY;
                 SDL_GetMouseState(&mouseX,&mouseY);
                 mCamera.MouseLook(mouseX,mouseY);
+
+
+
+
+                mGame.HandleInput();
         }
 
         /// A helper function to setup a scene.
@@ -239,7 +257,7 @@ struct GraphicsEngine{
                 lightMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
 
                 // initialize the crosshair
-                initCrosshair();
+                // mGame.initCrosshair();
         }
 
         void setUpLights(){
@@ -274,203 +292,203 @@ struct GraphicsEngine{
             glUniform3f(field6, mCamera.mEyePosition.x, mCamera.mEyePosition.y, mCamera.mEyePosition.z);
         }
 
-        //--------------------------------------------------------------
-        // Spawn a physics-driven object with both visual + physics
-        //--------------------------------------------------------------
-        /// Creates an entity with:
-        ///   - a Bullet physics body (from URDF)
-        ///   - a rendered mesh (from .obj)
-        ///   - a TransformComponent synced each frame
-        ///
-        /// Returns the entity ID.
-        uint spawnPhysicsObject(
-            string urdfPath,
-            string objPath,
-            vec3 pos,
-            Quat orient = Quat.init)  // default = identity rotation
-        {
-            // Allocate entity
-            uint eid = mEntityManager.create();
+        // //--------------------------------------------------------------
+        // // Spawn a physics-driven object with both visual + physics
+        // //--------------------------------------------------------------
+        // /// Creates an entity with:
+        // ///   - a Bullet physics body (from URDF)
+        // ///   - a rendered mesh (from .obj)
+        // ///   - a TransformComponent synced each frame
+        // ///
+        // /// Returns the entity ID.
+        // uint spawnPhysicsObject(
+        //     string urdfPath,
+        //     string objPath,
+        //     vec3 pos,
+        //     Quat orient = Quat.init)  // default = identity rotation
+        // {
+        //     // Allocate entity
+        //     uint eid = mEntityManager.create();
 
-            // Physics side: load URDF into Bullet
-            mPhysicsWorld.addURDF(eid, urdfPath,
-                pos.x, pos.y, pos.z,
-                orient.x, orient.y, orient.z, orient.w);
-            mEntityManager.markPhysics(eid);
+        //     // Physics side: load URDF into Bullet
+        //     mPhysicsWorld.addURDF(eid, urdfPath,
+        //         pos.x, pos.y, pos.z,
+        //         orient.x, orient.y, orient.z, orient.w);
+        //     mEntityManager.markPhysics(eid);
 
-            // Render side: load .obj mesh, attach to scene tree
-            ISurface surf = new SurfaceOBJ(objPath);
-            MeshNode node = new MeshNode("entity_" ~ eid.to!string, surf, mBasicMaterial);
-            mSceneTree.GetRootNode().AddChildSceneNode(node);
+        //     // Render side: load .obj mesh, attach to scene tree
+        //     ISurface surf = new SurfaceOBJ(objPath);
+        //     MeshNode node = new MeshNode("entity_" ~ eid.to!string, surf, mBasicMaterial);
+        //     mSceneTree.GetRootNode().AddChildSceneNode(node);
 
-            // Register in EntityManager
-            TransformComponent tc;
-            tc.position = pos;
-            tc.rotation = orient;
-            mEntityManager.addTransform(eid, tc);
-            mEntityManager.addRenderable(eid, node);
+        //     // Register in EntityManager
+        //     TransformComponent tc;
+        //     tc.position = pos;
+        //     tc.rotation = orient;
+        //     mEntityManager.addTransform(eid, tc);
+        //     mEntityManager.addRenderable(eid, node);
 
-            // Set initial model matrix
-            node.mModelMatrix = tc.toModelMatrix();
+        //     // Set initial model matrix
+        //     node.mModelMatrix = tc.toModelMatrix();
 
-            writeln("[spawn] entity=", eid, " urdf=", urdfPath, " obj=", objPath, " pos=", pos);
-            return eid;
-        }
+        //     writeln("[spawn] entity=", eid, " urdf=", urdfPath, " obj=", objPath, " pos=", pos);
+        //     return eid;
+        // }
 
         //--------------------------------------------------------------
         // Setup physics scene
         //--------------------------------------------------------------
-		void SetupPhysicsScene(){
-            mPhysicsWorld.setGravity(0.0, -1.0, 0.0);
+		// void SetupPhysicsScene(){
+        //     mPhysicsWorld.setGravity(0.0, -1.0, 0.0);
 
-            // Ground plane
-            mGroundEntity = mEntityManager.create();
-            mPhysicsWorld.addURDF(mGroundEntity, "plane.urdf",
-                0, 0, 0,
-                0, 0, 0, 1);
-            mEntityManager.markPhysics(mGroundEntity);
-            TransformComponent planeTc;
-            mEntityManager.addTransform(mGroundEntity, planeTc);
+        //     // Ground plane
+        //     mGroundEntity = mEntityManager.create();
+        //     mPhysicsWorld.addURDF(mGroundEntity, "plane.urdf",
+        //         0, 0, 0,
+        //         0, 0, 0, 1);
+        //     mEntityManager.markPhysics(mGroundEntity);
+        //     TransformComponent planeTc;
+        //     mEntityManager.addTransform(mGroundEntity, planeTc);
 
-            // Cube falls on Y
-            mCubeEntity = spawnPhysicsObject(
-                "cube.urdf",
-                "./assets/meshes/bunny_centered.obj",
-                vec3(0.0f, 10.0f, 0.0f)
-            );
+        //     // Cube falls on Y
+        //     mCubeEntity = spawnPhysicsObject(
+        //         "cube.urdf",
+        //         "./assets/meshes/bunny_centered.obj",
+        //         vec3(0.0f, 10.0f, 0.0f)
+        //     );
 
-            //another cube for testing shooting
-            vec3 testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -4.0f);
-            mCubeEntity = spawnPhysicsObject(
-                "cube.urdf",
-                "./assets/meshes/bunny_centered.obj",
-                testPos
-            );
-        }
+        //     //another cube for testing shooting
+        //     vec3 testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -4.0f);
+        //     mCubeEntity = spawnPhysicsObject(
+        //         "cube.urdf",
+        //         "./assets/meshes/bunny_centered.obj",
+        //         testPos
+        //     );
+        // }
 
 
 		/// Check and log collisions between cube and ground.
         /// Call this in AdvanceFrame after the sync.
-        void checkCollisions()
-        {
-            b3ContactInformation contactInfo;
-            int numContacts = mPhysicsWorld.getContacts(mCubeEntity, mGroundEntity, contactInfo);
+        // void checkCollisions()
+        // {
+        //     b3ContactInformation contactInfo;
+        //     int numContacts = mPhysicsWorld.getContacts(mCubeEntity, mGroundEntity, contactInfo);
 
-            if (numContacts > 0)
-            {
-                // writefln("[collision] cube<->ground: %d contact(s), normal_force=%.3f",
-                //     numContacts,
-                //     contactInfo.m_contactPointData[0].m_normalForce);
-            }
-        }
+        //     if (numContacts > 0)
+        //     {
+        //         // writefln("[collision] cube<->ground: %d contact(s), normal_force=%.3f",
+        //         //     numContacts,
+        //         //     contactInfo.m_contactPointData[0].m_normalForce);
+        //     }
+        // }
 
 
-        void debugTargetTransform(){
-            static int counter = 0;
-            counter++;
+        // void debugTargetTransform(){
+        //     static int counter = 0;
+        //     counter++;
 
-            if (counter % 30 != 0) return;
+        //     if (counter % 30 != 0) return;
 
-            auto tcPtr = mCubeEntity in mEntityManager.transforms;
-            if (tcPtr is null){
-                writeln("[target-debug] no transform for entity ", mCubeEntity);
-                return;
-            }
+        //     auto tcPtr = mCubeEntity in mEntityManager.transforms;
+        //     if (tcPtr is null){
+        //         writeln("[target-debug] no transform for entity ", mCubeEntity);
+        //         return;
+        //     }
 
-            auto tc = *tcPtr;
+        //     auto tc = *tcPtr;
 
-            writeln("[target-debug] entity=", mCubeEntity, " position=", tc.position, " rotation=(", tc.rotation.x, ", ", tc.rotation.y, ", ",tc.rotation.z, ", ", tc.rotation.w, ")");
+        //     writeln("[target-debug] entity=", mCubeEntity, " position=", tc.position, " rotation=(", tc.rotation.x, ", ", tc.rotation.y, ", ",tc.rotation.z, ", ", tc.rotation.w, ")");
 
-        }
+        // }
 
-        void initCrosshair(){
-            // Create the crosshair shader
-            new Pipeline("crosshair", "./pipelines/crosshair/crosshair.vert",
-                                      "./pipelines/crosshair/crosshair.frag");
+        // void initCrosshair(){
+        //     // Create the crosshair shader
+        //     new Pipeline("crosshair", "./pipelines/crosshair/crosshair.vert",
+        //                               "./pipelines/crosshair/crosshair.frag");
 
-            // Crosshair geometry in NDC (-1 to 1 range)
-            // Gap in center, 4 line segments forming a + shape
-            float size = 0.03f;
-            float gap  = 0.008f;
+        //     // Crosshair geometry in NDC (-1 to 1 range)
+        //     // Gap in center, 4 line segments forming a + shape
+        //     float size = 0.03f;
+        //     float gap  = 0.008f;
 
-            float[] verts = [
-                // Horizontal left
-                -size, 0.0f,
-                -gap,  0.0f,
-                // Horizontal right
-                 gap,  0.0f,
-                 size, 0.0f,
-                // Vertical top
-                 0.0f, size,
-                 0.0f, gap,
-                // Vertical bottom
-                 0.0f, -gap,
-                 0.0f, -size,
-            ];
+        //     float[] verts = [
+        //         // Horizontal left
+        //         -size, 0.0f,
+        //         -gap,  0.0f,
+        //         // Horizontal right
+        //          gap,  0.0f,
+        //          size, 0.0f,
+        //         // Vertical top
+        //          0.0f, size,
+        //          0.0f, gap,
+        //         // Vertical bottom
+        //          0.0f, -gap,
+        //          0.0f, -size,
+        //     ];
 
-            glGenVertexArrays(1, &mCrosshairVAO);
-            glGenBuffers(1, &mCrosshairVBO);
+        //     glGenVertexArrays(1, &mCrosshairVAO);
+        //     glGenBuffers(1, &mCrosshairVBO);
 
-            glBindVertexArray(mCrosshairVAO);
-            glBindBuffer(GL_ARRAY_BUFFER, mCrosshairVBO);
-            glBufferData(GL_ARRAY_BUFFER, verts.length * float.sizeof,
-                         verts.ptr, GL_STATIC_DRAW);
+        //     glBindVertexArray(mCrosshairVAO);
+        //     glBindBuffer(GL_ARRAY_BUFFER, mCrosshairVBO);
+        //     glBufferData(GL_ARRAY_BUFFER, verts.length * float.sizeof,
+        //                  verts.ptr, GL_STATIC_DRAW);
 
-            // aPos at location 0, 2 floats per vertex
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, null);
+        //     // aPos at location 0, 2 floats per vertex
+        //     glEnableVertexAttribArray(0);
+        //     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, null);
 
-            glBindVertexArray(0);
-            mCrosshairReady = true;
-        }
+        //     glBindVertexArray(0);
+        //     mCrosshairReady = true;
+        // }
 
-        void drawCrosshair()
-        {
-            if (!mCrosshairReady) return;
+        // void drawCrosshair()
+        // {
+        //     if (!mCrosshairReady) return;
 
-            glDisable(GL_DEPTH_TEST);
+        //     glDisable(GL_DEPTH_TEST);
 
-            glUseProgram(Pipeline.sPipeline["crosshair"]);
-            glBindVertexArray(mCrosshairVAO);
-            glLineWidth(2.0f);
-            glDrawArrays(GL_LINES, 0, 8);  // 4 line segments = 8 vertices
-            glBindVertexArray(0);
+        //     glUseProgram(Pipeline.sPipeline["crosshair"]);
+        //     glBindVertexArray(mCrosshairVAO);
+        //     glLineWidth(2.0f);
+        //     glDrawArrays(GL_LINES, 0, 8);  // 4 line segments = 8 vertices
+        //     glBindVertexArray(0);
 
-            glEnable(GL_DEPTH_TEST);
-        }
+        //     glEnable(GL_DEPTH_TEST);
+        // }
 
 
         // to do: modify to actually eliminate object
-        void shoot()
-        {
-            import std.datetime.systime : Clock;
+        // void shoot()
+        // {
+        //     import std.datetime.systime : Clock;
 
-            vec3 from = mCamera.mEyePosition;
-            vec3 dir  = mCamera.mForwardVector * -1.0f;  // negate — camera looks opposite to mForwardVector
-            dir = Normalize(dir);
-            vec3 to   = from + dir * 1000.0f;
+        //     vec3 from = mCamera.mEyePosition;
+        //     vec3 dir  = mCamera.mForwardVector * -1.0f;  // negate — camera looks opposite to mForwardVector
+        //     dir = Normalize(dir);
+        //     vec3 to   = from + dir * 1000.0f;
 
-            writeln("[shoot-debug] eye=", from, " dir=", dir);
+        //     writeln("[shoot-debug] eye=", from, " dir=", dir);
 
-            auto result = mPhysicsWorld.raycast(
-                from.x, from.y, from.z,
-                to.x, to.y, to.z);
+        //     auto result = mPhysicsWorld.raycast(
+        //         from.x, from.y, from.z,
+        //         to.x, to.y, to.z);
 
-            auto now = Clock.currTime();
+        //     auto now = Clock.currTime();
 
-            if (result.hit)
-            {
-                writeln("[shoot] ", now.toSimpleString(),
-                    " HIT entity=", result.entityId,
-                    " at pos=[", result.hitPosition[0],
-                    ", ", result.hitPosition[1],
-                    ", ", result.hitPosition[2], "]");
-            }
-            else
-            {
-                writeln("[shoot] ", now.toSimpleString(), " MISS");
-            }
-        }
+        //     if (result.hit)
+        //     {
+        //         writeln("[shoot] ", now.toSimpleString(),
+        //             " HIT entity=", result.entityId,
+        //             " at pos=[", result.hitPosition[0],
+        //             ", ", result.hitPosition[1],
+        //             ", ", result.hitPosition[2], "]");
+        //     }
+        //     else
+        //     {
+        //         writeln("[shoot] ", now.toSimpleString(), " MISS");
+        //     }
+        // }
 
         void Update(){
 
@@ -484,7 +502,7 @@ struct GraphicsEngine{
             // debugTargetTransform();
 
 			//check for collisions
-			checkCollisions();
+			// checkCollisions();
 
 			// A rotation value that 'updates' every frame to give some animation in our scene
 			static float yRotation = 0.0f;   yRotation += 0.01f;
@@ -498,6 +516,9 @@ struct GraphicsEngine{
 				GLfloat z = gLight.mPosition[2];
 				lightNode.mModelMatrix = MatrixMakeTranslation(vec3(x, y, z));
 			}
+
+
+            mGame.Update(mFrameDt);
         }
 
         void Render(){
@@ -516,7 +537,7 @@ struct GraphicsEngine{
 
             mRenderer.Render(mSceneTree,mCamera);
 
-            drawCrosshair();
+            mGame.drawCrosshair();
 
             SDL_GL_SwapWindow(mWindow);	
         }
@@ -562,8 +583,16 @@ struct GraphicsEngine{
                 // Setup the graphics scene
                 SetupScene();
 
-                // Setup physics scene
-                SetupPhysicsScene();
+                mGame = new GameApplication(
+                    "topshotaa",
+                    mPhysicsWorld,
+                    mEntityManager,
+                    mCamera,
+                    mSceneTree,
+                    mBasicMaterial
+                );
+
+                mGame.Setup();
 
                 // Lock mouse to center of screen
                 SDL_WarpMouseInWindow(mWindow,640/2,320/2);
@@ -574,3 +603,6 @@ struct GraphicsEngine{
                 }
         }
 }
+
+
+
