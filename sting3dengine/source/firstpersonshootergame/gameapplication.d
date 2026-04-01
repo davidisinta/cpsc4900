@@ -117,6 +117,7 @@ class GameApplication : IGame{
         mEntityManager.addTransform(mGroundEntity, planeTc);
 
         // Spawn target
+        // to do: perhaps remove this cube entity object
         mCubeEntity = spawnPhysicsObject(
             "cube.urdf",
             "./assets/meshes/bunny_centered.obj",
@@ -205,13 +206,20 @@ class GameApplication : IGame{
 
         auto now = Clock.currTime();
 
-        if (result.hit){
+        if (result.hit)
+        {
             mShotsHit++;
             writeln("[shoot] ", now.toSimpleString(),
                 " HIT entity=", result.entityId,
                 " at pos=[", result.hitPosition[0],
                 ", ", result.hitPosition[1],
                 ", ", result.hitPosition[2], "]");
+
+            // Don't destroy the ground
+            if (result.entityId != mGroundEntity && result.entityId != 0)
+            {
+                destroyEntity(result.entityId);
+            }
         } else{
             writeln("[shoot] ", now.toSimpleString(), " MISS");
         }
@@ -221,7 +229,12 @@ class GameApplication : IGame{
                 " accuracy=", accuracy, "%");
     }
 
-    private void checkCollisions(){
+    // to do: refactor so that this does not check hard coded pairs but rather loops over every object
+    private void checkCollisions()
+    {
+        if ((mCubeEntity in mPhysicsWorld.entityToBody) is null) return;
+        if ((mGroundEntity in mPhysicsWorld.entityToBody) is null) return;
+
         b3ContactInformation contactInfo;
         mPhysicsWorld.getContacts(mCubeEntity, mGroundEntity, contactInfo);
     }
@@ -266,4 +279,38 @@ class GameApplication : IGame{
             glBindVertexArray(0);
             mCrosshairReady = true;
         }
+
+    
+    /// Fully destroy an entity: physics body + scene tree node + entity manager
+    void destroyEntity(uint entityId)
+    {
+        // 1. Remove from Bullet physics
+        if (entityId in mPhysicsWorld.entityToBody)
+        {
+            mPhysicsWorld.removeBody(entityId);
+        }
+
+        // 2. Remove MeshNode from scene tree
+        if (auto node = entityId in mEntityManager.renderables)
+        {
+            // Find parent and remove this child
+            auto parent = node.GetParentSceneNode();
+            if (parent !is null)
+            {
+                // Filter this node out of parent's children
+                ISceneNode[] remaining;
+                foreach (child; parent.mChildren)
+                {
+                    if (child !is *node)
+                        remaining ~= child;
+                }
+                parent.mChildren = remaining;
+            }
+        }
+
+        // 3. Remove from entity manager
+        mEntityManager.destroy(entityId);
+
+        writeln("[destroy] entity=", entityId);
+    }
 }
