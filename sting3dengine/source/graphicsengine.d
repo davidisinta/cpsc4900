@@ -66,8 +66,8 @@ class GraphicsEngine{
         this(int major_ogl_version, int minor_ogl_version){
 
                 //Set screen Width and Height
-                mScreenWidth = 640;
-                mScreenHeight = 480;
+                mScreenWidth = 768;  //640 multiples
+                mScreenHeight = 576; //480 multiples
 
                 // Setup SDL OpenGL Version
                 SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, major_ogl_version );
@@ -121,56 +121,41 @@ class GraphicsEngine{
                 SDL_DestroyWindow(mWindow);
         }
 
-        /// Handle input
         void Input(){
-                // Store an SDL Event
                 SDL_Event event;
                 while(SDL_PollEvent(&event)){
                         if(event.type == SDL_QUIT){
-                                writeln("Exit event triggered (probably clicked 'x' at top of the window)");
+                                writeln("Exit event triggered");
                                 mGameIsRunning= false;
                         }
                         if(event.type == SDL_KEYDOWN){
                                 if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE){
                                         writeln("Pressed escape key and now exiting...");
                                         mGameIsRunning= false;
-                                }else if(event.key.keysym.sym == SDLK_TAB){
+                                }
+                                else if(event.key.keysym.sym == SDLK_TAB){
                                         mRenderWireframe = !mRenderWireframe;
                                 }
-                                else if(event.key.keysym.sym == SDLK_DOWN){
-                                        mCamera.MoveBackward();
-                                }
-                                else if(event.key.keysym.sym == SDLK_UP){
-                                        mCamera.MoveForward();
-                                }
-                                else if(event.key.keysym.sym == SDLK_LEFT){
-                                        mCamera.MoveLeft();
-                                }
-                                else if(event.key.keysym.sym == SDLK_RIGHT){
-                                        mCamera.MoveRight();
-                                }
-                                else if(event.key.keysym.sym == SDLK_a){
-                                        mCamera.MoveUp();
-                                }
-                                else if(event.key.keysym.sym == SDLK_z){
-                                        mCamera.MoveDown();
-                                }
-                                writeln("Camera Position: ",mCamera.mEyePosition);
                         }
 
                         if(event.type == SDL_MOUSEBUTTONDOWN){
                             if(event.button.button == SDL_BUTTON_LEFT){
-                                // shoot();
-
                                 mGame.requestShoot();
                             }
                         }
                 }
 
-                // Retrieve the mouse position
-                int mouseX,mouseY;
-                SDL_GetMouseState(&mouseX,&mouseY);
-                mCamera.MouseLook(mouseX,mouseY);
+                // Continuous key state for smooth movement
+                const(ubyte)* keys = SDL_GetKeyboardState(null);
+                if (keys[SDL_SCANCODE_W])     mCamera.MoveForward();
+                if (keys[SDL_SCANCODE_S])     mCamera.MoveBackward();
+                if (keys[SDL_SCANCODE_A])     mCamera.MoveLeft();
+                if (keys[SDL_SCANCODE_D])     mCamera.MoveRight();
+
+                // Mouse look
+                int mouseX, mouseY;
+                SDL_GetMouseState(&mouseX, &mouseY);
+                mCamera.MouseLook(mouseX, mouseY);
 
                 mGame.HandleInput();
         }

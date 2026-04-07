@@ -20,6 +20,9 @@ class SurfaceTerrain: ISurface{
     uint mXDimensions;
     uint mZDimensions;
 
+    uint NUM_STRIPS;
+    uint NUM_VERTS_PER_STRIP;
+
     /// Constructor to make a new terrain.
     /// filename - heightmap filename
     this(uint xDim, uint zDim, string heightmap_file){
@@ -38,9 +41,13 @@ class SurfaceTerrain: ISurface{
         // Bind to our geometry that we want to draw
         glBindVertexArray(mVAO);
         // Call our draw call
-
-
-        // TODO glDrawElements(GL_TRIANGLE_STRIP, ....)
+        for(int strip = 0; strip < NUM_STRIPS; ++strip)
+        {
+            glDrawElements(GL_TRIANGLE_STRIP,   // primitive type
+                   NUM_VERTS_PER_STRIP, // number of indices to render
+                   GL_UNSIGNED_INT,     // index data type
+                  cast(const GLvoid*)(GLuint.sizeof*(strip*NUM_VERTS_PER_STRIP))); // offset to starting index
+        }
     }
 
     /// Setup MeshNode as a Triangle
@@ -52,26 +59,35 @@ class SurfaceTerrain: ISurface{
         PPM heights;
         ubyte[] height_values = heights.LoadPPMImage(heightmap_file);
 
+        // writeln("making terrain!!");
+        writeln("heights: ", height_values.length);
+        writeln("XDim * ZDim: ", xDim*zDim);
+        
+
         for(int z=0; z < zDim; z++){
             for(int x=0; x < xDim; x++){
                 // Add vertices in a grid
+                float height = (height_values[x*3 + xDim*z*3]);
+                float u = 1.0f - cast(float)x/cast(float) xDim;
+                float v = 1.0f - cast(float)z/cast(float) zDim;
 
-                // TODO
-
-                mVertices ~= VertexFormat3F2F([0.0,0.0,0.0],[0.0,0.0]);
+                mVertices ~= VertexFormat3F2F([x,height,z],[u,v]);
             }
         }
 
         // Connect the grid of vertices with indices
         for(uint z=0; z < zDim-1; z++){
             for(uint x=0; x < xDim; x++){
-                // TODO
-                int index1 = x; // CHANGE ME
-                int index2 = z; // CHANGE ME
-                mIndices ~= index1; 	
-                mIndices ~= index2; 	
+                mIndices ~= x + xDim * z;
+                mIndices ~= x + xDim * (z + 1);
             }
         }
+
+        NUM_STRIPS = zDim-1;
+        NUM_VERTS_PER_STRIP = xDim*2;
+
+        writeln("num strips: ", NUM_STRIPS);
+        writeln("verts/strip: ", NUM_VERTS_PER_STRIP);
 
         // Vertex Arrays Object (VAO) Setup
         glGenVertexArrays(1, &mVAO);
@@ -98,5 +114,3 @@ class SurfaceTerrain: ISurface{
         DisableVertexAttributes!VertexFormat3F2F();
     }
 }
-
-

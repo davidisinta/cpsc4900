@@ -170,11 +170,35 @@ class GameApplication : IGame{
             testPos,
             Quat.init
         );
+
+        //-----------------------------------------------------------------
+        // add terrain to the game now 
+        //-----------------------------------------------------------------
+        Pipeline texturePipeline = new Pipeline("multiTexturePipeline","./pipelines/multitexture/basic.vert","./pipelines/multitexture/basic.frag");
+
+        IMaterial multiTextureMaterial = new MultiTextureMaterial("multiTexturePipeline","./assets/sand.ppm","./assets/textures/grass.ppm","./assets/textures/dirt.ppm","./assets/textures/snow.ppm");
+        multiTextureMaterial.AddUniform(new Uniform("sampler1", 0));
+        multiTextureMaterial.AddUniform(new Uniform("sampler2", 1));
+        multiTextureMaterial.AddUniform(new Uniform("sampler3", 2));
+        multiTextureMaterial.AddUniform(new Uniform("sampler4", 3));
+        multiTextureMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+        multiTextureMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+        multiTextureMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+
+        ISurface terrain = new SurfaceTerrain(512,512,"./assets/heightmaps/noise3.ppm"); 
+        writeln("[terrain] created SurfaceTerrain");
+
+        // MeshNode m2 = new MeshNode("terrain", terrain, multiTextureMaterial);
+        MeshNode m2 = new MeshNode("terrain", terrain, mBasicMaterial);
+        writeln("[terrain] created MeshNode");
+
+        mSceneTree.GetRootNode().AddChildSceneNode(m2);
+        writeln("[terrain] added to scene tree");
+        writeln("[terrain] root children count: ", mSceneTree.GetRootNode().mChildren.length);
     }
 
     override void HandleInput(){
-        if (mShootRequested)
-        {
+        if (mShootRequested){
             shoot();
             mShootRequested = false;
         }
@@ -182,6 +206,13 @@ class GameApplication : IGame{
 
     override void Update(double frameDt){
         checkCollisions();
+
+        MeshNode m2 = cast(MeshNode)mSceneTree.FindNode("terrain");
+        if (m2 is null) {
+            writeln("[terrain] ERROR: terrain node not found in scene tree!");
+        } else {
+            m2.mModelMatrix = MatrixMakeTranslation(vec3(-256.0f, -200.0f, -256.0f));
+        }
     }
 
     override void RenderOverlay(){
@@ -194,8 +225,7 @@ class GameApplication : IGame{
 
     private void shoot(){
         vec3 from = mCamera.mEyePosition;
-        vec3 dir  = mCamera.mForwardVector * -1.0f;
-        dir = Normalize(dir);
+        vec3 dir  = Normalize(mCamera.mForwardVector);
         vec3 to   = from + dir * 1000.0f;
 
         mShotsFired++;
@@ -216,8 +246,7 @@ class GameApplication : IGame{
                 ", ", result.hitPosition[2], "]");
 
             // Don't destroy the ground
-            if (result.entityId != mGroundEntity && result.entityId != 0)
-            {
+            if (result.entityId != mGroundEntity && result.entityId != 0){
                 destroyEntity(result.entityId);
             }
         } else{
@@ -230,8 +259,7 @@ class GameApplication : IGame{
     }
 
     // to do: refactor so that this does not check hard coded pairs but rather loops over every object
-    private void checkCollisions()
-    {
+    private void checkCollisions(){
         if ((mCubeEntity in mPhysicsWorld.entityToBody) is null) return;
         if ((mGroundEntity in mPhysicsWorld.entityToBody) is null) return;
 
