@@ -71,8 +71,8 @@ class GraphicsEngine{
         this(int major_ogl_version, int minor_ogl_version){
 
                 //Set screen Width and Height
-                mScreenWidth = 768;  //640 multiples
-                mScreenHeight = 576; //480 multiples
+                mScreenWidth = 960;  //640 multiples
+                mScreenHeight = 720; //480 multiples
 
                 // Setup SDL OpenGL Version
                 SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, major_ogl_version );

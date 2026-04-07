@@ -67,7 +67,13 @@ class SurfaceTerrain: ISurface{
         for(int z=0; z < zDim; z++){
             for(int x=0; x < xDim; x++){
                 // Add vertices in a grid
-                float height = (height_values[x*3 + xDim*z*3]);
+                // float height = (height_values[x*3 + xDim*z*3]);
+
+                float raw = cast(float) height_values[x*3 + xDim*z*3];
+                float height = (raw - 127.5f) * 0.02f;
+
+
+
                 float u = 1.0f - cast(float)x/cast(float) xDim;
                 float v = 1.0f - cast(float)z/cast(float) zDim;
 

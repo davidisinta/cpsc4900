@@ -23,7 +23,7 @@ class Camera{
         mViewMatrix = MatrixMakeIdentity();
         mProjectionMatrix = MatrixMakePerspective(90.0f.ToRadians, 480.0f/640.0f, 0.1f, 1000.0f);
 
-        mEyePosition = vec3(1.0f, 1.0f, 1.0f);
+        mEyePosition = vec3(1.0f, 0.5f, 1.0f);
         mUpVector    = vec3(0.0f, 1.0f, 0.0f);
 
         updateVectors();

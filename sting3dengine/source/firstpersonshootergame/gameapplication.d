@@ -125,7 +125,7 @@ class GameApplication : IGame{
         mCubeEntity = spawnPhysicsObject(
             "cube.urdf",
             "./assets/meshes/bunny_centered.obj",
-            vec3(0.0f, 10.0f, 0.0f),
+            vec3(0.0f, 0.0f, 0.0f),
             Quat.init
         );
 
@@ -139,41 +139,41 @@ class GameApplication : IGame{
         );
 
         // Another target for testing
-        testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -14.0f);
-        spawnPhysicsObject(
-            "cube.urdf",
-            "./assets/meshes/bunny_centered.obj",
-            testPos,
-            Quat.init
-        );
+        // testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -14.0f);
+        // spawnPhysicsObject(
+        //     "cube.urdf",
+        //     "./assets/meshes/bunny_centered.obj",
+        //     testPos,
+        //     Quat.init
+        // );
 
          // Another target for testing
-        testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -24.0f);
-        spawnPhysicsObject(
-            "cube.urdf",
-            "./assets/meshes/bunny_centered.obj",
-            testPos,
-            Quat.init
-        );
+        // testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -24.0f);
+        // spawnPhysicsObject(
+        //     "cube.urdf",
+        //     "./assets/meshes/bunny_centered.obj",
+        //     testPos,
+        //     Quat.init
+        // );
 
 
          // Another target for testing
-        testPos = mCamera.mEyePosition + vec3(10.0f, 0.0f, -4.0f);
-        spawnPhysicsObject(
-            "cube.urdf",
-            "./assets/meshes/bunny_centered.obj",
-            testPos,
-            Quat.init
-        );
+        // testPos = mCamera.mEyePosition + vec3(10.0f, 0.0f, -24.0f);
+        // spawnPhysicsObject(
+        //     "cube.urdf",
+        //     "./assets/meshes/bunny_centered.obj",
+        //     testPos,
+        //     Quat.init
+        // );
 
          // Another target for testing
-        testPos = mCamera.mEyePosition + vec3(20.0f, 0.0f, -4.0f);
-        spawnPhysicsObject(
-            "cube.urdf",
-            "./assets/meshes/bunny_centered.obj",
-            testPos,
-            Quat.init
-        );
+        // testPos = mCamera.mEyePosition + vec3(20.0f, 0.0f, -54.0f);
+        // spawnPhysicsObject(
+        //     "cube.urdf",
+        //     "./assets/meshes/bunny_centered.obj",
+        //     testPos,
+        //     Quat.init
+        // );
 
         //-----------------------------------------------------------------
         // add terrain to the game now 
@@ -189,7 +189,7 @@ class GameApplication : IGame{
         multiTextureMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
         multiTextureMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
 
-        ISurface terrain = new SurfaceTerrain(512,512,"./assets/heightmaps/noise3.ppm"); 
+        ISurface terrain = new SurfaceTerrain(512,512,"./assets/heightmaps/flat_slight_variation_heightmap.ppm"); 
         writeln("[terrain] created SurfaceTerrain");
 
         // MeshNode m2 = new MeshNode("terrain", terrain, multiTextureMaterial);
@@ -220,7 +220,7 @@ class GameApplication : IGame{
         if (m2 is null) {
             writeln("[terrain] ERROR: terrain node not found in scene tree!");
         } else {
-            m2.mModelMatrix = MatrixMakeTranslation(vec3(-256.0f, -200.0f, -256.0f));
+            m2.mModelMatrix = MatrixMakeTranslation(vec3(-256.0f, 0.0f, -256.0f));
         }
     }
 
