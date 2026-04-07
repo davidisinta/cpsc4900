@@ -13,6 +13,7 @@ import physics;
 import geometry;
 import materials;
 import audiosubsystem;
+import assimp;
 
 // Third-party libraries
 import bindbc.sdl;
@@ -211,6 +212,20 @@ class GameApplication : IGame{
         mSceneTree.GetRootNode().AddChildSceneNode(m2);
         writeln("[terrain] added to scene tree");
         writeln("[terrain] root children count: ", mSceneTree.GetRootNode().mChildren.length);
+
+
+
+
+        // Test Assimp linkage
+        
+        import std.string : toStringz, fromStringz;
+        auto testScene = aiImportFile("./assets/meshes/bunny_centered.obj".toStringz,
+                                       aiProcess_Triangulate | aiProcess_GenNormals);
+        if (testScene is null)
+            writeln("[assimp] ERROR: ", fromStringz(aiGetErrorString()));
+        else
+            writeln("[assimp] SUCCESS: loaded scene at ", testScene);
+        aiReleaseImport(testScene);
 
 
 
