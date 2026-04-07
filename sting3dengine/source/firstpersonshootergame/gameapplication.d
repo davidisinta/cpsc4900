@@ -27,8 +27,6 @@ class GameApplication : IGame{
     IMaterial mBasicMaterial;
     AudioEngine* mAudio;
 
-    
-
     // Game-specific state
     string gameName;
     uint mGroundEntity;
@@ -45,6 +43,9 @@ class GameApplication : IGame{
     FMOD_SOUND* mWalkingSound;
     FMOD_CHANNEL* mWalkingSoundChannel;
     FMOD_SYSTEM* mSystem;
+
+    FMOD_SOUND* mPistolSound;
+    FMOD_CHANNEL* mPistolSoundChannel;
 
     this(string name, PhysicsWorld physics, EntityManager em, Camera cam, SceneTree tree, IMaterial mat){
         this.gameName = name;
@@ -222,9 +223,8 @@ class GameApplication : IGame{
 
     void loadSounds(){
 
-        // FMOD_System_CreateSound(mSystem, "./assets/sounds/walk.wav".toStringz, FMOD_LOOP_NORMAL | FMOD_2D, null, &mWalkingSound);
-
-
+        // load footsteps on gravel
+        // to do: check if right mode was set
         auto result = FMOD_System_CreateSound(
             mSystem,
             "./assets/sounds/footsteps_walking_gravel_01_loop.wav".toStringz,
@@ -233,35 +233,28 @@ class GameApplication : IGame{
             &mWalkingSound
         );
 
-
         writeln("walk sound load result = ", result, " ptr = ", mWalkingSound);
 
+        // load pistol
+        // to do: check if right mode was set
+        result = FMOD_System_CreateSound(
+            mSystem,
+            "./assets/sounds/gun_22_pistol_04.wav".toStringz,
+            FMOD_LOOP_OFF | FMOD_2D,
+            null,
+            &mPistolSound
+        );
 
-
-
+        writeln("pistol sound load result = ", result, " ptr = ", mPistolSound);
 
     }
 
     override void HandleInput(){
 
-
-
-
-
-
-
-
         if (mShootRequested){
             shoot();
             mShootRequested = false;
         }
-
-
-
-
-
-
-
     }
 
     override void Update(double frameDt){
@@ -285,7 +278,6 @@ class GameApplication : IGame{
 
     void playSound(FMOD_SOUND* s,
     FMOD_CHANNEL** ch){
-        // mAudio.play("./assets/sounds/footsteps_walking_gravel_01_loop.wav");
         FMOD_System_PlaySound(mAudio.mSystem, s, null, 0, ch);
     }
 
@@ -306,7 +298,7 @@ class GameApplication : IGame{
 
         // Play gunshot sound
         if (mAudio !is null){
-            mAudio.play("./assets/sounds/gun_22_pistol_04.wav");
+            playSound(mPistolSound, &mPistolSoundChannel);
         }
             
 
