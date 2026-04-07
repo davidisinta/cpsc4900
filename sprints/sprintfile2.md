@@ -47,11 +47,14 @@ extern(C) {
     int FMOD_System_CreateSound(FMOD_SYSTEM* system, const(char)* filename, uint mode, void* exinfo, FMOD_SOUND** sound);
     int FMOD_Sound_Release(FMOD_SOUND* sound);
 
-    // Playback
-    int FMOD_System_PlaySound(FMOD_SYSTEM* system, FMOD_SOUND* sound, void* channelgroup, int paused, FMOD_CHANNEL** channel);
-    int FMOD_Channel_SetVolume(FMOD_CHANNEL* channel, float volume);
-    int FMOD_Channel_Stop(FMOD_CHANNEL* channel);
-    int FMOD_Channel_IsPlaying(FMOD_CHANNEL* channel, int* isplaying);
+- [X] Wire mouse click to raycast from camera position along forward vector
+- [X] On hit, destroy target entity (remove from Bullet, EntityManager, SceneTree)
+  - Bind `b3InitRemoveBodyCommand` in `bullet_c_api.d`
+  - Add `removeBody(uint entityId)` to `PhysicsWorld`
+- [X] Spawn 10 cubes at various positions as targets
+- [X] Add crosshair (ImGui overlay or OpenGL screen-space quad)
+- [X] Add hit counter: track shots fired, shots hit
+- [X] Print accuracy to console on each shot
 
     // 3D audio
     int FMOD_System_Set3DListenerAttributes(FMOD_SYSTEM* system, int listener,
