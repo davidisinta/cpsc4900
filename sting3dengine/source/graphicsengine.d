@@ -381,6 +381,9 @@ class GraphicsEngine{
 
                 mAudio.play("./assets/sounds/drumloop.wav");
 
+                //attach audio engine to game
+                mGame.attachAudio(&mAudio);
+
                 // Lock mouse to center of screen
                 SDL_WarpMouseInWindow(mWindow,640/2,320/2);
 

@@ -11,6 +11,7 @@ import linear;
 import physics;
 import geometry;
 import materials;
+import audiosubsystem;
 
 // Third-party libraries
 import bindbc.sdl;
@@ -23,6 +24,9 @@ class GameApplication : IGame{
     Camera mCamera;
     SceneTree mSceneTree;
     IMaterial mBasicMaterial;
+    AudioEngine* mAudio;
+
+    
 
     // Game-specific state
     string gameName;
@@ -197,6 +201,11 @@ class GameApplication : IGame{
         writeln("[terrain] root children count: ", mSceneTree.GetRootNode().mChildren.length);
     }
 
+
+    void attachAudio(AudioEngine* audio){
+        mAudio = audio;
+    }
+
     override void HandleInput(){
         if (mShootRequested){
             shoot();
@@ -229,6 +238,10 @@ class GameApplication : IGame{
         vec3 to   = from + dir * 1000.0f;
 
         mShotsFired++;
+
+        // Play gunshot sound
+        if (mAudio !is null)
+            mAudio.play("./assets/sounds/gun_22_pistol_04.wav");
 
         auto result = mPhysicsWorld.raycast(
             from.x, from.y, from.z,
