@@ -297,6 +297,7 @@ class GameApplication : IGame{
         mShotsFired++;
 
         // Play gunshot sound
+        // to do: perhaps add a clause to stop the shooting just in case
         if (mAudio !is null){
             playSound(mPistolSound, &mPistolSoundChannel);
         }

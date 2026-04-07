@@ -195,9 +195,28 @@ class GraphicsEngine{
                 }
                 
                 // Mouse look
+                // int mouseX, mouseY;
+                // SDL_GetMouseState(&mouseX, &mouseY);
+                // mCamera.MouseLook(mouseX, mouseY);
+
+
                 int mouseX, mouseY;
                 SDL_GetMouseState(&mouseX, &mouseY);
-                mCamera.MouseLook(mouseX, mouseY);
+                int centerX = mScreenWidth / 2;
+                int centerY = mScreenHeight / 2;
+                int deltaX = mouseX - centerX;
+                int deltaY = mouseY - centerY;
+
+                if (deltaX != 0 || deltaY != 0)
+                {
+                    mCamera.MouseLook(deltaX, deltaY);
+                    SDL_WarpMouseInWindow(mWindow, centerX, centerY);
+                }
+
+
+
+
+
 
 
                 
