@@ -62,6 +62,11 @@ class GraphicsEngine{
         //--------------------------------------------------------------
         GameApplication mGame;
 
+        //--------------------------------------------------------------
+        // Audio
+        //--------------------------------------------------------------
+        AudioEngine mAudio;
+
         /// Setup OpenGL and any libraries
         this(int major_ogl_version, int minor_ogl_version){
 
@@ -112,13 +117,18 @@ class GraphicsEngine{
 
         /// Destructor
         ~this(){
-                // Shut down physics
-                mPhysicsWorld.shutdown();
 
-                // Destroy our context
-                SDL_GL_DeleteContext(mContext);
-                // Destroy our window
-                SDL_DestroyWindow(mWindow);
+            //shut down fmod
+            mAudio.shutdown();
+
+
+            // Shut down physics
+            mPhysicsWorld.shutdown();
+
+            // Destroy our context
+            SDL_GL_DeleteContext(mContext);
+            // Destroy our window
+            SDL_DestroyWindow(mWindow);
         }
 
         void Input(){
@@ -317,6 +327,9 @@ class GraphicsEngine{
             mFrameDt = elapsed / 1000.0;
 
             Input();
+
+            mAudio.update();
+
             Update();
             Render();
 
@@ -349,6 +362,8 @@ class GraphicsEngine{
                 // Setup the graphics scene
                 SetupScene();
 
+               
+
                 mGame = new GameApplication(
                     "topshotaa",
                     mPhysicsWorld,
@@ -359,6 +374,12 @@ class GraphicsEngine{
                 );
 
                 mGame.Setup();
+
+                // initialize audio after game because game is setting up some 
+                // multitexture pipelines
+                mAudio.init();
+
+                mAudio.play("./assets/sounds/drumloop.wav");
 
                 // Lock mouse to center of screen
                 SDL_WarpMouseInWindow(mWindow,640/2,320/2);
