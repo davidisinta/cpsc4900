@@ -441,7 +441,6 @@ class GraphicsEngine{
                 // Lock mouse to center of screen
                 SDL_WarpMouseInWindow(mWindow,640/2,320/2);
 
-                // SDL_ShowCursor(SDL_DISABLE);
                 // Hide cursor by setting a blank 1x1 transparent cursor
                 auto blankData = new ubyte[4];
                 blankData[0] = 0; blankData[1] = 0; blankData[2] = 0; blankData[3] = 0;

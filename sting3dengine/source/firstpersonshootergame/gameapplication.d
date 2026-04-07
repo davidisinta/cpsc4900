@@ -47,6 +47,10 @@ class GameApplication : IGame{
     FMOD_SOUND* mPistolSound;
     FMOD_CHANNEL* mPistolSoundChannel;
 
+    FMOD_SOUND* mBackgroundSound;
+    FMOD_CHANNEL* mBackgroundChannel;
+    bool mBackgroundPlaying = false;
+
     this(string name, PhysicsWorld physics, EntityManager em, Camera cam, SceneTree tree, IMaterial mat){
         this.gameName = name;
         mPhysicsWorld = physics;
@@ -219,6 +223,9 @@ class GameApplication : IGame{
 
 
         loadSounds();
+
+        //not to be called in input update/render
+        startBackgroundSound();
     }
 
     void loadSounds(){
@@ -247,6 +254,36 @@ class GameApplication : IGame{
 
         writeln("pistol sound load result = ", result, " ptr = ", mPistolSound);
 
+
+        // background sound
+        auto r3 = FMOD_System_CreateSound(
+            mSystem,
+            "./assets/sounds/war_ambience_01_30_loop.wav".toStringz,
+            FMOD_LOOP_NORMAL | FMOD_2D | FMOD_CREATESTREAM,
+            null,
+            &mBackgroundSound
+        );
+
+        writeln("background sound load result = ", result, " ptr = ", mBackgroundSound);
+
+    }
+
+
+
+    void startBackgroundSound(){
+        if (!mBackgroundPlaying && mBackgroundSound !is null) {
+            FMOD_System_PlaySound(mSystem, mBackgroundSound, null, 0, &mBackgroundChannel);
+            mBackgroundPlaying = true;
+        }
+    }
+
+
+    void stopBackgroundSound(){
+        if (mBackgroundChannel !is null) {
+            FMOD_Channel_Stop(mBackgroundChannel);
+            mBackgroundChannel = null;
+            mBackgroundPlaying = false;
+        }
     }
 
     override void HandleInput(){
