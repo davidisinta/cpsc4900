@@ -176,7 +176,7 @@ class GameApplication : IGame{
         //-----------------------------------------------------------------
         Pipeline texturePipeline = new Pipeline("multiTexturePipeline","./pipelines/multitexture/basic.vert","./pipelines/multitexture/basic.frag");
 
-        IMaterial multiTextureMaterial = new MultiTextureMaterial("multiTexturePipeline","./assets/sand.ppm","./assets/textures/grass.ppm","./assets/textures/dirt.ppm","./assets/textures/snow.ppm");
+        IMaterial multiTextureMaterial = new MultiTextureMaterial("multiTexturePipeline","./assets/textures/sand.ppm","./assets/textures/grass.ppm","./assets/textures/dirt.ppm","./assets/textures/snow.ppm");
         multiTextureMaterial.AddUniform(new Uniform("sampler1", 0));
         multiTextureMaterial.AddUniform(new Uniform("sampler2", 1));
         multiTextureMaterial.AddUniform(new Uniform("sampler3", 2));
