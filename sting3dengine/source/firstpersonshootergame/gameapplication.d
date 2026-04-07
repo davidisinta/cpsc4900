@@ -217,18 +217,42 @@ class GameApplication : IGame{
 
 
         // Test Assimp linkage
-        
+        loadAssimp();
+
+
+
+    }
+
+    void loadAssimp(){
+        // import assimp;
         import std.string : toStringz, fromStringz;
         auto testScene = aiImportFile("./assets/meshes/bunny_centered.obj".toStringz,
                                        aiProcess_Triangulate | aiProcess_GenNormals);
         if (testScene is null)
+        {
             writeln("[assimp] ERROR: ", fromStringz(aiGetErrorString()));
+        }
         else
-            writeln("[assimp] SUCCESS: loaded scene at ", testScene);
-        aiReleaseImport(testScene);
+        {
+            auto mesh = testScene.mMeshes[0];
+            writeln("[assimp] vertices: ", mesh.mNumVertices, " faces: ", mesh.mNumFaces);
 
+            // Print first 3 vertices
+            for (int i = 0; i < 3; i++)
+            {
+                auto v = mesh.mVertices[i];
+                auto n = mesh.mNormals[i];
+                writeln("[assimp] v", i, " pos=(", v.x, ", ", v.y, ", ", v.z,
+                        ") normal=(", n.x, ", ", n.y, ", ", n.z, ")");
+            }
 
+            // Print first face indices
+            auto face = mesh.mFaces[0];
+            writeln("[assimp] face0: indices=", face.mNumIndices,
+                    " [", face.mIndices[0], ", ", face.mIndices[1], ", ", face.mIndices[2], "]");
 
+            aiReleaseImport(testScene);
+        }
     }
 
 
