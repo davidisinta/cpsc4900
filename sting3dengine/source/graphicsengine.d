@@ -132,7 +132,10 @@ class GraphicsEngine{
         }
 
         void Input(){
-                SDL_Event event;
+
+
+
+        SDL_Event event;
                 while(SDL_PollEvent(&event)){
                         if(event.type == SDL_QUIT){
                                 writeln("Exit event triggered");
@@ -151,21 +154,53 @@ class GraphicsEngine{
                         if(event.type == SDL_MOUSEBUTTONDOWN){
                             if(event.button.button == SDL_BUTTON_LEFT){
                                 mGame.requestShoot();
+                                writeln("requesting to shoot");
                             }
                         }
                 }
 
                 // Continuous key state for smooth movement
                 const(ubyte)* keys = SDL_GetKeyboardState(null);
-                if (keys[SDL_SCANCODE_W])     mCamera.MoveForward();
-                if (keys[SDL_SCANCODE_S])     mCamera.MoveBackward();
-                if (keys[SDL_SCANCODE_A])     mCamera.MoveLeft();
-                if (keys[SDL_SCANCODE_D])     mCamera.MoveRight();
 
+
+                bool moving = false;
+
+                if (keys[SDL_SCANCODE_W]) {
+                    mCamera.MoveForward();
+                    moving = true;
+                }
+                if (keys[SDL_SCANCODE_S]) {
+                    mCamera.MoveBackward();
+                    moving = true;
+                }
+                if (keys[SDL_SCANCODE_A]) {
+                    mCamera.MoveLeft();
+                    moving = true;
+                }
+                if (keys[SDL_SCANCODE_D]) {
+                    mCamera.MoveRight();
+                    moving = true;
+                }
+
+                if (moving) {
+                    if (!mGame.mWalkingSoundPlaying) {
+                        mGame.playSound(mGame.mWalkingSound, &mGame.mWalkingSoundChannel);
+                        mGame.mWalkingSoundPlaying = true;
+                    }
+                } else {
+                    if (mGame.mWalkingSoundPlaying) {
+                        mGame.stopSound(&mGame.mWalkingSoundChannel);
+                        mGame.mWalkingSoundPlaying = false;
+                    }
+                }
+                
                 // Mouse look
                 int mouseX, mouseY;
                 SDL_GetMouseState(&mouseX, &mouseY);
                 mCamera.MouseLook(mouseX, mouseY);
+
+
+                
 
                 mGame.HandleInput();
         }

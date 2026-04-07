@@ -4,6 +4,7 @@ module gameapplication;
 import std.stdio;
 import std.conv;
 import std.datetime.systime : Clock;
+import std.string : toStringz;
 
 // project files
 import enginecore;
@@ -38,6 +39,12 @@ class GameApplication : IGame{
     GLuint mCrosshairVAO;
     GLuint mCrosshairVBO;
     bool mCrosshairReady = false;
+
+    //sound specific elements
+    bool mWalkingSoundPlaying = false;
+    FMOD_SOUND* mWalkingSound;
+    FMOD_CHANNEL* mWalkingSoundChannel;
+    FMOD_SYSTEM* mSystem;
 
     this(string name, PhysicsWorld physics, EntityManager em, Camera cam, SceneTree tree, IMaterial mat){
         this.gameName = name;
@@ -199,18 +206,62 @@ class GameApplication : IGame{
         mSceneTree.GetRootNode().AddChildSceneNode(m2);
         writeln("[terrain] added to scene tree");
         writeln("[terrain] root children count: ", mSceneTree.GetRootNode().mChildren.length);
+
+
+
     }
 
 
     void attachAudio(AudioEngine* audio){
         mAudio = audio;
+        mSystem = mAudio.mSystem;
+
+
+        loadSounds();
+    }
+
+    void loadSounds(){
+
+        // FMOD_System_CreateSound(mSystem, "./assets/sounds/walk.wav".toStringz, FMOD_LOOP_NORMAL | FMOD_2D, null, &mWalkingSound);
+
+
+        auto result = FMOD_System_CreateSound(
+            mSystem,
+            "./assets/sounds/footsteps_walking_gravel_01_loop.wav".toStringz,
+            FMOD_LOOP_NORMAL | FMOD_2D,
+            null,
+            &mWalkingSound
+        );
+
+
+        writeln("walk sound load result = ", result, " ptr = ", mWalkingSound);
+
+
+
+
+
     }
 
     override void HandleInput(){
+
+
+
+
+
+
+
+
         if (mShootRequested){
             shoot();
             mShootRequested = false;
         }
+
+
+
+
+
+
+
     }
 
     override void Update(double frameDt){
@@ -232,6 +283,20 @@ class GameApplication : IGame{
         mShootRequested = true;
     }
 
+    void playSound(FMOD_SOUND* s,
+    FMOD_CHANNEL** ch){
+        // mAudio.play("./assets/sounds/footsteps_walking_gravel_01_loop.wav");
+        FMOD_System_PlaySound(mAudio.mSystem, s, null, 0, ch);
+    }
+
+
+    void stopSound(FMOD_CHANNEL** ch) {
+        if (*ch !is null) {
+            FMOD_Channel_Stop(*ch);
+            *ch = null;
+        }
+    }
+
     private void shoot(){
         vec3 from = mCamera.mEyePosition;
         vec3 dir  = Normalize(mCamera.mForwardVector);
@@ -240,8 +305,10 @@ class GameApplication : IGame{
         mShotsFired++;
 
         // Play gunshot sound
-        if (mAudio !is null)
+        if (mAudio !is null){
             mAudio.play("./assets/sounds/gun_22_pistol_04.wav");
+        }
+            
 
         auto result = mPhysicsWorld.raycast(
             from.x, from.y, from.z,
