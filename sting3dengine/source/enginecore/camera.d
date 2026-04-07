@@ -21,6 +21,9 @@ class Camera{
 
     this(){
         mViewMatrix = MatrixMakeIdentity();
+
+        // to do: 
+        // see if viable to change aspect ratio to this cast(float)mScreenWidth / cast(float)mScreenHeight
         mProjectionMatrix = MatrixMakePerspective(90.0f.ToRadians, 480.0f/640.0f, 0.1f, 1000.0f);
 
         mEyePosition = vec3(1.0f, 0.5f, 1.0f);

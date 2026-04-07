@@ -1,0 +1,113 @@
+module model;
+
+import std.stdio;
+import std.string : toStringz, fromStringz;
+import std.conv : to;
+
+import assimp_c_api;
+import surfaceassimp;
+import geometry;
+import enginecore;
+import materials;
+import linear;
+
+/// A Model loaded via Assimp, following the LearnOpenGL convention.
+/// Contains multiple meshes, each with its own surface and material info.
+class Model
+{
+    /// One entry per mesh in the model
+    struct SubMesh
+    {
+        ISurface surface;
+        bool hasUVs;
+        uint materialIndex;
+    }
+
+    SubMesh[] mMeshes;
+    string mDirectory;
+
+    /// Load a model from file
+    this(string path)
+    {
+        // Extract directory for texture paths later
+        auto lastSlash = path.length;
+        foreach_reverse (i, c; path)
+        {
+            if (c == '/' || c == '\\')
+            {
+                lastSlash = i;
+                break;
+            }
+        }
+        mDirectory = path[0 .. lastSlash];
+
+        loadModel(path);
+    }
+
+    /// Add all meshes to a scene tree under a parent node, using the given material.
+    /// Returns the MeshNode array so caller can set model matrices.
+    MeshNode[] addToScene(SceneTree sceneTree, IMaterial material, string namePrefix)
+    {
+        MeshNode[] nodes;
+        foreach (i, submesh; mMeshes)
+        {
+            string nodeName = namePrefix ~ "_mesh" ~ i.to!string;
+            auto node = new MeshNode(nodeName, submesh.surface, material);
+            sceneTree.GetRootNode().AddChildSceneNode(node);
+            nodes ~= node;
+        }
+        return nodes;
+    }
+
+    private void loadModel(string path)
+    {
+        auto scene = aiImportFile(path.toStringz,
+            aiProcess_Triangulate | aiProcess_GenNormals |
+            aiProcess_JoinIdenticalVertices | aiProcess_FlipUVs);
+
+        if (scene is null)
+        {
+            writeln("[Model] ERROR loading '", path, "': ", fromStringz(aiGetErrorString()));
+            return;
+        }
+
+        writeln("[Model] loaded '", path, "' meshes=", scene.mNumMeshes,
+                " materials=", scene.mNumMaterials);
+
+        // Recursively walk the node tree (LearnOpenGL convention)
+        processNode(scene.mRootNode, scene);
+
+        aiReleaseImport(scene);
+    }
+
+    /// Recursively process each node and its children
+    private void processNode(const(aiNode)* node, const(aiScene)* scene)
+    {
+        // Process each mesh in this node
+        for (uint i = 0; i < node.mNumMeshes; i++)
+        {
+            uint meshIndex = node.mMeshes[i];
+            auto mesh = scene.mMeshes[meshIndex];
+            processMesh(mesh);
+        }
+
+        // Recurse into children
+        for (uint i = 0; i < node.mNumChildren; i++)
+        {
+            processNode(node.mChildren[i], scene);
+        }
+    }
+
+    /// Extract vertex data from an aiMesh and create a SurfaceAssimp
+    private void processMesh(const(aiMesh)* mesh)
+    {
+        // Cast away const for SurfaceAssimp constructor
+        auto mutableMesh = cast(aiMesh*)mesh;
+
+        SubMesh sm;
+        sm.surface = new SurfaceAssimp(mutableMesh);
+        sm.hasUVs = mesh.mTextureCoords[0] !is null;
+        sm.materialIndex = mesh.mMaterialIndex;
+        mMeshes ~= sm;
+    }
+}

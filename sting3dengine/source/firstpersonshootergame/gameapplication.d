@@ -135,21 +135,21 @@ class GameApplication : IGame{
 
         // Spawn target
         // to do: perhaps remove this cube entity object
-        mCubeEntity = spawnPhysicsObject(
-            "cube.urdf",
-            "./assets/meshes/bunny_centered.obj",
-            vec3(0.0f, 0.0f, 0.0f),
-            Quat.init
-        );
+        // mCubeEntity = spawnPhysicsObject(
+        //     "cube.urdf",
+        //     "./assets/meshes/bunny_centered.obj",
+        //     vec3(0.0f, 0.0f, 0.0f),
+        //     Quat.init
+        // );
 
-        // Another target for testing
-        vec3 testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -4.0f);
-        spawnPhysicsObject(
-            "cube.urdf",
-            "./assets/meshes/bunny_centered.obj",
-            testPos,
-            Quat.init
-        );
+        // // Another target for testing
+        // vec3 testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -4.0f);
+        // spawnPhysicsObject(
+        //     "cube.urdf",
+        //     "./assets/meshes/bunny_centered.obj",
+        //     testPos,
+        //     Quat.init
+        // );
 
         // Another target for testing
         // testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -14.0f);
@@ -187,6 +187,28 @@ class GameApplication : IGame{
         //     testPos,
         //     Quat.init
         // );
+
+
+
+        // add assimp loaded model
+        // import assimp;
+        auto bunnyModel = new Model("./assets/meshes/bunny_centered.obj");
+        auto bunnyNodes = bunnyModel.addToScene(mSceneTree, mBasicMaterial, "assimp_bunny");
+        foreach (node; bunnyNodes)
+            node.mModelMatrix = MatrixMakeTranslation(vec3(5.0f, 0.5f, 0.0f));
+        writeln("[test] assimp bunny loaded with ", bunnyNodes.length, " meshes");
+
+
+
+
+
+
+
+
+
+
+
+
 
         //-----------------------------------------------------------------
         // add terrain to the game now 
