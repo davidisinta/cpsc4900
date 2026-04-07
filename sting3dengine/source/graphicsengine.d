@@ -441,6 +441,21 @@ class GraphicsEngine{
                 // Lock mouse to center of screen
                 SDL_WarpMouseInWindow(mWindow,640/2,320/2);
 
+                // SDL_ShowCursor(SDL_DISABLE);
+                // Hide cursor by setting a blank 1x1 transparent cursor
+                auto blankData = new ubyte[4];
+                blankData[0] = 0; blankData[1] = 0; blankData[2] = 0; blankData[3] = 0;
+                auto blankSurface = SDL_CreateRGBSurfaceFrom(
+                    blankData.ptr, 1, 1, 32, 4,
+                    0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
+                if (blankSurface !is null)
+                {
+                    auto blankCursor = SDL_CreateColorCursor(blankSurface, 0, 0);
+                    if (blankCursor !is null)
+                        SDL_SetCursor(blankCursor);
+                    SDL_FreeSurface(blankSurface);
+                }
+
                 // Run the graphics application loop
                 while(mGameIsRunning){
                         AdvanceFrame();
