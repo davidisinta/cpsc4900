@@ -52,10 +52,27 @@ void syncPhysicsToRender(ref PhysicsWorld world, EntityManager em, bool debugLog
             tc.rotation = Quat.fromBulletDoubles(q);
 
             // 3. Push into MeshNode
-            if (auto node = entityId in em.renderables)
+            // for each node in the renderables, then sync it with the transform
+            // foreach(node; em.renderables[entityId]){
+            //     node.mModelMatrix = tc.toModelMatrix();
+            // }
+
+            // do the checking before unwrapping make it safe
+            if (auto nodes = entityId in em.renderables)
             {
-                node.mModelMatrix = tc.toModelMatrix();
+                foreach (node; *nodes)
+                {
+                    node.mModelMatrix = tc.toModelMatrix();
+                }
             }
+
+
+
+
+            // if (auto node = entityId in em.renderables)
+            // {
+            //     node.mModelMatrix = tc.toModelMatrix();
+            // }
 
             // 4. Optional debug output
             if (debugLog)

@@ -1,9 +1,11 @@
 module model;
 
+//standard library files
 import std.stdio;
 import std.string : toStringz, fromStringz;
 import std.conv : to;
 
+//project libraries
 import assimp_c_api;
 import surfaceassimp;
 import geometry;

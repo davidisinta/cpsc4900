@@ -1,12 +1,17 @@
 module surfaceassimp;
 
+//standard library files
 import std.stdio;
+
+// Third-party libraries
 import bindbc.opengl;
+
+//project libraries
 import surface;
 import assimp_c_api;
 
-class SurfaceAssimp : ISurface
-{
+
+class SurfaceAssimp : ISurface{
     GLuint mVBO;
     int mVertexCount;
     bool mHasUVs;

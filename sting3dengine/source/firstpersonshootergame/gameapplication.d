@@ -70,38 +70,101 @@ class GameApplication : IGame{
     ///   - a TransformComponent synced each frame
     ///
     /// Returns the entity ID.
+    // uint spawnPhysicsObject(
+    //     string urdfPath,
+    //     string objPath,
+    //     vec3 pos,
+    //     Quat orient = Quat.init){
+    //     // Allocate entity
+    //     uint eid = mEntityManager.create();
+
+    //     // Physics side: load URDF into Bullet
+    //     mPhysicsWorld.addURDF(eid, urdfPath,
+    //         pos.x, pos.y, pos.z,
+    //         orient.x, orient.y, orient.z, orient.w);
+    //     mEntityManager.markPhysics(eid);
+
+    //     // Render side: load .obj mesh, attach to scene tree
+    //     // ISurface surf = new SurfaceOBJ(objPath);
+    //     // MeshNode node = new MeshNode("entity_" ~ eid.to!string, surf, mBasicMaterial);
+    //     // mSceneTree.GetRootNode().AddChildSceneNode(node);
+
+    //     auto bunnyModel = new Model("./assets/meshes/bunny_centered.obj");
+    //     auto bunnyNodes = bunnyModel.addToScene(mSceneTree, mBasicMaterial, "assimp_bunny");
+        
+    //     writeln("[test] assimp bunny loaded with ", bunnyNodes.length, " meshes");
+
+    //     // Register in EntityManager
+    //     TransformComponent tc;
+    //     tc.position = pos;
+    //     tc.rotation = orient;
+    //     mEntityManager.addTransform(eid, tc);
+
+    //     // foreach (node; bunnyNodes){
+    //     //     node.mModelMatrix = MatrixMakeTranslation(vec3(5.0f, 0.5f, 0.0f));
+    //     // }
+
+    //             foreach (node; bunnyNodes){
+    //         node.mModelMatrix = tc.toModelMatrix();
+    //     }
+            
+    //     // add one renderable they could be many
+    //     // to do: change to loop through renderables...
+
+    //     foreach(node; bunnyNodes){
+    //         mEntityManager.addRenderable(eid, node);
+
+    //         // to do: check if this is a good thing
+    //         // node.mModelMatrix = tc.toModelMatrix();
+    //     }
+
+
+    //     // if (bunnyNodes.length > 0) {
+    //     //     mEntityManager.addRenderable(eid, bunnyNodes[0]);
+    //     // }
+
+
+
+
+    //     // Set initial model matrix
+    //     // node.mModelMatrix = tc.toModelMatrix();
+
+    //     writeln("[spawn] entity=", eid, " urdf=", urdfPath, " obj=", objPath, " pos=", pos);
+    //     return eid;
+    // }
     uint spawnPhysicsObject(
-        string urdfPath,
-        string objPath,
-        vec3 pos,
-        Quat orient = Quat.init){
-        // Allocate entity
+    string urdfPath,
+    string modelPath,
+    vec3 pos,
+    Quat orient = Quat.init)
+    {
         uint eid = mEntityManager.create();
 
-        // Physics side: load URDF into Bullet
-        mPhysicsWorld.addURDF(eid, urdfPath,
+        mPhysicsWorld.addURDF(
+            eid, urdfPath,
             pos.x, pos.y, pos.z,
-            orient.x, orient.y, orient.z, orient.w);
+            orient.x, orient.y, orient.z, orient.w
+        );
         mEntityManager.markPhysics(eid);
 
-        // Render side: load .obj mesh, attach to scene tree
-        ISurface surf = new SurfaceOBJ(objPath);
-        MeshNode node = new MeshNode("entity_" ~ eid.to!string, surf, mBasicMaterial);
-        mSceneTree.GetRootNode().AddChildSceneNode(node);
+        auto model = new Model(modelPath);
+        auto nodes = model.addToScene(mSceneTree, mBasicMaterial, "entity_" ~ eid.to!string);
 
-        // Register in EntityManager
         TransformComponent tc;
         tc.position = pos;
         tc.rotation = orient;
         mEntityManager.addTransform(eid, tc);
-        mEntityManager.addRenderable(eid, node);
 
-        // Set initial model matrix
-        node.mModelMatrix = tc.toModelMatrix();
+        foreach (node; nodes) {
+            node.mModelMatrix = tc.toModelMatrix();
+            mEntityManager.addRenderable(eid, node);
+        }
 
-        writeln("[spawn] entity=", eid, " urdf=", urdfPath, " obj=", objPath, " pos=", pos);
+        writeln("[spawn] entity=", eid, " urdf=", urdfPath, " model=", modelPath, " pos=", pos);
         return eid;
     }
+
+
 
 
     void drawCrosshair(){
@@ -135,12 +198,12 @@ class GameApplication : IGame{
 
         // Spawn target
         // to do: perhaps remove this cube entity object
-        // mCubeEntity = spawnPhysicsObject(
-        //     "cube.urdf",
-        //     "./assets/meshes/bunny_centered.obj",
-        //     vec3(0.0f, 0.0f, 0.0f),
-        //     Quat.init
-        // );
+        mCubeEntity = spawnPhysicsObject(
+            "cube.urdf",
+            "./assets/meshes/bunny_centered.obj",
+            vec3(0.0f, 0.0f, 0.0f),
+            Quat.init
+        );
 
         // // Another target for testing
         // vec3 testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -4.0f);
@@ -191,18 +254,11 @@ class GameApplication : IGame{
 
 
         // add assimp loaded model
-        // import assimp;
-        auto bunnyModel = new Model("./assets/meshes/bunny_centered.obj");
-        auto bunnyNodes = bunnyModel.addToScene(mSceneTree, mBasicMaterial, "assimp_bunny");
-        foreach (node; bunnyNodes)
-            node.mModelMatrix = MatrixMakeTranslation(vec3(5.0f, 0.5f, 0.0f));
-        writeln("[test] assimp bunny loaded with ", bunnyNodes.length, " meshes");
-
-
-
-
-
-
+        // auto bunnyModel = new Model("./assets/meshes/bunny_centered.obj");
+        // auto bunnyNodes = bunnyModel.addToScene(mSceneTree, mBasicMaterial, "assimp_bunny");
+        // foreach (node; bunnyNodes)
+        //     node.mModelMatrix = MatrixMakeTranslation(vec3(5.0f, 0.5f, 0.0f));
+        // writeln("[test] assimp bunny loaded with ", bunnyNodes.length, " meshes");
 
 
 
@@ -490,22 +546,71 @@ class GameApplication : IGame{
         }
 
         // 2. Remove MeshNode from scene tree
-        if (auto node = entityId in mEntityManager.renderables)
+        // foreach(MeshNode node; mEntityManager.renderables[entityId]){
+        //     // node.mModelMatrix = tc.toModelMatrix();
+
+        //     // Find parent and remove this child
+        //     auto parent = node.GetParentSceneNode();
+        //     if (parent !is null)
+        //     {
+        //         // Filter this node out of parent's children
+        //         ISceneNode[] remaining;
+        //         foreach (child; parent.mChildren)
+        //         {
+        //             if (child !is *node)
+        //                 remaining ~= child;
+        //         }
+        //         parent.mChildren = remaining;
+        //     }
+        // }
+
+        if (auto nodes = entityId in mEntityManager.renderables)
         {
-            // Find parent and remove this child
-            auto parent = node.GetParentSceneNode();
-            if (parent !is null)
-            {
-                // Filter this node out of parent's children
-                ISceneNode[] remaining;
-                foreach (child; parent.mChildren)
+
+            foreach(node; *nodes){
+
+                // Find parent and remove this child
+                auto parent = node.GetParentSceneNode();
+                if (parent !is null)
                 {
-                    if (child !is *node)
-                        remaining ~= child;
+                    // Filter this node out of parent's children
+                    ISceneNode[] remaining;
+                    foreach (child; parent.mChildren)
+                    {
+                        if (child !is node)
+                            remaining ~= child;
+                    }
+                    parent.mChildren = remaining;
                 }
-                parent.mChildren = remaining;
+
             }
+
+
         }
+
+
+
+
+
+
+
+
+        // if (auto node = entityId in mEntityManager.renderables)
+        // {
+        //     // Find parent and remove this child
+        //     auto parent = node.GetParentSceneNode();
+        //     if (parent !is null)
+        //     {
+        //         // Filter this node out of parent's children
+        //         ISceneNode[] remaining;
+        //         foreach (child; parent.mChildren)
+        //         {
+        //             if (child !is *node)
+        //                 remaining ~= child;
+        //         }
+        //         parent.mChildren = remaining;
+        //     }
+        // }
 
         // 3. Remove from entity manager
         mEntityManager.destroy(entityId);
