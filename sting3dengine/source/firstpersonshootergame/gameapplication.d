@@ -14,6 +14,7 @@ import geometry;
 import materials;
 import audiosubsystem;
 import assimp;
+import editor;
 
 // Third-party libraries
 import bindbc.sdl;
@@ -413,6 +414,27 @@ class GameApplication : IGame{
             glBindVertexArray(0);
             mCrosshairReady = true;
         }
+
+    
+
+    void Render(int fps){
+
+
+        drawCrosshair();
+
+
+
+
+            // ImGui UI
+            igBegin("HUD", null, ImGuiWindowFlags_None);
+            igText("TOPSHOTAA");
+            igText("FPS: %d", fps);
+            igEnd();
+
+            // Finish ImGui frame and draw it
+            igRender();
+            ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
+    }
 
     
     /// Fully destroy an entity: physics body + scene tree node + entity manager

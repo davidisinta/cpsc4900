@@ -50,8 +50,6 @@ class GraphicsEngine{
         int mLastFrameTime;
         IMaterial mBasicMaterial;
 		double mFrameDt;
-		// uint mGroundEntity;
-        // uint mCubeEntity;
         GLuint mCrosshairVAO;
         GLuint mCrosshairVBO;
         bool mCrosshairReady = false;
@@ -69,69 +67,55 @@ class GraphicsEngine{
         /// Setup OpenGL and any libraries
         this(int major_ogl_version, int minor_ogl_version){
 
-                //Set screen Width and Height
+            //Set screen Width and Height
+            SDL_DisplayMode dm;
+            if (SDL_GetCurrentDisplayMode(0, &dm) != 0) {
+                throw new Exception("SDL_GetCurrentDisplayMode failed");
+            }
 
-                SDL_DisplayMode dm;
-                if (SDL_GetCurrentDisplayMode(0, &dm) != 0) {
-                    throw new Exception("SDL_GetCurrentDisplayMode failed");
-                }
+            mScreenWidth = dm.w;
+            mScreenHeight = dm.h;
 
-                mScreenWidth = dm.w;
-                mScreenHeight = dm.h;
+            // Setup SDL OpenGL Version
+            SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, major_ogl_version );
+            SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, minor_ogl_version );
+            SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
 
-                // mScreenWidth = 960;  //640 multiples
-                // mScreenHeight = 720; //480 multiples
+            // We want to request a double buffer for smooth updating.
+            SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+            SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+                    
+            mWindow = SDL_CreateWindow(
+                "dlang - OpenGL 4+ Graphics Framework",
+                SDL_WINDOWPOS_UNDEFINED,
+                SDL_WINDOWPOS_UNDEFINED,
+                mScreenWidth,
+                mScreenHeight,
+                SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN_DESKTOP
+            );
 
-                // Setup SDL OpenGL Version
-                SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, major_ogl_version );
-                SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, minor_ogl_version );
-                SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
+            // Create the OpenGL context and associate it with our window
+            mContext = SDL_GL_CreateContext(mWindow);
 
-                // We want to request a double buffer for smooth updating.
-                SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-                SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+            // Load OpenGL Function calls
+            auto retVal = LoadOpenGLLib();
 
-                // Create an application window using OpenGL that supports SDL
-                // mWindow = SDL_CreateWindow( "dlang - OpenGL 4+ Graphics Framework",
-                //                 SDL_WINDOWPOS_UNDEFINED,
-                //                 SDL_WINDOWPOS_UNDEFINED,
-                //                 mScreenWidth,
-                //                 mScreenHeight,
-                //                 SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
+            // Check OpenGL version
+            GetOpenGLVersionInfo();
 
+            // Create a renderer
+            mRenderer = new Renderer(mWindow,mScreenWidth,mScreenHeight);
 
-                                
-                mWindow = SDL_CreateWindow(
-                    "dlang - OpenGL 4+ Graphics Framework",
-                    SDL_WINDOWPOS_UNDEFINED,
-                    SDL_WINDOWPOS_UNDEFINED,
-                    mScreenWidth,
-                    mScreenHeight,
-                    SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN_DESKTOP
-                );
+            // Create a camera
+            mCamera = new Camera();
 
-                // Create the OpenGL context and associate it with our window
-                mContext = SDL_GL_CreateContext(mWindow);
+            // Create (or load) a Scene Tree
+            mSceneTree = new SceneTree("root");
 
-                // Load OpenGL Function calls
-                auto retVal = LoadOpenGLLib();
-
-                // Check OpenGL version
-                GetOpenGLVersionInfo();
-
-                // Create a renderer
-                mRenderer = new Renderer(mWindow,mScreenWidth,mScreenHeight);
-
-                // Create a camera
-                mCamera = new Camera();
-
-                // Create (or load) a Scene Tree
-                mSceneTree = new SceneTree("root");
-
-                // Initialise physics world + entity manager
-                mPhysicsWorld = new PhysicsWorld("main-world");
-                mEntityManager = new EntityManager();
-                mLastFrameTime = SDL_GetTicks();
+            // Initialise physics world + entity manager
+            mPhysicsWorld = new PhysicsWorld("main-world");
+            mEntityManager = new EntityManager();
+            mLastFrameTime = SDL_GetTicks();
         }
 
         /// Destructor
@@ -141,9 +125,6 @@ class GraphicsEngine{
             ImGui_ImplOpenGL3_Shutdown();
             ImGui_ImplSDL2_Shutdown();
             igDestroyContext(null);
-
-
-
 
             //shut down fmod
             mAudio.shutdown();
@@ -161,9 +142,8 @@ class GraphicsEngine{
 
             SDL_Event event;
             while(SDL_PollEvent(&event)){
-
+                // First process if theres any input over imgui stuff
                 ImGui_ImplSDL2_ProcessEvent(cast(void*)&event);
-
 
                 if(event.type == SDL_QUIT){
                     writeln("Exit event triggered");
@@ -187,121 +167,121 @@ class GraphicsEngine{
                 }
             }
 
-                // Continuous key state for smooth movement
-                const(ubyte)* keys = SDL_GetKeyboardState(null);
-                bool moving = false;
-                if (keys[SDL_SCANCODE_W]) {
-                    mCamera.MoveForward();
-                    moving = true;
-                }
-                if (keys[SDL_SCANCODE_S]) {
-                    mCamera.MoveBackward();
-                    moving = true;
-                }
-                if (keys[SDL_SCANCODE_A]) {
-                    mCamera.MoveLeft();
-                    moving = true;
-                }
-                if (keys[SDL_SCANCODE_D]) {
-                    mCamera.MoveRight();
-                    moving = true;
-                }
+            // Continuous key state for smooth movement
+            const(ubyte)* keys = SDL_GetKeyboardState(null);
+            bool moving = false;
+            if (keys[SDL_SCANCODE_W]) {
+                mCamera.MoveForward();
+                moving = true;
+            }
+            if (keys[SDL_SCANCODE_S]) {
+                mCamera.MoveBackward();
+                moving = true;
+            }
+            if (keys[SDL_SCANCODE_A]) {
+                mCamera.MoveLeft();
+                moving = true;
+            }
+            if (keys[SDL_SCANCODE_D]) {
+                mCamera.MoveRight();
+                moving = true;
+            }
 
-                if (moving) {
-                    if (!mGame.mWalkingSoundPlaying) {
-                        mGame.playSound(mGame.mWalkingSound, &mGame.mWalkingSoundChannel);
-                        mGame.mWalkingSoundPlaying = true;
-                    }
-                } else {
-                    if (mGame.mWalkingSoundPlaying) {
-                        mGame.stopSound(&mGame.mWalkingSoundChannel);
-                        mGame.mWalkingSoundPlaying = false;
-                    }
+            if (moving) {
+                if (!mGame.mWalkingSoundPlaying) {
+                    mGame.playSound(mGame.mWalkingSound, &mGame.mWalkingSoundChannel);
+                    mGame.mWalkingSoundPlaying = true;
                 }
-                
-                int mouseX, mouseY;
-                SDL_GetMouseState(&mouseX, &mouseY);
-                int centerX = mScreenWidth / 2;
-                int centerY = mScreenHeight / 2;
-                int deltaX = mouseX - centerX;
-                int deltaY = mouseY - centerY;
-
-                if (deltaX != 0 || deltaY != 0){
-                    mCamera.MouseLook(deltaX, deltaY);
-                    SDL_WarpMouseInWindow(mWindow, centerX, centerY);
+            } else {
+                if (mGame.mWalkingSoundPlaying) {
+                    mGame.stopSound(&mGame.mWalkingSoundChannel);
+                    mGame.mWalkingSoundPlaying = false;
                 }
+            }
+            
+            int mouseX, mouseY;
+            SDL_GetMouseState(&mouseX, &mouseY);
+            int centerX = mScreenWidth / 2;
+            int centerY = mScreenHeight / 2;
+            int deltaX = mouseX - centerX;
+            int deltaY = mouseY - centerY;
 
-                mGame.HandleInput();
+            if (deltaX != 0 || deltaY != 0){
+                mCamera.MouseLook(deltaX, deltaY);
+                SDL_WarpMouseInWindow(mWindow, centerX, centerY);
+            }
+
+            mGame.HandleInput();
         }
 
         /// A helper function to setup a scene.
         void SetupScene(){
 
-                // Create a pipeline and associate it with a material
-                Pipeline basicPipeline = new Pipeline("basic","./pipelines/basic/basic.vert","./pipelines/basic/basic.frag");
-                mBasicMaterial = new BasicMaterial("basic");  // cache for spawning
+            // Create a pipeline and associate it with a material
+            Pipeline basicPipeline = new Pipeline("basic","./pipelines/basic/basic.vert","./pipelines/basic/basic.frag");
+            mBasicMaterial = new BasicMaterial("basic");  // cache for spawning
 
-                // Create a pipeline for our light
-                Pipeline lightPipeline = new Pipeline("light","./pipelines/light/basic.vert","./pipelines/light/basic.frag");
-                IMaterial lightMaterial    = new BasicMaterial("light");
+            // Create a pipeline for our light
+            Pipeline lightPipeline = new Pipeline("light","./pipelines/light/basic.vert","./pipelines/light/basic.frag");
+            IMaterial lightMaterial    = new BasicMaterial("light");
 
-                //we create another object for our light box and add it to scene tree
-                GLfloat[] lightboxVBO = [
-                    -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-                     0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-                     0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-                     0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-                    -0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-                    -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+            //we create another object for our light box and add it to scene tree
+            GLfloat[] lightboxVBO = [
+                -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+                    0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+                    0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+                    0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+                -0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
 
-                    -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                     0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                     0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                     0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                    -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                    -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                    0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                    0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                    0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
 
-                    -0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
-                    -0.5f,  0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
-                    -0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
-                    -0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
-                    -0.5f, -0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
-                    -0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
+                -0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
+                -0.5f,  0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
+                -0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
+                -0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
+                -0.5f, -0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
+                -0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
 
-                     0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                     0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-                     0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-                     0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-                     0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                     0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                    0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                    0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                    0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                    0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                    0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                    0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
 
-                    -0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
-                     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
-                     0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
-                     0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
-                    -0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
-                    -0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
+                -0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
+                    0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
+                    0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
+                    0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
+                -0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
+                -0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
 
-                    -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-                     0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-                     0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                     0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                    -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                    -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f
-                ];
-                ISurface lightBox = new SurfaceTriangle(lightboxVBO);
-                MeshNode light = new MeshNode("light", lightBox, lightMaterial);
-                mSceneTree.GetRootNode().AddChildSceneNode(light);
+                -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                    0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                    0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                    0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f
+            ];
+            ISurface lightBox = new SurfaceTriangle(lightboxVBO);
+            MeshNode light = new MeshNode("light", lightBox, lightMaterial);
+            mSceneTree.GetRootNode().AddChildSceneNode(light);
 
-                // Add uniforms to the basic material
-                mBasicMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-                mBasicMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-                mBasicMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+            // Add uniforms to the basic material
+            mBasicMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+            mBasicMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+            mBasicMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
 
-                //Add uniforms to our light shader as well
-                lightMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-                lightMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-                lightMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+            //Add uniforms to our light shader as well
+            lightMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+            lightMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+            lightMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
         }
 
         void setUpLights(){
@@ -350,8 +330,8 @@ class GraphicsEngine{
 
 			//update our light object
 			MeshNode lightNode = cast(MeshNode)mSceneTree.FindNode("light");
-			if (lightNode !is null)
-			{
+
+			if (lightNode !is null){
 				GLfloat x = gLight.mPosition[0];
 				GLfloat y = gLight.mPosition[1];
 				GLfloat z = gLight.mPosition[2];
@@ -363,21 +343,7 @@ class GraphicsEngine{
 
         void Render(){
 
-
-            // Start ImGui frame
-            // ImGui_ImplOpenGL3_NewFrame();
-            // ImGui_ImplSDL2_NewFrame();
-            // igNewFrame();
-
-            // ImGui content
-            // igBegin("HUD", null, ImGuiWindowFlags_None);
-            // igText("TOPSHOTAA");
-            // igText("FPS: %d", this.fps);
-            // igEnd();
-
-
-
-            // 3D scene
+            // Render 3D scene
             if(mRenderWireframe){
                     glPolygonMode(GL_FRONT_AND_BACK,GL_LINE); 
             }else{
@@ -391,27 +357,10 @@ class GraphicsEngine{
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glEnable(GL_DEPTH_TEST);	
 
+            // to do: check if perhaps renderer can do all rendering
+            // even from game side
             mRenderer.Render(mSceneTree,mCamera);
-
-            mGame.drawCrosshair();
-
-
-
-                // ImGui UI
-                igBegin("HUD", null, ImGuiWindowFlags_None);
-                igText("TOPSHOTAA");
-                igText("FPS: %d", this.fps);
-                igEnd();
-
-                // Finish ImGui frame and draw it
-                igRender();
-                ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
-
-
-
-
-
-
+            mGame.Render(this.fps);
 
             SDL_GL_SwapWindow(mWindow);	
         }
@@ -423,7 +372,6 @@ class GraphicsEngine{
             int elapsed = now - mLastFrameTime;
             mLastFrameTime = now;
             mFrameDt = elapsed / 1000.0;
-
 
             // Start ImGui frame BEFORE input
             ImGui_ImplOpenGL3_NewFrame();
@@ -460,6 +408,25 @@ class GraphicsEngine{
             }
         }
 
+
+        /// helper to hide triangle cursor from screen
+        void hideCursor(){
+            // Hide cursor by setting a blank 1x1 transparent cursor
+            auto blankData = new ubyte[4];
+            blankData[0] = 0; blankData[1] = 0; blankData[2] = 0; blankData[3] = 0;
+            auto blankSurface = SDL_CreateRGBSurfaceFrom(
+                blankData.ptr, 1, 1, 32, 4,
+                0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
+            if (blankSurface !is null)
+            {
+                auto blankCursor = SDL_CreateColorCursor(blankSurface, 0, 0);
+                if (blankCursor !is null)
+                    SDL_SetCursor(blankCursor);
+                SDL_FreeSurface(blankSurface);
+            }
+
+        }
+
         /// Main application loop
         void Loop(){
 
@@ -479,8 +446,6 @@ class GraphicsEngine{
                 igNewFrame();
                 igEndFrame();
 
-               
-
                 mGame = new GameApplication(
                     "topshotaa",
                     mPhysicsWorld,
@@ -496,27 +461,13 @@ class GraphicsEngine{
                 // multitexture pipelines
                 mAudio.init();
 
-                mAudio.play("./assets/sounds/drumloop.wav");
-
                 //attach audio engine to game
                 mGame.attachAudio(&mAudio);
 
                 // Lock mouse to center of screen
                 SDL_WarpMouseInWindow(mWindow,640/2,320/2);
 
-                // Hide cursor by setting a blank 1x1 transparent cursor
-                auto blankData = new ubyte[4];
-                blankData[0] = 0; blankData[1] = 0; blankData[2] = 0; blankData[3] = 0;
-                auto blankSurface = SDL_CreateRGBSurfaceFrom(
-                    blankData.ptr, 1, 1, 32, 4,
-                    0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
-                if (blankSurface !is null)
-                {
-                    auto blankCursor = SDL_CreateColorCursor(blankSurface, 0, 0);
-                    if (blankCursor !is null)
-                        SDL_SetCursor(blankCursor);
-                    SDL_FreeSurface(blankSurface);
-                }
+                hideCursor();
 
                 // Run the graphics application loop
                 while(mGameIsRunning){
