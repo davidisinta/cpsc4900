@@ -13,6 +13,7 @@ import physics;
 import geometry;
 import materials;
 import audiosubsystem;
+import assimp;
 
 // Third-party libraries
 import bindbc.sdl;
@@ -70,35 +71,37 @@ class GameApplication : IGame{
     ///
     /// Returns the entity ID.
     uint spawnPhysicsObject(
-        string urdfPath,
-        string objPath,
-        vec3 pos,
-        Quat orient = Quat.init){
-        // Allocate entity
+    string urdfPath,
+    string modelPath,
+    vec3 pos,
+    Quat orient = Quat.init)
+    {
         uint eid = mEntityManager.create();
 
-        // Physics side: load URDF into Bullet
-        mPhysicsWorld.addURDF(eid, urdfPath,
+        // add physics to the object
+        mPhysicsWorld.addURDF(
+            eid, urdfPath,
             pos.x, pos.y, pos.z,
-            orient.x, orient.y, orient.z, orient.w);
+            orient.x, orient.y, orient.z, orient.w
+        );
         mEntityManager.markPhysics(eid);
 
-        // Render side: load .obj mesh, attach to scene tree
-        ISurface surf = new SurfaceOBJ(objPath);
-        MeshNode node = new MeshNode("entity_" ~ eid.to!string, surf, mBasicMaterial);
-        mSceneTree.GetRootNode().AddChildSceneNode(node);
+        // add the model to rendering scene
+        auto model = new Model(modelPath);
+        auto nodes = model.addToScene(mSceneTree, mBasicMaterial, "entity_" ~ eid.to!string);
 
-        // Register in EntityManager
+        //hook up the physics and rendering object together
         TransformComponent tc;
         tc.position = pos;
         tc.rotation = orient;
         mEntityManager.addTransform(eid, tc);
-        mEntityManager.addRenderable(eid, node);
 
-        // Set initial model matrix
-        node.mModelMatrix = tc.toModelMatrix();
+        foreach (node; nodes) {
+            node.mModelMatrix = tc.toModelMatrix();
+            mEntityManager.addRenderable(eid, node);
+        }
 
-        writeln("[spawn] entity=", eid, " urdf=", urdfPath, " obj=", objPath, " pos=", pos);
+        writeln("[spawn] entity=", eid, " urdf=", urdfPath, " model=", modelPath, " pos=", pos);
         return eid;
     }
 
@@ -111,7 +114,7 @@ class GameApplication : IGame{
         glUseProgram(Pipeline.sPipeline["crosshair"]);
         glBindVertexArray(mCrosshairVAO);
         glLineWidth(2.0f);
-        glDrawArrays(GL_LINES, 0, 8);  // 4 line segments = 8 vertices
+        glDrawArrays(GL_LINES, 0, 8);
         glBindVertexArray(0);
 
         glEnable(GL_DEPTH_TEST);
@@ -124,6 +127,8 @@ class GameApplication : IGame{
         mPhysicsWorld.setGravity(0.0, -1.0, 0.0);
 
         // Ground plane
+        // note: the plane.urdf determines how far wide the 
+        // physics body stretces, currently set to 3000 x and 300 z
         mGroundEntity = mEntityManager.create();
         mPhysicsWorld.addURDF(mGroundEntity, "plane.urdf",
             0, 0, 0,
@@ -151,41 +156,40 @@ class GameApplication : IGame{
         );
 
         // Another target for testing
-        // testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -14.0f);
-        // spawnPhysicsObject(
-        //     "cube.urdf",
-        //     "./assets/meshes/bunny_centered.obj",
-        //     testPos,
-        //     Quat.init
-        // );
+        testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -14.0f);
+        spawnPhysicsObject(
+            "cube.urdf",
+            "./assets/meshes/bunny_centered.obj",
+            testPos,
+            Quat.init
+        );
 
-         // Another target for testing
-        // testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -24.0f);
-        // spawnPhysicsObject(
-        //     "cube.urdf",
-        //     "./assets/meshes/bunny_centered.obj",
-        //     testPos,
-        //     Quat.init
-        // );
+        //  Another target for testing
+        testPos = mCamera.mEyePosition + vec3(0.0f, 20.0f, -24.0f);
+        spawnPhysicsObject(
+            "cube.urdf",
+            "./assets/meshes/bunny_centered.obj",
+            testPos,
+            Quat.init
+        );
 
+        // Another target for testing
+        testPos = mCamera.mEyePosition + vec3(10.0f, 0.0f, -24.0f);
+        spawnPhysicsObject(
+            "cube.urdf",
+            "./assets/meshes/bunny_centered.obj",
+            testPos,
+            Quat.init
+        );
 
-         // Another target for testing
-        // testPos = mCamera.mEyePosition + vec3(10.0f, 0.0f, -24.0f);
-        // spawnPhysicsObject(
-        //     "cube.urdf",
-        //     "./assets/meshes/bunny_centered.obj",
-        //     testPos,
-        //     Quat.init
-        // );
-
-         // Another target for testing
-        // testPos = mCamera.mEyePosition + vec3(20.0f, 0.0f, -54.0f);
-        // spawnPhysicsObject(
-        //     "cube.urdf",
-        //     "./assets/meshes/bunny_centered.obj",
-        //     testPos,
-        //     Quat.init
-        // );
+        // Another target for testing
+        testPos = mCamera.mEyePosition + vec3(20.0f, 0.0f, -54.0f);
+        spawnPhysicsObject(
+            "cube.urdf",
+            "./assets/meshes/bunny_centered.obj",
+            testPos,
+            Quat.init
+        );
 
         //-----------------------------------------------------------------
         // add terrain to the game now 
@@ -211,20 +215,16 @@ class GameApplication : IGame{
         mSceneTree.GetRootNode().AddChildSceneNode(m2);
         writeln("[terrain] added to scene tree");
         writeln("[terrain] root children count: ", mSceneTree.GetRootNode().mChildren.length);
-
-
-
     }
-
 
     void attachAudio(AudioEngine* audio){
         mAudio = audio;
         mSystem = mAudio.mSystem;
 
-
         loadSounds();
 
-        //not to be called in input update/render
+        // not to be called in input update/render
+        // i.e shouldnt be called every frame
         startBackgroundSound();
     }
 
@@ -254,7 +254,6 @@ class GameApplication : IGame{
 
         writeln("pistol sound load result = ", result, " ptr = ", mPistolSound);
 
-
         // background sound
         auto r3 = FMOD_System_CreateSound(
             mSystem,
@@ -265,9 +264,7 @@ class GameApplication : IGame{
         );
 
         writeln("background sound load result = ", result, " ptr = ", mBackgroundSound);
-
     }
-
 
 
     void startBackgroundSound(){
@@ -339,7 +336,6 @@ class GameApplication : IGame{
             playSound(mPistolSound, &mPistolSoundChannel);
         }
             
-
         auto result = mPhysicsWorld.raycast(
             from.x, from.y, from.z,
             to.x, to.y, to.z);
@@ -423,32 +419,30 @@ class GameApplication : IGame{
     void destroyEntity(uint entityId)
     {
         // 1. Remove from Bullet physics
-        if (entityId in mPhysicsWorld.entityToBody)
-        {
+        if (entityId in mPhysicsWorld.entityToBody){
             mPhysicsWorld.removeBody(entityId);
         }
 
-        // 2. Remove MeshNode from scene tree
-        if (auto node = entityId in mEntityManager.renderables)
-        {
-            // Find parent and remove this child
-            auto parent = node.GetParentSceneNode();
-            if (parent !is null)
-            {
-                // Filter this node out of parent's children
-                ISceneNode[] remaining;
-                foreach (child; parent.mChildren)
-                {
-                    if (child !is *node)
-                        remaining ~= child;
+        if (auto nodes = entityId in mEntityManager.renderables){
+            foreach(node; *nodes){
+
+                // Find parent and remove this child
+                auto parent = node.GetParentSceneNode();
+                if (parent !is null){
+                    // Filter this node out of parent's children
+                    ISceneNode[] remaining;
+                    foreach (child; parent.mChildren){
+                        if (child !is node){
+                            remaining ~= child;
+                        }   
+                    }
+                    parent.mChildren = remaining;
                 }
-                parent.mChildren = remaining;
             }
         }
 
         // 3. Remove from entity manager
         mEntityManager.destroy(entityId);
-
         writeln("[destroy] entity=", entityId);
     }
 }

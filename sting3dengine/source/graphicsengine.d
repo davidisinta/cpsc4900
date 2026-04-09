@@ -56,7 +56,6 @@ class GraphicsEngine{
         GLuint mCrosshairVBO;
         bool mCrosshairReady = false;
 
-
         //--------------------------------------------------------------
         // First Person Shooter Game
         //--------------------------------------------------------------
@@ -71,8 +70,17 @@ class GraphicsEngine{
         this(int major_ogl_version, int minor_ogl_version){
 
                 //Set screen Width and Height
-                mScreenWidth = 960;  //640 multiples
-                mScreenHeight = 720; //480 multiples
+
+                SDL_DisplayMode dm;
+                if (SDL_GetCurrentDisplayMode(0, &dm) != 0) {
+                    throw new Exception("SDL_GetCurrentDisplayMode failed");
+                }
+
+                mScreenWidth = dm.w;
+                mScreenHeight = dm.h;
+
+                // mScreenWidth = 960;  //640 multiples
+                // mScreenHeight = 720; //480 multiples
 
                 // Setup SDL OpenGL Version
                 SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, major_ogl_version );
@@ -84,12 +92,23 @@ class GraphicsEngine{
                 SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
                 // Create an application window using OpenGL that supports SDL
-                mWindow = SDL_CreateWindow( "dlang - OpenGL 4+ Graphics Framework",
-                                SDL_WINDOWPOS_UNDEFINED,
-                                SDL_WINDOWPOS_UNDEFINED,
-                                mScreenWidth,
-                                mScreenHeight,
-                                SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
+                // mWindow = SDL_CreateWindow( "dlang - OpenGL 4+ Graphics Framework",
+                //                 SDL_WINDOWPOS_UNDEFINED,
+                //                 SDL_WINDOWPOS_UNDEFINED,
+                //                 mScreenWidth,
+                //                 mScreenHeight,
+                //                 SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
+
+
+                                
+                mWindow = SDL_CreateWindow(
+                    "dlang - OpenGL 4+ Graphics Framework",
+                    SDL_WINDOWPOS_UNDEFINED,
+                    SDL_WINDOWPOS_UNDEFINED,
+                    mScreenWidth,
+                    mScreenHeight,
+                    SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN_DESKTOP
+                );
 
                 // Create the OpenGL context and associate it with our window
                 mContext = SDL_GL_CreateContext(mWindow);
@@ -121,7 +140,6 @@ class GraphicsEngine{
             //shut down fmod
             mAudio.shutdown();
 
-
             // Shut down physics
             mPhysicsWorld.shutdown();
 
@@ -133,38 +151,33 @@ class GraphicsEngine{
 
         void Input(){
 
-
-
-        SDL_Event event;
-                while(SDL_PollEvent(&event)){
-                        if(event.type == SDL_QUIT){
-                                writeln("Exit event triggered");
-                                mGameIsRunning= false;
-                        }
-                        if(event.type == SDL_KEYDOWN){
-                                if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE){
-                                        writeln("Pressed escape key and now exiting...");
-                                        mGameIsRunning= false;
-                                }
-                                else if(event.key.keysym.sym == SDLK_TAB){
-                                        mRenderWireframe = !mRenderWireframe;
-                                }
-                        }
-
-                        if(event.type == SDL_MOUSEBUTTONDOWN){
-                            if(event.button.button == SDL_BUTTON_LEFT){
-                                mGame.requestShoot();
-                                writeln("requesting to shoot");
-                            }
-                        }
+            SDL_Event event;
+            while(SDL_PollEvent(&event)){
+                if(event.type == SDL_QUIT){
+                    writeln("Exit event triggered");
+                    mGameIsRunning= false;
                 }
+                if(event.type == SDL_KEYDOWN){
+                    if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE){
+                            writeln("Pressed escape key and now exiting...");
+                            mGameIsRunning= false;
+                    }
+                    else if(event.key.keysym.sym == SDLK_TAB){
+                            mRenderWireframe = !mRenderWireframe;
+                    }
+                }
+
+                if(event.type == SDL_MOUSEBUTTONDOWN){
+                    if(event.button.button == SDL_BUTTON_LEFT){
+                        mGame.requestShoot();
+                        writeln("requesting to shoot");
+                    }
+                }
+            }
 
                 // Continuous key state for smooth movement
                 const(ubyte)* keys = SDL_GetKeyboardState(null);
-
-
                 bool moving = false;
-
                 if (keys[SDL_SCANCODE_W]) {
                     mCamera.MoveForward();
                     moving = true;
@@ -194,12 +207,6 @@ class GraphicsEngine{
                     }
                 }
                 
-                // Mouse look
-                // int mouseX, mouseY;
-                // SDL_GetMouseState(&mouseX, &mouseY);
-                // mCamera.MouseLook(mouseX, mouseY);
-
-
                 int mouseX, mouseY;
                 SDL_GetMouseState(&mouseX, &mouseY);
                 int centerX = mScreenWidth / 2;
@@ -207,19 +214,10 @@ class GraphicsEngine{
                 int deltaX = mouseX - centerX;
                 int deltaY = mouseY - centerY;
 
-                if (deltaX != 0 || deltaY != 0)
-                {
+                if (deltaX != 0 || deltaY != 0){
                     mCamera.MouseLook(deltaX, deltaY);
                     SDL_WarpMouseInWindow(mWindow, centerX, centerY);
                 }
-
-
-
-
-
-
-
-                
 
                 mGame.HandleInput();
         }

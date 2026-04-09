@@ -51,7 +51,7 @@ class EntityManager
 
     /// The MeshNode in the SceneTree that visualises this entity.
     /// null / absent  →  entity has no visual representation.
-    MeshNode[uint] renderables;
+    MeshNode[][uint] renderables;
 
     /// Convenience: does this entity have a physics body?
     /// (The actual bodyId lives in PhysicsWorld.entityToBody.)
@@ -69,9 +69,11 @@ class EntityManager
 
     /// Link a MeshNode to an entity so the sync system can push
     /// model matrices into it.
+    /// link one or more meshnodes to an entity
     void addRenderable(uint id, MeshNode node)
     {
-        renderables[id] = node;
+        //append that meshnode to curr list of meshnodes tied to that entity
+        renderables[id] ~= node;
     }
 
     /// Mark this entity as physics-driven.
