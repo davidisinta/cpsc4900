@@ -70,68 +70,6 @@ class GameApplication : IGame{
     ///   - a TransformComponent synced each frame
     ///
     /// Returns the entity ID.
-    // uint spawnPhysicsObject(
-    //     string urdfPath,
-    //     string objPath,
-    //     vec3 pos,
-    //     Quat orient = Quat.init){
-    //     // Allocate entity
-    //     uint eid = mEntityManager.create();
-
-    //     // Physics side: load URDF into Bullet
-    //     mPhysicsWorld.addURDF(eid, urdfPath,
-    //         pos.x, pos.y, pos.z,
-    //         orient.x, orient.y, orient.z, orient.w);
-    //     mEntityManager.markPhysics(eid);
-
-    //     // Render side: load .obj mesh, attach to scene tree
-    //     // ISurface surf = new SurfaceOBJ(objPath);
-    //     // MeshNode node = new MeshNode("entity_" ~ eid.to!string, surf, mBasicMaterial);
-    //     // mSceneTree.GetRootNode().AddChildSceneNode(node);
-
-    //     auto bunnyModel = new Model("./assets/meshes/bunny_centered.obj");
-    //     auto bunnyNodes = bunnyModel.addToScene(mSceneTree, mBasicMaterial, "assimp_bunny");
-        
-    //     writeln("[test] assimp bunny loaded with ", bunnyNodes.length, " meshes");
-
-    //     // Register in EntityManager
-    //     TransformComponent tc;
-    //     tc.position = pos;
-    //     tc.rotation = orient;
-    //     mEntityManager.addTransform(eid, tc);
-
-    //     // foreach (node; bunnyNodes){
-    //     //     node.mModelMatrix = MatrixMakeTranslation(vec3(5.0f, 0.5f, 0.0f));
-    //     // }
-
-    //             foreach (node; bunnyNodes){
-    //         node.mModelMatrix = tc.toModelMatrix();
-    //     }
-            
-    //     // add one renderable they could be many
-    //     // to do: change to loop through renderables...
-
-    //     foreach(node; bunnyNodes){
-    //         mEntityManager.addRenderable(eid, node);
-
-    //         // to do: check if this is a good thing
-    //         // node.mModelMatrix = tc.toModelMatrix();
-    //     }
-
-
-    //     // if (bunnyNodes.length > 0) {
-    //     //     mEntityManager.addRenderable(eid, bunnyNodes[0]);
-    //     // }
-
-
-
-
-    //     // Set initial model matrix
-    //     // node.mModelMatrix = tc.toModelMatrix();
-
-    //     writeln("[spawn] entity=", eid, " urdf=", urdfPath, " obj=", objPath, " pos=", pos);
-    //     return eid;
-    // }
     uint spawnPhysicsObject(
     string urdfPath,
     string modelPath,
@@ -140,6 +78,7 @@ class GameApplication : IGame{
     {
         uint eid = mEntityManager.create();
 
+        // add physics to the object
         mPhysicsWorld.addURDF(
             eid, urdfPath,
             pos.x, pos.y, pos.z,
@@ -147,9 +86,11 @@ class GameApplication : IGame{
         );
         mEntityManager.markPhysics(eid);
 
+        // add the model to rendering scene
         auto model = new Model(modelPath);
         auto nodes = model.addToScene(mSceneTree, mBasicMaterial, "entity_" ~ eid.to!string);
 
+        //hook up the physics and rendering object together
         TransformComponent tc;
         tc.position = pos;
         tc.rotation = orient;
@@ -165,8 +106,6 @@ class GameApplication : IGame{
     }
 
 
-
-
     void drawCrosshair(){
         if (!mCrosshairReady) return;
 
@@ -175,7 +114,7 @@ class GameApplication : IGame{
         glUseProgram(Pipeline.sPipeline["crosshair"]);
         glBindVertexArray(mCrosshairVAO);
         glLineWidth(2.0f);
-        glDrawArrays(GL_LINES, 0, 8);  // 4 line segments = 8 vertices
+        glDrawArrays(GL_LINES, 0, 8);
         glBindVertexArray(0);
 
         glEnable(GL_DEPTH_TEST);
@@ -234,7 +173,6 @@ class GameApplication : IGame{
             Quat.init
         );
 
-
         // Another target for testing
         testPos = mCamera.mEyePosition + vec3(10.0f, 0.0f, -24.0f);
         spawnPhysicsObject(
@@ -277,58 +215,16 @@ class GameApplication : IGame{
         mSceneTree.GetRootNode().AddChildSceneNode(m2);
         writeln("[terrain] added to scene tree");
         writeln("[terrain] root children count: ", mSceneTree.GetRootNode().mChildren.length);
-
-
-
-
-        // Test Assimp linkage
-        loadAssimp();
-
-
-
     }
-
-    void loadAssimp(){
-        // import assimp;
-        import std.string : toStringz, fromStringz;
-        auto testScene = aiImportFile("./assets/meshes/bunny_centered.obj".toStringz,
-                                       aiProcess_Triangulate | aiProcess_GenNormals);
-        if (testScene is null)
-        {
-            writeln("[assimp] ERROR: ", fromStringz(aiGetErrorString()));
-        }
-        else
-        {
-            auto mesh = testScene.mMeshes[0];
-            writeln("[assimp] vertices: ", mesh.mNumVertices, " faces: ", mesh.mNumFaces);
-
-            // Print first 3 vertices
-            for (int i = 0; i < 3; i++)
-            {
-                auto v = mesh.mVertices[i];
-                auto n = mesh.mNormals[i];
-                writeln("[assimp] v", i, " pos=(", v.x, ", ", v.y, ", ", v.z,
-                        ") normal=(", n.x, ", ", n.y, ", ", n.z, ")");
-            }
-
-            // Print first face indices
-            auto face = mesh.mFaces[0];
-            writeln("[assimp] face0: indices=", face.mNumIndices,
-                    " [", face.mIndices[0], ", ", face.mIndices[1], ", ", face.mIndices[2], "]");
-
-            aiReleaseImport(testScene);
-        }
-    }
-
 
     void attachAudio(AudioEngine* audio){
         mAudio = audio;
         mSystem = mAudio.mSystem;
 
-
         loadSounds();
 
-        //not to be called in input update/render
+        // not to be called in input update/render
+        // i.e shouldnt be called every frame
         startBackgroundSound();
     }
 
@@ -358,7 +254,6 @@ class GameApplication : IGame{
 
         writeln("pistol sound load result = ", result, " ptr = ", mPistolSound);
 
-
         // background sound
         auto r3 = FMOD_System_CreateSound(
             mSystem,
@@ -369,9 +264,7 @@ class GameApplication : IGame{
         );
 
         writeln("background sound load result = ", result, " ptr = ", mBackgroundSound);
-
     }
-
 
 
     void startBackgroundSound(){
@@ -443,7 +336,6 @@ class GameApplication : IGame{
             playSound(mPistolSound, &mPistolSoundChannel);
         }
             
-
         auto result = mPhysicsWorld.raycast(
             from.x, from.y, from.z,
             to.x, to.y, to.z);
@@ -527,81 +419,30 @@ class GameApplication : IGame{
     void destroyEntity(uint entityId)
     {
         // 1. Remove from Bullet physics
-        if (entityId in mPhysicsWorld.entityToBody)
-        {
+        if (entityId in mPhysicsWorld.entityToBody){
             mPhysicsWorld.removeBody(entityId);
         }
 
-        // 2. Remove MeshNode from scene tree
-        // foreach(MeshNode node; mEntityManager.renderables[entityId]){
-        //     // node.mModelMatrix = tc.toModelMatrix();
-
-        //     // Find parent and remove this child
-        //     auto parent = node.GetParentSceneNode();
-        //     if (parent !is null)
-        //     {
-        //         // Filter this node out of parent's children
-        //         ISceneNode[] remaining;
-        //         foreach (child; parent.mChildren)
-        //         {
-        //             if (child !is *node)
-        //                 remaining ~= child;
-        //         }
-        //         parent.mChildren = remaining;
-        //     }
-        // }
-
-        if (auto nodes = entityId in mEntityManager.renderables)
-        {
-
+        if (auto nodes = entityId in mEntityManager.renderables){
             foreach(node; *nodes){
 
                 // Find parent and remove this child
                 auto parent = node.GetParentSceneNode();
-                if (parent !is null)
-                {
+                if (parent !is null){
                     // Filter this node out of parent's children
                     ISceneNode[] remaining;
-                    foreach (child; parent.mChildren)
-                    {
-                        if (child !is node)
+                    foreach (child; parent.mChildren){
+                        if (child !is node){
                             remaining ~= child;
+                        }   
                     }
                     parent.mChildren = remaining;
                 }
-
             }
-
-
         }
-
-
-
-
-
-
-
-
-        // if (auto node = entityId in mEntityManager.renderables)
-        // {
-        //     // Find parent and remove this child
-        //     auto parent = node.GetParentSceneNode();
-        //     if (parent !is null)
-        //     {
-        //         // Filter this node out of parent's children
-        //         ISceneNode[] remaining;
-        //         foreach (child; parent.mChildren)
-        //         {
-        //             if (child !is *node)
-        //                 remaining ~= child;
-        //         }
-        //         parent.mChildren = remaining;
-        //     }
-        // }
 
         // 3. Remove from entity manager
         mEntityManager.destroy(entityId);
-
         writeln("[destroy] entity=", entityId);
     }
 }
