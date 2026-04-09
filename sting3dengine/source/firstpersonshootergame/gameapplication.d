@@ -188,6 +188,8 @@ class GameApplication : IGame{
         mPhysicsWorld.setGravity(0.0, -1.0, 0.0);
 
         // Ground plane
+        // note: the plane.urdf determines how far wide the 
+        // physics body stretces, currently set to 3000 x and 300 z
         mGroundEntity = mEntityManager.create();
         mPhysicsWorld.addURDF(mGroundEntity, "plane.urdf",
             0, 0, 0,
@@ -205,66 +207,51 @@ class GameApplication : IGame{
             Quat.init
         );
 
-        // // Another target for testing
-        // vec3 testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -4.0f);
-        // spawnPhysicsObject(
-        //     "cube.urdf",
-        //     "./assets/meshes/bunny_centered.obj",
-        //     testPos,
-        //     Quat.init
-        // );
+        // Another target for testing
+        vec3 testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -4.0f);
+        spawnPhysicsObject(
+            "cube.urdf",
+            "./assets/meshes/bunny_centered.obj",
+            testPos,
+            Quat.init
+        );
 
         // Another target for testing
-        // testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -14.0f);
-        // spawnPhysicsObject(
-        //     "cube.urdf",
-        //     "./assets/meshes/bunny_centered.obj",
-        //     testPos,
-        //     Quat.init
-        // );
+        testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -14.0f);
+        spawnPhysicsObject(
+            "cube.urdf",
+            "./assets/meshes/bunny_centered.obj",
+            testPos,
+            Quat.init
+        );
 
-         // Another target for testing
-        // testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -24.0f);
-        // spawnPhysicsObject(
-        //     "cube.urdf",
-        //     "./assets/meshes/bunny_centered.obj",
-        //     testPos,
-        //     Quat.init
-        // );
-
-
-         // Another target for testing
-        // testPos = mCamera.mEyePosition + vec3(10.0f, 0.0f, -24.0f);
-        // spawnPhysicsObject(
-        //     "cube.urdf",
-        //     "./assets/meshes/bunny_centered.obj",
-        //     testPos,
-        //     Quat.init
-        // );
-
-         // Another target for testing
-        // testPos = mCamera.mEyePosition + vec3(20.0f, 0.0f, -54.0f);
-        // spawnPhysicsObject(
-        //     "cube.urdf",
-        //     "./assets/meshes/bunny_centered.obj",
-        //     testPos,
-        //     Quat.init
-        // );
+        //  Another target for testing
+        testPos = mCamera.mEyePosition + vec3(0.0f, 20.0f, -24.0f);
+        spawnPhysicsObject(
+            "cube.urdf",
+            "./assets/meshes/bunny_centered.obj",
+            testPos,
+            Quat.init
+        );
 
 
+        // Another target for testing
+        testPos = mCamera.mEyePosition + vec3(10.0f, 0.0f, -24.0f);
+        spawnPhysicsObject(
+            "cube.urdf",
+            "./assets/meshes/bunny_centered.obj",
+            testPos,
+            Quat.init
+        );
 
-        // add assimp loaded model
-        // auto bunnyModel = new Model("./assets/meshes/bunny_centered.obj");
-        // auto bunnyNodes = bunnyModel.addToScene(mSceneTree, mBasicMaterial, "assimp_bunny");
-        // foreach (node; bunnyNodes)
-        //     node.mModelMatrix = MatrixMakeTranslation(vec3(5.0f, 0.5f, 0.0f));
-        // writeln("[test] assimp bunny loaded with ", bunnyNodes.length, " meshes");
-
-
-
-
-
-
+        // Another target for testing
+        testPos = mCamera.mEyePosition + vec3(20.0f, 0.0f, -54.0f);
+        spawnPhysicsObject(
+            "cube.urdf",
+            "./assets/meshes/bunny_centered.obj",
+            testPos,
+            Quat.init
+        );
 
         //-----------------------------------------------------------------
         // add terrain to the game now 
