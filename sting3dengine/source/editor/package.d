@@ -1,3 +1,2 @@
 module editor;
-
-public import imgui_layer;
+public import imgui_c_api;

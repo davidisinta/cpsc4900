@@ -137,6 +137,14 @@ class GraphicsEngine{
         /// Destructor
         ~this(){
 
+            // Shut down ImGui
+            ImGui_ImplOpenGL3_Shutdown();
+            ImGui_ImplSDL2_Shutdown();
+            igDestroyContext(null);
+
+
+
+
             //shut down fmod
             mAudio.shutdown();
 
@@ -153,6 +161,10 @@ class GraphicsEngine{
 
             SDL_Event event;
             while(SDL_PollEvent(&event)){
+
+                ImGui_ImplSDL2_ProcessEvent(cast(void*)&event);
+
+
                 if(event.type == SDL_QUIT){
                     writeln("Exit event triggered");
                     mGameIsRunning= false;
@@ -350,6 +362,22 @@ class GraphicsEngine{
         }
 
         void Render(){
+
+
+            // Start ImGui frame
+            // ImGui_ImplOpenGL3_NewFrame();
+            // ImGui_ImplSDL2_NewFrame();
+            // igNewFrame();
+
+            // ImGui content
+            // igBegin("HUD", null, ImGuiWindowFlags_None);
+            // igText("TOPSHOTAA");
+            // igText("FPS: %d", this.fps);
+            // igEnd();
+
+
+
+            // 3D scene
             if(mRenderWireframe){
                     glPolygonMode(GL_FRONT_AND_BACK,GL_LINE); 
             }else{
@@ -367,6 +395,24 @@ class GraphicsEngine{
 
             mGame.drawCrosshair();
 
+
+
+                // ImGui UI
+                igBegin("HUD", null, ImGuiWindowFlags_None);
+                igText("TOPSHOTAA");
+                igText("FPS: %d", this.fps);
+                igEnd();
+
+                // Finish ImGui frame and draw it
+                igRender();
+                ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
+
+
+
+
+
+
+
             SDL_GL_SwapWindow(mWindow);	
         }
 
@@ -377,6 +423,12 @@ class GraphicsEngine{
             int elapsed = now - mLastFrameTime;
             mLastFrameTime = now;
             mFrameDt = elapsed / 1000.0;
+
+
+            // Start ImGui frame BEFORE input
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplSDL2_NewFrame();
+            igNewFrame();
 
             Input();
 
@@ -413,6 +465,19 @@ class GraphicsEngine{
 
                 // Setup the graphics scene
                 SetupScene();
+
+                //imgui set up
+                igCreateContext(null);
+                ImGui_ImplSDL2_InitForOpenGL(cast(void*)mWindow, cast(void*)mContext);
+                ImGui_ImplOpenGL3_Init("#version 410");
+                writeln("[imgui] initialized");
+
+
+                // Dummy frame to satisfy ImGui's internal state
+                ImGui_ImplOpenGL3_NewFrame();
+                ImGui_ImplSDL2_NewFrame();
+                igNewFrame();
+                igEndFrame();
 
                
 
