@@ -338,7 +338,15 @@ class GraphicsEngine{
 				lightNode.mModelMatrix = MatrixMakeTranslation(vec3(x, y, z));
 			}
 
+            //Update the FPS which the games gui is reading
+            mGame.mGui.fps = this.fps;
+            mGame.mGui.screenWidth = mScreenWidth;
+            mGame.mGui.screenHeight = mScreenHeight;
+
             mGame.Update(mFrameDt);
+
+
+
         }
 
         void Render(){
@@ -360,7 +368,7 @@ class GraphicsEngine{
             // to do: check if perhaps renderer can do all rendering
             // even from game side
             mRenderer.Render(mSceneTree,mCamera);
-            mGame.Render(this.fps);
+            mGame.Render();
 
             SDL_GL_SwapWindow(mWindow);	
         }
@@ -430,48 +438,47 @@ class GraphicsEngine{
         /// Main application loop
         void Loop(){
 
-                // Setup the graphics scene
-                SetupScene();
+            // Setup the graphics scene
+            SetupScene();
 
-                //imgui set up
-                igCreateContext(null);
-                ImGui_ImplSDL2_InitForOpenGL(cast(void*)mWindow, cast(void*)mContext);
-                ImGui_ImplOpenGL3_Init("#version 410");
-                writeln("[imgui] initialized");
+            //imgui set up
+            igCreateContext(null);
+            ImGui_ImplSDL2_InitForOpenGL(cast(void*)mWindow, cast(void*)mContext);
+            ImGui_ImplOpenGL3_Init("#version 410");
+            writeln("[imgui] initialized");
 
+            // Dummy frame to satisfy ImGui's internal state
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplSDL2_NewFrame();
+            igNewFrame();
+            igEndFrame();
 
-                // Dummy frame to satisfy ImGui's internal state
-                ImGui_ImplOpenGL3_NewFrame();
-                ImGui_ImplSDL2_NewFrame();
-                igNewFrame();
-                igEndFrame();
+            mGame = new GameApplication(
+                "topshotaa",
+                mPhysicsWorld,
+                mEntityManager,
+                mCamera,
+                mSceneTree,
+                mBasicMaterial
+            );
 
-                mGame = new GameApplication(
-                    "topshotaa",
-                    mPhysicsWorld,
-                    mEntityManager,
-                    mCamera,
-                    mSceneTree,
-                    mBasicMaterial
-                );
+            mGame.Setup();
 
-                mGame.Setup();
+            // initialize audio after game because game is setting up some 
+            // multitexture pipelines
+            mAudio.init();
 
-                // initialize audio after game because game is setting up some 
-                // multitexture pipelines
-                mAudio.init();
+            //attach audio engine to game
+            mGame.attachAudio(&mAudio);
 
-                //attach audio engine to game
-                mGame.attachAudio(&mAudio);
+            // Lock mouse to center of screen
+            SDL_WarpMouseInWindow(mWindow,640/2,320/2);
 
-                // Lock mouse to center of screen
-                SDL_WarpMouseInWindow(mWindow,640/2,320/2);
+            hideCursor();
 
-                hideCursor();
-
-                // Run the graphics application loop
-                while(mGameIsRunning){
-                        AdvanceFrame();
-                }
+            // Run the graphics application loop
+            while(mGameIsRunning){
+                    AdvanceFrame();
+            }
         }
 }

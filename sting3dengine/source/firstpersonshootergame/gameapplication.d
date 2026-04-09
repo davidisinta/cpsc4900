@@ -15,6 +15,7 @@ import materials;
 import audiosubsystem;
 import assimp;
 import editor;
+import gamegui;
 
 // Third-party libraries
 import bindbc.sdl;
@@ -39,6 +40,7 @@ class GameApplication : IGame{
     GLuint mCrosshairVAO;
     GLuint mCrosshairVBO;
     bool mCrosshairReady = false;
+    GameGUI mGui;
 
     //sound specific elements
     bool mWalkingSoundPlaying = false;
@@ -60,6 +62,7 @@ class GameApplication : IGame{
         mCamera = cam;
         mSceneTree = tree;
         mBasicMaterial = mat;
+        mGui = new GameGUI("topshoota-game-gui");
     }
 
     //--------------------------------------------------------------
@@ -209,7 +212,6 @@ class GameApplication : IGame{
         ISurface terrain = new SurfaceTerrain(512,512,"./assets/heightmaps/flat_slight_variation_heightmap.ppm"); 
         writeln("[terrain] created SurfaceTerrain");
 
-        // MeshNode m2 = new MeshNode("terrain", terrain, multiTextureMaterial);
         MeshNode m2 = new MeshNode("terrain", terrain, mBasicMaterial);
         writeln("[terrain] created MeshNode");
 
@@ -223,9 +225,6 @@ class GameApplication : IGame{
         mSystem = mAudio.mSystem;
 
         loadSounds();
-
-        // not to be called in input update/render
-        // i.e shouldnt be called every frame
         startBackgroundSound();
     }
 
@@ -275,7 +274,6 @@ class GameApplication : IGame{
         }
     }
 
-
     void stopBackgroundSound(){
         if (mBackgroundChannel !is null) {
             FMOD_Channel_Stop(mBackgroundChannel);
@@ -285,7 +283,6 @@ class GameApplication : IGame{
     }
 
     override void HandleInput(){
-
         if (mShootRequested){
             shoot();
             mShootRequested = false;
@@ -295,6 +292,21 @@ class GameApplication : IGame{
     override void Update(double frameDt){
         checkCollisions();
 
+
+
+        // Update GUI state
+        mGui.kills = mShotsHit;
+        mGui.accuracy = mShotsFired > 0 ? cast(float)mShotsHit / mShotsFired * 100.0f : 0.0f;
+        mGui.currentAmmo = 30;  // placeholder until weapon system
+        mGui.maxAmmo = 30;
+
+    
+
+
+
+
+
+
         MeshNode m2 = cast(MeshNode)mSceneTree.FindNode("terrain");
         if (m2 is null) {
             writeln("[terrain] ERROR: terrain node not found in scene tree!");
@@ -303,19 +315,17 @@ class GameApplication : IGame{
         }
     }
 
-    override void RenderOverlay(){
-        drawCrosshair();
-    }
+    // override void RenderOverlay(){
+    //     drawCrosshair();
+    // }
 
     void requestShoot(){
         mShootRequested = true;
     }
 
-    void playSound(FMOD_SOUND* s,
-    FMOD_CHANNEL** ch){
+    void playSound(FMOD_SOUND* s, FMOD_CHANNEL** ch){
         FMOD_System_PlaySound(mAudio.mSystem, s, null, 0, ch);
     }
-
 
     void stopSound(FMOD_CHANNEL** ch) {
         if (*ch !is null) {
@@ -343,8 +353,7 @@ class GameApplication : IGame{
 
         auto now = Clock.currTime();
 
-        if (result.hit)
-        {
+        if (result.hit){
             mShotsHit++;
             writeln("[shoot] ", now.toSimpleString(),
                 " HIT entity=", result.entityId,
@@ -375,65 +384,57 @@ class GameApplication : IGame{
     }
 
     void initCrosshair(){
-            // Create the crosshair shader
-            new Pipeline("crosshair", "./pipelines/crosshair/crosshair.vert",
-                                      "./pipelines/crosshair/crosshair.frag");
+        // Create the crosshair shader
+        new Pipeline("crosshair", "./pipelines/crosshair/crosshair.vert",
+                                    "./pipelines/crosshair/crosshair.frag");
 
-            // Crosshair geometry in NDC (-1 to 1 range)
-            // Gap in center, 4 line segments forming a + shape
-            float size = 0.03f;
-            float gap  = 0.008f;
+        // Crosshair geometry in NDC (-1 to 1 range)
+        // Gap in center, 4 line segments forming a + shape
+        float size = 0.03f;
+        float gap  = 0.008f;
 
-            float[] verts = [
-                // Horizontal left
-                -size, 0.0f,
-                -gap,  0.0f,
-                // Horizontal right
-                 gap,  0.0f,
-                 size, 0.0f,
-                // Vertical top
-                 0.0f, size,
-                 0.0f, gap,
-                // Vertical bottom
-                 0.0f, -gap,
-                 0.0f, -size,
-            ];
+        float[] verts = [
+            // Horizontal left
+            -size, 0.0f,
+            -gap,  0.0f,
+            // Horizontal right
+                gap,  0.0f,
+                size, 0.0f,
+            // Vertical top
+                0.0f, size,
+                0.0f, gap,
+            // Vertical bottom
+                0.0f, -gap,
+                0.0f, -size,
+        ];
 
-            glGenVertexArrays(1, &mCrosshairVAO);
-            glGenBuffers(1, &mCrosshairVBO);
+        glGenVertexArrays(1, &mCrosshairVAO);
+        glGenBuffers(1, &mCrosshairVBO);
 
-            glBindVertexArray(mCrosshairVAO);
-            glBindBuffer(GL_ARRAY_BUFFER, mCrosshairVBO);
-            glBufferData(GL_ARRAY_BUFFER, verts.length * float.sizeof,
-                         verts.ptr, GL_STATIC_DRAW);
+        glBindVertexArray(mCrosshairVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, mCrosshairVBO);
+        glBufferData(GL_ARRAY_BUFFER, verts.length * float.sizeof,
+                        verts.ptr, GL_STATIC_DRAW);
 
-            // aPos at location 0, 2 floats per vertex
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, null);
+        // aPos at location 0, 2 floats per vertex
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, null);
 
-            glBindVertexArray(0);
-            mCrosshairReady = true;
-        }
+        glBindVertexArray(0);
+        mCrosshairReady = true;
+    }
 
     
 
-    void Render(int fps){
-
-
+    void Render(){
+        
+        //Render 3D stuff
         drawCrosshair();
 
+        //Render the games GUI last
+        mGui.Render();
 
-
-
-            // ImGui UI
-            igBegin("HUD", null, ImGuiWindowFlags_None);
-            igText("TOPSHOTAA");
-            igText("FPS: %d", fps);
-            igEnd();
-
-            // Finish ImGui frame and draw it
-            igRender();
-            ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
+        
     }
 
     
@@ -447,7 +448,6 @@ class GameApplication : IGame{
 
         if (auto nodes = entityId in mEntityManager.renderables){
             foreach(node; *nodes){
-
                 // Find parent and remove this child
                 auto parent = node.GetParentSceneNode();
                 if (parent !is null){

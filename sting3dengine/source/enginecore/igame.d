@@ -19,5 +19,5 @@ interface IGame
 
     /// Called once per frame after 3D render, before swap.
     /// Use for HUD, crosshair, debug overlays.
-    void RenderOverlay();
+    void Render();
 }
