@@ -11,7 +11,7 @@ interface IGame
     /// Called once per frame to handle game-specific input.
     /// Return: engine should pass SDL events here in the future,
     /// but for now the game can query state directly.
-    void HandleInput();
+    void Input();
 
     /// Called once per frame after physics sync.
     /// Game logic: shooting, scoring, collisions, spawning, etc.

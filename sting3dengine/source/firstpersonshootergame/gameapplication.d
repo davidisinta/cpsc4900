@@ -5,6 +5,7 @@ import std.stdio;
 import std.conv;
 import std.datetime.systime : Clock;
 import std.string : toStringz;
+import std.math;
 
 // project files
 import enginecore;
@@ -16,6 +17,7 @@ import audiosubsystem;
 import assimp;
 import editor;
 import gamegui;
+import light;
 
 // Third-party libraries
 import bindbc.sdl;
@@ -41,6 +43,7 @@ class GameApplication : IGame{
     GLuint mCrosshairVBO;
     bool mCrosshairReady = false;
     GameGUI mGui;
+    Light gLight;
 
     //sound specific elements
     bool mWalkingSoundPlaying = false;
@@ -63,6 +66,54 @@ class GameApplication : IGame{
         mSceneTree = tree;
         mBasicMaterial = mat;
         mGui = new GameGUI("topshoota-game-gui");
+    }
+
+    override void Input(){
+        if (mShootRequested){
+            shoot();
+            mShootRequested = false;
+        }
+    }
+
+    override void Update(double frameDt){
+        checkCollisions();
+
+        // Update GUI state
+        mGui.kills = mShotsHit;
+        mGui.accuracy = mShotsFired > 0 ? cast(float)mShotsHit / mShotsFired * 100.0f : 0.0f;
+
+        // placeholder until weapon system
+        mGui.currentAmmo = 30;
+        mGui.maxAmmo = 30;
+
+        //update our light object
+        MeshNode lightNode = cast(MeshNode)mSceneTree.FindNode("light");
+
+        if (lightNode !is null){
+            GLfloat x = gLight.mPosition[0];
+            GLfloat y = gLight.mPosition[1];
+            GLfloat z = gLight.mPosition[2];
+            
+            //move the lightbox that follows the point light and scale it to 15
+            lightNode.mModelMatrix = MatrixMakeTranslation(vec3(x, y, z))
+                                    * MatrixMakeScale(vec3(15.0f, 15.0f, 15.0f));
+        }
+
+        MeshNode m2 = cast(MeshNode)mSceneTree.FindNode("terrain");
+        if (m2 is null) {
+            writeln("[terrain] ERROR: terrain node not found in scene tree!");
+        } else {
+            m2.mModelMatrix = MatrixMakeTranslation(vec3(-256.0f, 0.0f, -256.0f));
+        }
+    }
+
+    void Render(){
+        
+        //Render 3D stuff
+        drawCrosshair();
+
+        //Render the games GUI last
+        mGui.Render();
     }
 
     //--------------------------------------------------------------
@@ -109,7 +160,6 @@ class GameApplication : IGame{
         return eid;
     }
 
-
     void drawCrosshair(){
         if (!mCrosshairReady) return;
 
@@ -124,7 +174,76 @@ class GameApplication : IGame{
         glEnable(GL_DEPTH_TEST);
     }
 
+    //Setup the Scene for the Game
     override void Setup(){
+        
+        // Create a pipeline and associate it with a material
+        Pipeline basicPipeline = new Pipeline("basic","./pipelines/basic/basic.vert","./pipelines/basic/basic.frag");
+        mBasicMaterial = new BasicMaterial("basic");  // cache for spawning
+
+        // Create a pipeline for our light
+        Pipeline lightPipeline = new Pipeline("light","./pipelines/light/basic.vert","./pipelines/light/basic.frag");
+        IMaterial lightMaterial    = new BasicMaterial("light");
+
+        //we create another object for our light box and add it to scene tree
+        GLfloat[] lightboxVBO = [
+            -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+                0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+                0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+                0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+            -0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+
+            -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+            -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+            -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+
+            -0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
+            -0.5f,  0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
+            -0.5f, -0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
+            -0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
+
+                0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+
+            -0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
+                0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
+                0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
+                0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
+            -0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
+
+            -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+            -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+            -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f
+        ];
+        ISurface lightBox = new SurfaceTriangle(lightboxVBO);
+        MeshNode light = new MeshNode("light", lightBox, lightMaterial);
+        mSceneTree.GetRootNode().AddChildSceneNode(light);
+
+        // Add uniforms to the basic material
+        mBasicMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+        mBasicMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+        mBasicMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+
+        //Add uniforms to our light shader as well
+        lightMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+        lightMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+        lightMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+
+        setUpLights();
 
         initCrosshair();
 
@@ -266,6 +385,50 @@ class GameApplication : IGame{
         writeln("background sound load result = ", result, " ptr = ", mBackgroundSound);
     }
 
+    void setUpLights(){
+
+        GLuint shaderProgramID = Pipeline.sPipeline["basic"];
+        glUseProgram(shaderProgramID);
+
+        GLint field1 = glGetUniformLocation(shaderProgramID, "uLight1.mColor");
+        GLint field2 = glGetUniformLocation(shaderProgramID, "uLight1.mPosition");
+        GLint field3 = glGetUniformLocation(shaderProgramID, "uLight1.mAmbientIntensity");
+        GLint field4 = glGetUniformLocation(shaderProgramID, "uLight1.mSpecularIntensity");
+        GLint field5 = glGetUniformLocation(shaderProgramID, "uLight1.mSpecularExponent");
+        GLint field6 = glGetUniformLocation(shaderProgramID, "viewpos");
+
+        foreach(value ; [field1,field2,field3,field4,field5]){
+            if(value < 0){
+                writeln("Failed to find: ",value);
+            }
+        }
+    
+        // Postion light to move in a circle
+        static float inc = 0.0f;
+        float radius = 560.0f;
+        float speed  = 0.1f;   // controls day/night speed
+        inc += 0.0002 * speed;
+
+        //rotate the light in sunlike manner
+        // gLight.mPosition = [
+        //     radius * cos(inc),
+        //     radius * sin(inc),
+        //     radius * 0.2f
+        // ];
+
+        gLight.mPosition = [
+            radius * cos(inc),
+            radius,
+            radius * sin(inc)
+        ];
+
+        glUniform1fv(field1,3,gLight.mColor.ptr);
+        glUniform1fv(field2,3,gLight.mPosition.ptr);
+        glUniform1f (field3,gLight.mAmbientIntensity);
+        glUniform1f (field4,gLight.mSpecularIntensity);
+        glUniform1f (field5,gLight.mSpecularExponent);
+        glUniform3f(field6, mCamera.mEyePosition.x, mCamera.mEyePosition.y, mCamera.mEyePosition.z);
+    }
 
     void startBackgroundSound(){
         if (!mBackgroundPlaying && mBackgroundSound !is null) {
@@ -281,43 +444,6 @@ class GameApplication : IGame{
             mBackgroundPlaying = false;
         }
     }
-
-    override void HandleInput(){
-        if (mShootRequested){
-            shoot();
-            mShootRequested = false;
-        }
-    }
-
-    override void Update(double frameDt){
-        checkCollisions();
-
-
-
-        // Update GUI state
-        mGui.kills = mShotsHit;
-        mGui.accuracy = mShotsFired > 0 ? cast(float)mShotsHit / mShotsFired * 100.0f : 0.0f;
-        mGui.currentAmmo = 30;  // placeholder until weapon system
-        mGui.maxAmmo = 30;
-
-    
-
-
-
-
-
-
-        MeshNode m2 = cast(MeshNode)mSceneTree.FindNode("terrain");
-        if (m2 is null) {
-            writeln("[terrain] ERROR: terrain node not found in scene tree!");
-        } else {
-            m2.mModelMatrix = MatrixMakeTranslation(vec3(-256.0f, 0.0f, -256.0f));
-        }
-    }
-
-    // override void RenderOverlay(){
-    //     drawCrosshair();
-    // }
 
     void requestShoot(){
         mShootRequested = true;
@@ -424,20 +550,6 @@ class GameApplication : IGame{
         mCrosshairReady = true;
     }
 
-    
-
-    void Render(){
-        
-        //Render 3D stuff
-        drawCrosshair();
-
-        //Render the games GUI last
-        mGui.Render();
-
-        
-    }
-
-    
     /// Fully destroy an entity: physics body + scene tree node + entity manager
     void destroyEntity(uint entityId)
     {

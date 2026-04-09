@@ -18,7 +18,7 @@ import bindbc.opengl;
 import enginecore;
 import mesh, linear, scene, materials, geometry;
 import platform;
-import light;
+// import light;
 import firstpersonshootergame;
 import editor;
 import audiosubsystem;
@@ -40,7 +40,7 @@ class GraphicsEngine{
         SceneTree mSceneTree;
         Camera mCamera;
         Renderer mRenderer;
-        Light gLight;
+        // Light gLight;
 
         //--------------------------------------------------------------
         // Physics + entity management
@@ -211,112 +211,85 @@ class GraphicsEngine{
                 SDL_WarpMouseInWindow(mWindow, centerX, centerY);
             }
 
-            mGame.HandleInput();
+            mGame.Input();
         }
 
         /// A helper function to setup a scene.
-        void SetupScene(){
+        // void SetupScene(){
 
-            // Create a pipeline and associate it with a material
-            Pipeline basicPipeline = new Pipeline("basic","./pipelines/basic/basic.vert","./pipelines/basic/basic.frag");
-            mBasicMaterial = new BasicMaterial("basic");  // cache for spawning
+        //     // Create a pipeline and associate it with a material
+        //     Pipeline basicPipeline = new Pipeline("basic","./pipelines/basic/basic.vert","./pipelines/basic/basic.frag");
+        //     mBasicMaterial = new BasicMaterial("basic");  // cache for spawning
 
-            // Create a pipeline for our light
-            Pipeline lightPipeline = new Pipeline("light","./pipelines/light/basic.vert","./pipelines/light/basic.frag");
-            IMaterial lightMaterial    = new BasicMaterial("light");
+        //     // Create a pipeline for our light
+        //     Pipeline lightPipeline = new Pipeline("light","./pipelines/light/basic.vert","./pipelines/light/basic.frag");
+        //     IMaterial lightMaterial    = new BasicMaterial("light");
 
-            //we create another object for our light box and add it to scene tree
-            GLfloat[] lightboxVBO = [
-                -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-                    0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-                    0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-                    0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-                -0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+        //     //we create another object for our light box and add it to scene tree
+        //     GLfloat[] lightboxVBO = [
+        //         -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+        //             0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+        //             0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+        //             0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+        //         -0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+        //         -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
 
-                -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                    0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                    0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                    0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+        //         -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+        //             0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+        //             0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+        //             0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+        //         -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+        //         -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
 
-                -0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
-                -0.5f,  0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
-                -0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
-                -0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
-                -0.5f, -0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
-                -0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
+        //         -0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
+        //         -0.5f,  0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
+        //         -0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
+        //         -0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
+        //         -0.5f, -0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
+        //         -0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
 
-                    0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                    0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-                    0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-                    0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-                    0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                    0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+        //             0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+        //             0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+        //             0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+        //             0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+        //             0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+        //             0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
 
-                -0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
-                    0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
-                    0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
-                    0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
-                -0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
-                -0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
+        //         -0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
+        //             0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
+        //             0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
+        //             0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
+        //         -0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
+        //         -0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
 
-                -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-                    0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-                    0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                    0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f
-            ];
-            ISurface lightBox = new SurfaceTriangle(lightboxVBO);
-            MeshNode light = new MeshNode("light", lightBox, lightMaterial);
-            mSceneTree.GetRootNode().AddChildSceneNode(light);
+        //         -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+        //             0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+        //             0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+        //             0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+        //         -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+        //         -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f
+        //     ];
+        //     ISurface lightBox = new SurfaceTriangle(lightboxVBO);
+        //     MeshNode light = new MeshNode("light", lightBox, lightMaterial);
+        //     mSceneTree.GetRootNode().AddChildSceneNode(light);
 
-            // Add uniforms to the basic material
-            mBasicMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-            mBasicMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-            mBasicMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+        //     // Add uniforms to the basic material
+        //     mBasicMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+        //     mBasicMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+        //     mBasicMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
 
-            //Add uniforms to our light shader as well
-            lightMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-            lightMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-            lightMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
-        }
+        //     //Add uniforms to our light shader as well
+        //     lightMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+        //     lightMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+        //     lightMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+        // }
 
-        void setUpLights(){
-
-            GLuint shaderProgramID = Pipeline.sPipeline["basic"];
-            glUseProgram(shaderProgramID);
-
-            GLint field1 = glGetUniformLocation(shaderProgramID, "uLight1.mColor");
-            GLint field2 = glGetUniformLocation(shaderProgramID, "uLight1.mPosition");
-            GLint field3 = glGetUniformLocation(shaderProgramID, "uLight1.mAmbientIntensity");
-            GLint field4 = glGetUniformLocation(shaderProgramID, "uLight1.mSpecularIntensity");
-            GLint field5 = glGetUniformLocation(shaderProgramID, "uLight1.mSpecularExponent");
-            GLint field6 = glGetUniformLocation(shaderProgramID, "viewpos");
-
-            foreach(value ; [field1,field2,field3,field4,field5]){
-                if(value < 0){
-                    writeln("Failed to find: ",value);
-                }
-            }
         
-            // Postion light to move in a circle
-            static float inc = 0.0f;
-            float radius = 3.0f;
-            inc+=0.01;
-            gLight.mPosition = [radius*cos(inc),0.0f,radius*sin(inc)];
-
-            glUniform1fv(field1,3,gLight.mColor.ptr);
-            glUniform1fv(field2,3,gLight.mPosition.ptr);
-            glUniform1f (field3,gLight.mAmbientIntensity);
-            glUniform1f (field4,gLight.mSpecularIntensity);
-            glUniform1f (field5,gLight.mSpecularExponent);
-            glUniform3f(field6, mCamera.mEyePosition.x, mCamera.mEyePosition.y, mCamera.mEyePosition.z);
-        }
 
         void Update(){
+
+            // Update game audio
+            mAudio.update();
 
 			// Step physics
             mPhysicsWorld.updatePhysics(mFrameDt);
@@ -328,15 +301,8 @@ class GraphicsEngine{
 			// A rotation value that 'updates' every frame to give some animation in our scene
 			static float yRotation = 0.0f;   yRotation += 0.01f;
 
-			//update our light object
-			MeshNode lightNode = cast(MeshNode)mSceneTree.FindNode("light");
-
-			if (lightNode !is null){
-				GLfloat x = gLight.mPosition[0];
-				GLfloat y = gLight.mPosition[1];
-				GLfloat z = gLight.mPosition[2];
-				lightNode.mModelMatrix = MatrixMakeTranslation(vec3(x, y, z));
-			}
+			
+            
 
             //Update the FPS which the games gui is reading
             mGame.mGui.fps = this.fps;
@@ -344,9 +310,6 @@ class GraphicsEngine{
             mGame.mGui.screenHeight = mScreenHeight;
 
             mGame.Update(mFrameDt);
-
-
-
         }
 
         void Render(){
@@ -358,7 +321,7 @@ class GraphicsEngine{
                     glPolygonMode(GL_FRONT_AND_BACK,GL_FILL); 
             }
 
-            setUpLights();
+            mGame.setUpLights();
 
             glViewport(0,0,mScreenWidth, mScreenHeight);
             glClearColor(0.0f,0.6f,0.8f,1.0f);
@@ -382,14 +345,12 @@ class GraphicsEngine{
             mFrameDt = elapsed / 1000.0;
 
             // Start ImGui frame BEFORE input
+            // beacuse we need to check if there are any events to imgui
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplSDL2_NewFrame();
             igNewFrame();
 
             Input();
-
-            mAudio.update();
-
             Update();
             Render();
 
@@ -439,7 +400,7 @@ class GraphicsEngine{
         void Loop(){
 
             // Setup the graphics scene
-            SetupScene();
+            // SetupScene();
 
             //imgui set up
             igCreateContext(null);
