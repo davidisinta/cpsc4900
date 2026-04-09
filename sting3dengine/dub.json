@@ -15,14 +15,16 @@
 
 	"copyFiles": [
 		"third_party/bullet/lib/libbullet_capi_shim.dylib",
-		"third_party/fmod/lib/libfmod.dylib"
+		"third_party/fmod/lib/libfmod.dylib",
+		"third_party/cimgui/lib/cimgui.dylib"
 	],
 	  
 	"lflags-osx": [
 		"-L/opt/homebrew/lib",
 		"-Wl,-rpath,@executable_path",
 		"third_party/bullet/lib/libbullet_capi_shim.dylib",
-		"third_party/fmod/lib/libfmod.dylib"
+		"third_party/fmod/lib/libfmod.dylib",
+		"third_party/cimgui/lib/cimgui.dylib"
 	],
 
 	"libs": [
