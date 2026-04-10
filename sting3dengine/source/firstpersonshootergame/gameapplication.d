@@ -44,6 +44,9 @@ class GameApplication : IGame{
     bool mCrosshairReady = false;
     GameGUI mGui;
     Light gLight;
+    GLuint mSkyBoxVAO;
+    GLuint  mSkyBoxVBO;
+    GLuint mCubemapTexture;
 
     //sound specific elements
     bool mWalkingSoundPlaying = false;
@@ -66,6 +69,19 @@ class GameApplication : IGame{
         mSceneTree = tree;
         mBasicMaterial = mat;
         mGui = new GameGUI("topshoota-game-gui");
+
+
+
+
+
+        testLoadWithStb();
+
+
+
+
+
+
+
     }
 
     override void Input(){
@@ -108,12 +124,20 @@ class GameApplication : IGame{
     }
 
     void Render(){
+
+        
         
         //Render 3D stuff
         drawCrosshair();
 
+
+        //Render the Skybox Last
+        // drawSkyBox();
+
         //Render the games GUI last
         mGui.Render();
+
+
     }
 
     //--------------------------------------------------------------
@@ -159,6 +183,170 @@ class GameApplication : IGame{
         writeln("[spawn] entity=", eid, " urdf=", urdfPath, " model=", modelPath, " pos=", pos);
         return eid;
     }
+
+
+    // void drawSkyBox(){
+
+
+    //     // draw skybox as last
+    //     glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+
+        
+    //     // set skybox shader as active shader otherwise you see no skybox
+    //     // glUseProgram(Pipeline.sPipeline["skybox"]);
+    //     uint skyboxProgram = Pipeline.sPipeline["skybox"];
+
+
+
+    //     // view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
+
+    //     // remove translation from the view matrix
+    //     mat4 view = MatrixMakeIdentity();
+    //     mat3 rotOnly = mat3(mCamera.mViewMatrix);
+
+    //     // copy 3x3 rotation into top-left of mat4
+    //     view[0]  = rotOnly[0];
+    //     view[1]  = rotOnly[1];
+    //     view[2]  = rotOnly[2];
+
+    //     view[4]  = rotOnly[3];
+    //     view[5]  = rotOnly[4];
+    //     view[6]  = rotOnly[5];
+
+    //     view[8]  = rotOnly[6];
+    //     view[9]  = rotOnly[7];
+    //     view[10] = rotOnly[8];
+
+
+
+
+
+    //     //set the view and projection matrix
+    //     // to do: explain why this is done (in opengl skybox tutorials)
+    // //     void setMat4(const std::string &name, const glm::mat4 &mat) const
+    // // {
+    // //     glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+    // // }
+
+    //     // glUniformMatrix4fv(glGetUniformLocation(ID, "view"), 1, GL_FALSE, &view[0][0]);
+
+    //     // glUniformMatrix4fv(glGetUniformLocation(ID, "projection"), 1, GL_FALSE, &mCamera.mProjectionMatrix[0][0]);
+
+
+    //     glUniformMatrix4fv(
+    //     glGetUniformLocation(skyboxProgram, "view"),
+    //     1, GL_FALSE, view.DataPtr()
+    // );
+
+    // glUniformMatrix4fv(
+    //     glGetUniformLocation(skyboxProgram, "projection"),
+    //     1, GL_FALSE, mCamera.mProjectionMatrix.DataPtr()
+    // );
+
+
+
+
+
+    //     // skyboxShader.setMat4("view", view);
+    //     // skyboxShader.setMat4("projection", projection);
+
+
+    //     // skybox cube
+    //     glBindVertexArray(mSkyBoxVAO);
+    //     glActiveTexture(GL_TEXTURE0);
+    //     glBindTexture(GL_TEXTURE_CUBE_MAP, mCubemapTexture);
+    //     glDrawArrays(GL_TRIANGLES, 0, 36);
+    //     glBindVertexArray(0);
+
+    //     glDepthFunc(GL_LESS); // set depth function back to default
+
+    // }
+
+
+//     void drawSkyBox(){
+//     import std.math : cos, sin;
+
+//     glDepthFunc(GL_LEQUAL);
+
+//     uint skyboxProgram = Pipeline.sPipeline["skybox"];
+//     glUseProgram(skyboxProgram);
+
+//     float cy = cos(mCamera.mYaw);
+//     float sy = sin(mCamera.mYaw);
+//     float cp = cos(mCamera.mPitch);
+//     float sp = sin(mCamera.mPitch);
+
+//     vec3 f = vec3(cy * cp, sp, sy * cp);
+//     f = Normalize(f);
+//     vec3 r = Normalize(Cross(f, vec3(0, 1, 0)));
+//     vec3 u = Normalize(Cross(r, f));
+
+//     mat4 view = mat4(
+//          r.x,  r.y,  r.z,  0.0f,
+//          u.x,  u.y,  u.z,  0.0f,
+//         -f.x, -f.y, -f.z,  0.0f,
+//          0.0f, 0.0f, 0.0f, 1.0f
+//     );
+
+//     glUniformMatrix4fv(
+//         glGetUniformLocation(skyboxProgram, "view"),
+//         1, GL_FALSE, view.DataPtr()
+//     );
+
+//     glUniformMatrix4fv(
+//         glGetUniformLocation(skyboxProgram, "projection"),
+//         1, GL_FALSE, mCamera.mProjectionMatrix.DataPtr()
+//     );
+
+//     glUniform1i(glGetUniformLocation(skyboxProgram, "skybox"), 0);
+
+//     glBindVertexArray(mSkyBoxVAO);
+//     glActiveTexture(GL_TEXTURE0);
+//     glBindTexture(GL_TEXTURE_CUBE_MAP, mCubemapTexture);
+//     glDrawArrays(GL_TRIANGLES, 0, 36);
+//     glBindVertexArray(0);
+
+//     glDepthFunc(GL_LESS);
+// }
+
+
+void drawSkyBox(){
+    glDepthFunc(GL_LEQUAL);
+
+    uint skyboxProgram = Pipeline.sPipeline["skybox"];
+    glUseProgram(skyboxProgram);
+
+    mat4 view = mCamera.mViewMatrix;
+    view[3]  = 0.0f;
+    view[7]  = 0.0f;
+    view[11] = 0.0f;
+
+    glUniformMatrix4fv(
+        glGetUniformLocation(skyboxProgram, "view"),
+        1, GL_FALSE, view.DataPtr());
+
+    glUniformMatrix4fv(
+        glGetUniformLocation(skyboxProgram, "projection"),
+        1, GL_FALSE, mCamera.mProjectionMatrix.DataPtr());
+
+    glUniform1i(glGetUniformLocation(skyboxProgram, "skybox"), 0);
+
+    glBindVertexArray(mSkyBoxVAO);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mCubemapTexture);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
+
+    glDepthFunc(GL_LESS);
+}
+
+
+
+
+
+
+
+
 
     void drawCrosshair(){
         if (!mCrosshairReady) return;
@@ -337,6 +525,132 @@ class GameApplication : IGame{
         mSceneTree.GetRootNode().AddChildSceneNode(m2);
         writeln("[terrain] added to scene tree");
         writeln("[terrain] root children count: ", mSceneTree.GetRootNode().mChildren.length);
+
+
+
+
+
+
+
+
+
+
+        //Setup Skybox Vertices
+
+
+        // Create the Skybox shader
+        new Pipeline("skybox", "./pipelines/skybox/skybox.vert",
+                                    "./pipelines/skybox/skybox.frag");
+
+
+        float[] skyboxVertices = [
+
+        
+            // positions          
+            -1.0f,  1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+
+            -1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f,  1.0f,
+            -1.0f, -1.0f,  1.0f,
+
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+
+            -1.0f, -1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f,  1.0f,
+
+            -1.0f,  1.0f, -1.0f,
+            1.0f,  1.0f, -1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f, -1.0f,
+
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+            1.0f, -1.0f,  1.0f
+        ];
+
+
+        // skybox VAO
+        // to do: check if there is better way to set this up, w curr code set up
+        
+        glGenVertexArrays(1, &mSkyBoxVAO);
+        glGenBuffers(1, &mSkyBoxVBO);
+        glBindVertexArray(mSkyBoxVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, mSkyBoxVBO);
+
+        // glBufferData(GL_ARRAY_BUFFER, 
+        // cast(GLsizeiptr)(skyboxVertices.length * float.sizeof),&skyboxVertices, GL_STATIC_DRAW);
+
+        glBufferData(GL_ARRAY_BUFFER, 
+        cast(GLsizeiptr)(skyboxVertices.length * float.sizeof),
+        skyboxVertices.ptr,   // CORRECT — pointer to actual float data
+        GL_STATIC_DRAW);
+
+
+
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * float.sizeof, cast(void*)0);
+
+
+
+
+
+        // string[] faces = ["./assets/skybox/back.jpg",
+        //     "./assets/skybox/right.jpg",
+        //     "./assets/skybox/left.jpg",
+        //     "./assets/skybox/front.jpg",
+        //     "./assets/skybox/top.jpg",
+        //     "./assets/skybox/bottom.jpg"];
+
+        // string[] faces = ["./assets/skybox/back.jpg",
+        //     "./assets/skybox/right.jpg",
+        //     "./assets/skybox/left.jpg",
+        //     "./assets/skybox/front.jpg",
+        //     "./assets/skybox/top.jpg",
+        //     "./assets/skybox/bottom.jpg"];
+        
+
+        string[] faces = [
+            "./assets/skybox/right.jpg",
+            "./assets/skybox/left.jpg",
+            "./assets/skybox/top.jpg",
+            "./assets/skybox/bottom.jpg",
+            "./assets/skybox/front.jpg",
+            "./assets/skybox/back.jpg"
+        ];
+        
+
+        stbi_set_flip_vertically_on_load(0);
+        mCubemapTexture = loadCubemap(faces);
+
+
+
+
+
+
+
+
     }
 
     void attachAudio(AudioEngine* audio){
@@ -384,6 +698,85 @@ class GameApplication : IGame{
 
         writeln("background sound load result = ", result, " ptr = ", mBackgroundSound);
     }
+
+    /// CubeMap Setup
+    uint loadCubemap(string[] faces){
+
+        uint textureID;
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+        int width, height, nrChannels;
+        for (uint i = 0; i < faces.length; i++){
+
+            //load each of the faces
+            auto data = stbi_load(faces[i].toStringz, &width, &height, &nrChannels, 0);
+
+
+
+
+            // auto data = stbi_load("./assets/skybox/back.jpg".toStringz, &w, &h, &channels, 0);
+        // if (data !is null)
+        // {
+        //     writeln("[stb] skybox back.jpg: ", w, "x", h, " channels=", channels);
+        //     stbi_image_free(data);
+        // }
+
+
+
+
+
+
+
+            if (data){
+                writeln("[stb] successfully loaded: ", faces[i]);
+
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 
+                            0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
+                );
+                stbi_image_free(data);
+            }
+            else{
+
+                writeln("Cubemap tex failed to load.");
+                stbi_image_free(data);
+            }
+        }
+
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+        return textureID;
+    }  
+
+
+    void testLoadWithStb(){
+
+        int w, h, channels;
+        stbi_set_flip_vertically_on_load(1);
+        auto data = stbi_load("./assets/skybox/back.jpg".toStringz, &w, &h, &channels, 0);
+
+        if (data !is null){
+            writeln("[stb] skybox back.jpg: ", w, "x", h, " channels=", channels);
+            stbi_image_free(data);
+        }
+
+        else{
+            writeln("[stb] failed to load");
+        }       
+    }
+
+
+
+
+
+
+
+
+
 
     void setUpLights(){
 

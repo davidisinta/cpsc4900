@@ -18,6 +18,10 @@
 		"third_party/fmod/lib/libfmod.dylib",
 		"third_party/cimgui/lib/cimgui.dylib"
 	],
+
+	"sourceFiles": [
+		"third_party/stb/stb_image_impl.c"
+	],
 	  
 	"lflags-osx": [
 		"-L/opt/homebrew/lib",
