@@ -3,4 +3,5 @@ public import material;
 public import basicmaterial;
 public import texturematerial;
 public import multitexturematerial;
+public import littexturedmaterial;
 

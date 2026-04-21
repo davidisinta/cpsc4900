@@ -186,6 +186,15 @@ class GraphicsEngine{
                 mCamera.MoveRight();
                 moving = true;
             }
+            if (keys[SDL_SCANCODE_UP]) {
+                mCamera.MoveUp();
+                moving = true;
+            }
+            if (keys[SDL_SCANCODE_DOWN]) {
+                mCamera.MoveDown();
+                moving = true;
+            }
+            
 
             if (moving) {
                 if (!mGame.mWalkingSoundPlaying) {
@@ -314,6 +323,8 @@ class GraphicsEngine{
 
         void Render(){
 
+            // glDisable(GL_CULL_FACE);
+
             // Render 3D scene
             if(mRenderWireframe){
                     glPolygonMode(GL_FRONT_AND_BACK,GL_LINE); 
@@ -331,10 +342,10 @@ class GraphicsEngine{
 
             // Draw skybox FIRST with depth writing off
 
-            glEnable(GL_DEPTH_TEST);
-            glDepthMask(GL_FALSE);
-            mGame.drawSkyBox();
-            glDepthMask(GL_TRUE);
+            // glEnable(GL_DEPTH_TEST);
+            // glDepthMask(GL_FALSE);
+            // mGame.drawSkyBox();
+            // glDepthMask(GL_TRUE);
 
             // to do: check if perhaps renderer can do all rendering
             // even from game side

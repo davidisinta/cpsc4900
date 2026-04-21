@@ -47,6 +47,7 @@ class GameApplication : IGame{
     GLuint mSkyBoxVAO;
     GLuint  mSkyBoxVBO;
     GLuint mCubemapTexture;
+    IMaterial mLitTexturedMaterial;
 
     //sound specific elements
     bool mWalkingSoundPlaying = false;
@@ -69,18 +70,7 @@ class GameApplication : IGame{
         mSceneTree = tree;
         mBasicMaterial = mat;
         mGui = new GameGUI("topshoota-game-gui");
-
-
-
-
-
-        testLoadWithStb();
-
-
-
-
-
-
+        // testLoadWithStb();
 
     }
 
@@ -125,14 +115,11 @@ class GameApplication : IGame{
 
     void Render(){
 
-        
-        
-        //Render 3D stuff
-        drawCrosshair();
-
-
         //Render the Skybox Last
         // drawSkyBox();
+
+        //Render Cross Hair as it is like a GUI element
+        drawCrosshair();
 
         //Render the games GUI last
         mGui.Render();
@@ -184,168 +171,36 @@ class GameApplication : IGame{
         return eid;
     }
 
+    void drawSkyBox(){
 
-    // void drawSkyBox(){
+        glDepthFunc(GL_LEQUAL);
 
+        uint skyboxProgram = Pipeline.sPipeline["skybox"];
+        glUseProgram(skyboxProgram);
 
-    //     // draw skybox as last
-    //     glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+        mat4 view = mCamera.mViewMatrix;
+        view[3]  = 0.0f;
+        view[7]  = 0.0f;
+        view[11] = 0.0f;
 
-        
-    //     // set skybox shader as active shader otherwise you see no skybox
-    //     // glUseProgram(Pipeline.sPipeline["skybox"]);
-    //     uint skyboxProgram = Pipeline.sPipeline["skybox"];
+        glUniformMatrix4fv(
+            glGetUniformLocation(skyboxProgram, "view"),
+            1, GL_FALSE, view.DataPtr());
 
+        glUniformMatrix4fv(
+            glGetUniformLocation(skyboxProgram, "projection"),
+            1, GL_FALSE, mCamera.mProjectionMatrix.DataPtr());
 
+        glUniform1i(glGetUniformLocation(skyboxProgram, "skybox"), 0);
 
-    //     // view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
+        glBindVertexArray(mSkyBoxVAO);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, mCubemapTexture);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
 
-    //     // remove translation from the view matrix
-    //     mat4 view = MatrixMakeIdentity();
-    //     mat3 rotOnly = mat3(mCamera.mViewMatrix);
-
-    //     // copy 3x3 rotation into top-left of mat4
-    //     view[0]  = rotOnly[0];
-    //     view[1]  = rotOnly[1];
-    //     view[2]  = rotOnly[2];
-
-    //     view[4]  = rotOnly[3];
-    //     view[5]  = rotOnly[4];
-    //     view[6]  = rotOnly[5];
-
-    //     view[8]  = rotOnly[6];
-    //     view[9]  = rotOnly[7];
-    //     view[10] = rotOnly[8];
-
-
-
-
-
-    //     //set the view and projection matrix
-    //     // to do: explain why this is done (in opengl skybox tutorials)
-    // //     void setMat4(const std::string &name, const glm::mat4 &mat) const
-    // // {
-    // //     glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
-    // // }
-
-    //     // glUniformMatrix4fv(glGetUniformLocation(ID, "view"), 1, GL_FALSE, &view[0][0]);
-
-    //     // glUniformMatrix4fv(glGetUniformLocation(ID, "projection"), 1, GL_FALSE, &mCamera.mProjectionMatrix[0][0]);
-
-
-    //     glUniformMatrix4fv(
-    //     glGetUniformLocation(skyboxProgram, "view"),
-    //     1, GL_FALSE, view.DataPtr()
-    // );
-
-    // glUniformMatrix4fv(
-    //     glGetUniformLocation(skyboxProgram, "projection"),
-    //     1, GL_FALSE, mCamera.mProjectionMatrix.DataPtr()
-    // );
-
-
-
-
-
-    //     // skyboxShader.setMat4("view", view);
-    //     // skyboxShader.setMat4("projection", projection);
-
-
-    //     // skybox cube
-    //     glBindVertexArray(mSkyBoxVAO);
-    //     glActiveTexture(GL_TEXTURE0);
-    //     glBindTexture(GL_TEXTURE_CUBE_MAP, mCubemapTexture);
-    //     glDrawArrays(GL_TRIANGLES, 0, 36);
-    //     glBindVertexArray(0);
-
-    //     glDepthFunc(GL_LESS); // set depth function back to default
-
-    // }
-
-
-//     void drawSkyBox(){
-//     import std.math : cos, sin;
-
-//     glDepthFunc(GL_LEQUAL);
-
-//     uint skyboxProgram = Pipeline.sPipeline["skybox"];
-//     glUseProgram(skyboxProgram);
-
-//     float cy = cos(mCamera.mYaw);
-//     float sy = sin(mCamera.mYaw);
-//     float cp = cos(mCamera.mPitch);
-//     float sp = sin(mCamera.mPitch);
-
-//     vec3 f = vec3(cy * cp, sp, sy * cp);
-//     f = Normalize(f);
-//     vec3 r = Normalize(Cross(f, vec3(0, 1, 0)));
-//     vec3 u = Normalize(Cross(r, f));
-
-//     mat4 view = mat4(
-//          r.x,  r.y,  r.z,  0.0f,
-//          u.x,  u.y,  u.z,  0.0f,
-//         -f.x, -f.y, -f.z,  0.0f,
-//          0.0f, 0.0f, 0.0f, 1.0f
-//     );
-
-//     glUniformMatrix4fv(
-//         glGetUniformLocation(skyboxProgram, "view"),
-//         1, GL_FALSE, view.DataPtr()
-//     );
-
-//     glUniformMatrix4fv(
-//         glGetUniformLocation(skyboxProgram, "projection"),
-//         1, GL_FALSE, mCamera.mProjectionMatrix.DataPtr()
-//     );
-
-//     glUniform1i(glGetUniformLocation(skyboxProgram, "skybox"), 0);
-
-//     glBindVertexArray(mSkyBoxVAO);
-//     glActiveTexture(GL_TEXTURE0);
-//     glBindTexture(GL_TEXTURE_CUBE_MAP, mCubemapTexture);
-//     glDrawArrays(GL_TRIANGLES, 0, 36);
-//     glBindVertexArray(0);
-
-//     glDepthFunc(GL_LESS);
-// }
-
-
-void drawSkyBox(){
-    glDepthFunc(GL_LEQUAL);
-
-    uint skyboxProgram = Pipeline.sPipeline["skybox"];
-    glUseProgram(skyboxProgram);
-
-    mat4 view = mCamera.mViewMatrix;
-    view[3]  = 0.0f;
-    view[7]  = 0.0f;
-    view[11] = 0.0f;
-
-    glUniformMatrix4fv(
-        glGetUniformLocation(skyboxProgram, "view"),
-        1, GL_FALSE, view.DataPtr());
-
-    glUniformMatrix4fv(
-        glGetUniformLocation(skyboxProgram, "projection"),
-        1, GL_FALSE, mCamera.mProjectionMatrix.DataPtr());
-
-    glUniform1i(glGetUniformLocation(skyboxProgram, "skybox"), 0);
-
-    glBindVertexArray(mSkyBoxVAO);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, mCubemapTexture);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
-
-    glDepthFunc(GL_LESS);
-}
-
-
-
-
-
-
-
+        glDepthFunc(GL_LESS);
+    }
 
 
     void drawCrosshair(){
@@ -431,6 +286,54 @@ void drawSkyBox(){
         lightMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
         lightMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
 
+
+
+        // Lit + textured pipeline for models with UV + texture
+        Pipeline litTexPipeline = new Pipeline("lit_textured",
+            "./pipelines/lit_textured/lit_textured.vert",
+            "./pipelines/lit_textured/lit_textured.frag");
+
+        mLitTexturedMaterial = new LitTexturedMaterial("lit_textured",
+            "./assets/modern_soldier/textures/material_0_baseColor.jpeg");
+
+        mLitTexturedMaterial.AddUniform(new Uniform("uTexture", 0));
+        mLitTexturedMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+        mLitTexturedMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+        mLitTexturedMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+
+
+         //-----------------------------------------------------------------
+        // add terrain to the game now 
+        //-----------------------------------------------------------------
+        Pipeline texturePipeline = new Pipeline("multiTexturePipeline","./pipelines/multitexture/basic.vert","./pipelines/multitexture/basic.frag");
+
+        IMaterial multiTextureMaterial = new MultiTextureMaterial("multiTexturePipeline","./assets/textures/sand.ppm","./assets/textures/grass.ppm","./assets/textures/dirt.ppm","./assets/textures/snow.ppm");
+        multiTextureMaterial.AddUniform(new Uniform("sampler1", 0));
+        multiTextureMaterial.AddUniform(new Uniform("sampler2", 1));
+        multiTextureMaterial.AddUniform(new Uniform("sampler3", 2));
+        multiTextureMaterial.AddUniform(new Uniform("sampler4", 3));
+        multiTextureMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+        multiTextureMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+        multiTextureMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+
+        ISurface terrain = new SurfaceTerrain(512,512,"./assets/heightmaps/flat_slight_variation_heightmap.ppm"); 
+        writeln("[terrain] created SurfaceTerrain");
+
+        MeshNode m2 = new MeshNode("terrain", terrain, mBasicMaterial);
+        writeln("[terrain] created MeshNode");
+
+        mSceneTree.GetRootNode().AddChildSceneNode(m2);
+        writeln("[terrain] added to scene tree");
+        writeln("[terrain] root children count: ", mSceneTree.GetRootNode().mChildren.length);
+
+
+
+
+
+
+
+
+
         setUpLights();
 
         initCrosshair();
@@ -502,31 +405,17 @@ void drawSkyBox(){
             Quat.init
         );
 
-        //-----------------------------------------------------------------
-        // add terrain to the game now 
-        //-----------------------------------------------------------------
-        Pipeline texturePipeline = new Pipeline("multiTexturePipeline","./pipelines/multitexture/basic.vert","./pipelines/multitexture/basic.frag");
 
-        IMaterial multiTextureMaterial = new MultiTextureMaterial("multiTexturePipeline","./assets/textures/sand.ppm","./assets/textures/grass.ppm","./assets/textures/dirt.ppm","./assets/textures/snow.ppm");
-        multiTextureMaterial.AddUniform(new Uniform("sampler1", 0));
-        multiTextureMaterial.AddUniform(new Uniform("sampler2", 1));
-        multiTextureMaterial.AddUniform(new Uniform("sampler3", 2));
-        multiTextureMaterial.AddUniform(new Uniform("sampler4", 3));
-        multiTextureMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-        multiTextureMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-        multiTextureMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+        spawnSoldierEnemy(vec3(0.0f, 0.0f, -10.0f), Quat.init);
 
-        ISurface terrain = new SurfaceTerrain(512,512,"./assets/heightmaps/flat_slight_variation_heightmap.ppm"); 
-        writeln("[terrain] created SurfaceTerrain");
+        spawnSoldierEnemy(vec3(0.0f, 0.0f, -30.0f), Quat.init);
+        spawnSoldierEnemy(vec3(0.0f, 0.0f, -40.0f), Quat.init);
+        spawnSoldierEnemy(vec3(10.0f, 0.0f, -10.0f), Quat.init);
+        spawnSoldierEnemy(vec3(20.0f, 0.0f, -10.0f), Quat.init);
+        spawnSoldierEnemy(vec3(10.0f, 0.0f, -30.0f), Quat.init);
+        spawnSoldierEnemy(vec3(40.0f, 0.0f, 10.0f), Quat.init);
 
-        MeshNode m2 = new MeshNode("terrain", terrain, mBasicMaterial);
-        writeln("[terrain] created MeshNode");
-
-        mSceneTree.GetRootNode().AddChildSceneNode(m2);
-        writeln("[terrain] added to scene tree");
-        writeln("[terrain] root children count: ", mSceneTree.GetRootNode().mChildren.length);
-
-
+       
 
 
 
@@ -593,43 +482,18 @@ void drawSkyBox(){
 
         // skybox VAO
         // to do: check if there is better way to set this up, w curr code set up
-        
         glGenVertexArrays(1, &mSkyBoxVAO);
         glGenBuffers(1, &mSkyBoxVBO);
         glBindVertexArray(mSkyBoxVAO);
         glBindBuffer(GL_ARRAY_BUFFER, mSkyBoxVBO);
 
-        // glBufferData(GL_ARRAY_BUFFER, 
-        // cast(GLsizeiptr)(skyboxVertices.length * float.sizeof),&skyboxVertices, GL_STATIC_DRAW);
-
         glBufferData(GL_ARRAY_BUFFER, 
         cast(GLsizeiptr)(skyboxVertices.length * float.sizeof),
-        skyboxVertices.ptr,   // CORRECT — pointer to actual float data
+        skyboxVertices.ptr,
         GL_STATIC_DRAW);
-
-
 
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * float.sizeof, cast(void*)0);
-
-
-
-
-
-        // string[] faces = ["./assets/skybox/back.jpg",
-        //     "./assets/skybox/right.jpg",
-        //     "./assets/skybox/left.jpg",
-        //     "./assets/skybox/front.jpg",
-        //     "./assets/skybox/top.jpg",
-        //     "./assets/skybox/bottom.jpg"];
-
-        // string[] faces = ["./assets/skybox/back.jpg",
-        //     "./assets/skybox/right.jpg",
-        //     "./assets/skybox/left.jpg",
-        //     "./assets/skybox/front.jpg",
-        //     "./assets/skybox/top.jpg",
-        //     "./assets/skybox/bottom.jpg"];
-        
 
         string[] faces = [
             "./assets/skybox/right.jpg",
@@ -639,10 +503,74 @@ void drawSkyBox(){
             "./assets/skybox/front.jpg",
             "./assets/skybox/back.jpg"
         ];
-        
+
+        string[] faces2 = [
+            "./assets/sky_83_cubemap_2k/pz.png", // +X (RIGHT)
+            "./assets/sky_83_cubemap_2k/nz.png", // -X (LEFT)
+            "./assets/sky_83_cubemap_2k/py.png", // +Y (UP)
+            "./assets/sky_83_cubemap_2k/ny.png", // -Y (DOWN)
+            "./assets/sky_83_cubemap_2k/px.png", // +Z (FRONT)
+            "./assets/sky_83_cubemap_2k/nx.png"  // -Z (BACK)
+        ];
+
+        string[] faces3 = [
+            "./assets/sky_77_cubemap_2k/pz.png", // +X (RIGHT)
+            "./assets/sky_77_cubemap_2k/nz.png", // -X (LEFT)
+            "./assets/sky_77_cubemap_2k/py.png", // +Y (UP)
+            "./assets/sky_77_cubemap_2k/ny.png", // -Y (DOWN)
+            "./assets/sky_77_cubemap_2k/px.png", // +Z (FRONT)
+            "./assets/sky_77_cubemap_2k/nx.png"  // -Z (BACK)
+        ];
+
+        // https://www.humus.name/index.php?page=Textures&start=24
+        string[] faces4 = [
+            "./assets/Yokohama3/posx.jpg", // +X (RIGHT)
+            "./assets/Yokohama3/negx.jpg", // -X (LEFT)
+            "./assets/Yokohama3/posy.jpg", // +Y (UP)
+            "./assets/Yokohama3/negy.jpg", // -Y (DOWN)
+            "./assets/Yokohama3/posz.jpg", // +Z (FRONT)
+            "./assets/Yokohama3/negz.jpg"  // -Z (BACK)
+        ];
+
+        string[] grass_terrain_faces = [
+            "./assets/Yokohama2/posx.jpg", // +X (RIGHT)
+            "./assets/Yokohama2/negx.jpg", // -X (LEFT)
+            "./assets/Yokohama2/posy.jpg", // +Y (UP)
+            "./assets/Yokohama2/negy.jpg", // -Y (DOWN)
+            "./assets/Yokohama2/posz.jpg", // +Z (FRONT)
+            "./assets/Yokohama2/negz.jpg"  // -Z (BACK)
+        ];
 
         stbi_set_flip_vertically_on_load(0);
-        mCubemapTexture = loadCubemap(faces);
+        mCubemapTexture = loadCubemap(grass_terrain_faces);
+
+
+
+
+
+
+
+
+        // Test map kit
+        import assimp;
+        import std.string : fromStringz;
+        auto mapScene = aiImportFile("./assets/fps_map_kit/uploads_files_3151797_FPS_Modular_Map_Kit_FBX/FPS_Modular_Map_Meshes.fbx".toStringz,
+            aiProcess_Triangulate | aiProcess_GenNormals);
+        if (mapScene !is null)
+        {
+            writeln("[mapkit] meshes: ", mapScene.mNumMeshes);
+            writeln("[mapkit] materials: ", mapScene.mNumMaterials);
+            for (uint i = 0; i < mapScene.mNumMeshes && i < 10; i++)
+            {
+                auto mesh = mapScene.mMeshes[i];
+                writeln("[mapkit] mesh ", i, ": verts=", mesh.mNumVertices,
+                        " faces=", mesh.mNumFaces,
+                        " hasUVs=", mesh.mTextureCoords[0] !is null);
+            }
+            aiReleaseImport(mapScene);
+        }
+        else
+            writeln("[mapkit] ERROR: ", fromStringz(aiGetErrorString()));
 
 
 
@@ -652,6 +580,85 @@ void drawSkyBox(){
 
 
     }
+
+    // uint spawnSoldierEnemy(vec3 pos, Quat orient = Quat.init)
+    // {
+    //     string soldierModel = "./assets/modern_soldier/scene.gltf";
+
+    //     // Measure soldier bounding box
+    //     import assimp;
+    //     import std.string : fromStringz;
+    //     auto scene = aiImportFile(soldierModel.toStringz,
+    //         aiProcess_Triangulate | aiProcess_GenNormals);
+    //     if (scene !is null)
+    //     {
+    //         float minY = float.max, maxY = -float.max;
+    //         float minX = float.max, maxX = -float.max;
+    //         float minZ = float.max, maxZ = -float.max;
+    //         for (uint m = 0; m < scene.mNumMeshes; m++)
+    //         {
+    //             auto mesh = scene.mMeshes[m];
+    //             for (uint i = 0; i < mesh.mNumVertices; i++)
+    //             {
+    //                 auto v = mesh.mVertices[i];
+    //                 if (v.x < minX) minX = v.x;
+    //                 if (v.x > maxX) maxX = v.x;
+    //                 if (v.y < minY) minY = v.y;
+    //                 if (v.y > maxY) maxY = v.y;
+    //                 if (v.z < minZ) minZ = v.z;
+    //                 if (v.z > maxZ) maxZ = v.z;
+    //             }
+    //         }
+    //         writeln("[soldier] bounds X: ", minX, " to ", maxX, " width=", maxX - minX);
+    //         writeln("[soldier] bounds Y: ", minY, " to ", maxY, " height=", maxY - minY);
+    //         writeln("[soldier] bounds Z: ", minZ, " to ", maxZ, " depth=", maxZ - minZ);
+    //         aiReleaseImport(scene);
+    //     }
+
+    //     string soldierPhysics = "soldier.urdf";
+    //     uint eid = spawnPhysicsObject(soldierPhysics, soldierModel, pos, orient);
+    //     writeln("[soldier] spawned entity=", eid, " at ", pos);
+    //     return eid;
+    // }
+
+
+    uint spawnSoldierEnemy(vec3 pos, Quat orient = Quat.init)
+    {
+        string soldierModel = "./assets/modern_soldier/scene.gltf";
+        string soldierPhysics = "soldier.urdf";
+
+        uint eid = mEntityManager.create();
+
+        mPhysicsWorld.addURDF(eid, soldierPhysics,
+            pos.x, pos.y + 1.0f, pos.z,
+            orient.x, orient.y, orient.z, orient.w);
+        mEntityManager.markPhysics(eid);
+
+        // Load model and add with TEXTURED material
+        auto model = new Model(soldierModel);
+        auto nodes = model.addToScene(mSceneTree, mLitTexturedMaterial, "soldier_" ~ eid.to!string);
+
+        TransformComponent tc;
+        tc.position = vec3(pos.x, pos.y + 1.0f, pos.z);
+        tc.rotation = orient;
+        mEntityManager.addTransform(eid, tc);
+
+        foreach (node; nodes)
+        {
+            node.mModelMatrix = tc.toModelMatrix();
+            mEntityManager.addRenderable(eid, node);
+        }
+
+        writeln("[soldier] spawned entity=", eid, " at ", pos);
+        return eid;
+    }
+
+
+
+
+
+
+
 
     void attachAudio(AudioEngine* audio){
         mAudio = audio;
@@ -821,6 +828,24 @@ void drawSkyBox(){
         glUniform1f (field4,gLight.mSpecularIntensity);
         glUniform1f (field5,gLight.mSpecularExponent);
         glUniform3f(field6, mCamera.mEyePosition.x, mCamera.mEyePosition.y, mCamera.mEyePosition.z);
+
+
+        if ("lit_textured" in Pipeline.sPipeline)
+        {
+            GLuint litTexID = Pipeline.sPipeline["lit_textured"];
+            glUseProgram(litTexID);
+
+            glUniform3f(glGetUniformLocation(litTexID, "uLightPos"),
+                gLight.mPosition[0], gLight.mPosition[1], gLight.mPosition[2]);
+            glUniform3f(glGetUniformLocation(litTexID, "viewpos"),
+                mCamera.mEyePosition.x, mCamera.mEyePosition.y, mCamera.mEyePosition.z);
+        }
+
+
+
+
+       
+
     }
 
     void startBackgroundSound(){
@@ -973,3 +998,10 @@ void drawSkyBox(){
         writeln("[destroy] entity=", entityId);
     }
 }
+
+
+
+// top links:
+// https://www.cgtrader.com/3d-models/exterior/other/lowpoly-fps-modular-map-kit
+// https://www.cgtrader.com/3d-models/military/gun/fps-animations-single-pistol
+// https://www.cgtrader.com/3d-models/military/gun/fps-automatic-rifle-01-animations

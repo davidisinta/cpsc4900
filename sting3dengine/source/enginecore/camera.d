@@ -16,7 +16,7 @@ class Camera{
     float mYaw   = 0.0f;
     float mPitch = 0.0f;
 
-    float mMoveSpeed = 0.05f;
+    float mMoveSpeed = 3.05f;
     float mMouseSensitivity = 0.005f;
 
     this(){
@@ -26,7 +26,7 @@ class Camera{
         // see if viable to change aspect ratio to this cast(float)mScreenWidth / cast(float)mScreenHeight
         mProjectionMatrix = MatrixMakePerspective(90.0f.ToRadians, 480.0f/640.0f, 0.1f, 1000.0f);
 
-        mEyePosition = vec3(1.0f, 0.5f, 1.0f);
+        mEyePosition = vec3(1.0f, 1.7f, 1.0f);
         mUpVector    = vec3(0.0f, 1.0f, 0.0f);
 
         updateVectors();
@@ -141,12 +141,12 @@ class Camera{
     }
 
     void MoveUp(){
-        mEyePosition.y = mEyePosition.y + 0.2f;
+        mEyePosition.y = mEyePosition.y + 4.2f;
         UpdateViewMatrix();
     }
 
     void MoveDown(){
-        mEyePosition.y = mEyePosition.y - 0.2f;
+        mEyePosition.y = mEyePosition.y - 4.2f;
         UpdateViewMatrix();
     }
 }
