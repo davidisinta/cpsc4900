@@ -14,3 +14,4 @@ public import transform;
 public import transformsync;
 public import entitymanager;
 public import igame;
+public import stb_image;

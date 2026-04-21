@@ -59,4 +59,7 @@ extern(C)
 
 
     void igEndFrame();
+
+
+    void igProgressBar(float fraction, float size_x, float size_y, const(char)* overlay);
 }
