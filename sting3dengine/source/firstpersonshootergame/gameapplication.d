@@ -4,7 +4,7 @@ module gameapplication;
 import std.stdio;
 import std.conv;
 import std.datetime.systime : Clock;
-import std.string : toStringz;
+import std.string : toStringz, fromStringz;
 import std.math;
 
 // project files
@@ -70,8 +70,6 @@ class GameApplication : IGame{
         mSceneTree = tree;
         mBasicMaterial = mat;
         mGui = new GameGUI("topshoota-game-gui");
-        // testLoadWithStb();
-
     }
 
     override void Input(){
@@ -123,8 +121,6 @@ class GameApplication : IGame{
 
         //Render the games GUI last
         mGui.Render();
-
-
     }
 
     //--------------------------------------------------------------
@@ -286,8 +282,6 @@ class GameApplication : IGame{
         lightMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
         lightMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
 
-
-
         // Lit + textured pipeline for models with UV + texture
         Pipeline litTexPipeline = new Pipeline("lit_textured",
             "./pipelines/lit_textured/lit_textured.vert",
@@ -302,37 +296,27 @@ class GameApplication : IGame{
         mLitTexturedMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
 
 
-         //-----------------------------------------------------------------
+        //-----------------------------------------------------------------
         // add terrain to the game now 
         //-----------------------------------------------------------------
-        Pipeline texturePipeline = new Pipeline("multiTexturePipeline","./pipelines/multitexture/basic.vert","./pipelines/multitexture/basic.frag");
+        // to do: check if need to get rid of multitexture code
 
-        IMaterial multiTextureMaterial = new MultiTextureMaterial("multiTexturePipeline","./assets/textures/sand.ppm","./assets/textures/grass.ppm","./assets/textures/dirt.ppm","./assets/textures/snow.ppm");
-        multiTextureMaterial.AddUniform(new Uniform("sampler1", 0));
-        multiTextureMaterial.AddUniform(new Uniform("sampler2", 1));
-        multiTextureMaterial.AddUniform(new Uniform("sampler3", 2));
-        multiTextureMaterial.AddUniform(new Uniform("sampler4", 3));
-        multiTextureMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-        multiTextureMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-        multiTextureMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+        // Simple textured pipeline for terrain (position + UV, no normals)
+        Pipeline simpleTexPipeline = new Pipeline("textured_simple",
+            "./pipelines/textured_simple/textured_simple.vert",
+            "./pipelines/textured_simple/textured_simple.frag");
 
-        ISurface terrain = new SurfaceTerrain(512,512,"./assets/heightmaps/flat_slight_variation_heightmap.ppm"); 
-        writeln("[terrain] created SurfaceTerrain");
+        IMaterial grassMaterial = new LitTexturedMaterial("textured_simple",
+            "./assets/textures/green-grass-background.jpg");
+        grassMaterial.AddUniform(new Uniform("uTexture", 0));
+        grassMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+        grassMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+        grassMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
 
-        MeshNode m2 = new MeshNode("terrain", terrain, mBasicMaterial);
-        writeln("[terrain] created MeshNode");
-
+        ISurface terrain = new SurfaceTerrain(512, 512,
+            "./assets/heightmaps/flat_slight_variation_heightmap.ppm");
+        MeshNode m2 = new MeshNode("terrain", terrain, grassMaterial);
         mSceneTree.GetRootNode().AddChildSceneNode(m2);
-        writeln("[terrain] added to scene tree");
-        writeln("[terrain] root children count: ", mSceneTree.GetRootNode().mChildren.length);
-
-
-
-
-
-
-
-
 
         setUpLights();
 
@@ -406,31 +390,19 @@ class GameApplication : IGame{
         );
 
 
-        spawnSoldierEnemy(vec3(0.0f, 0.0f, -10.0f), Quat.init);
+        spawnSoldierEnemy(vec3(33.0f, 0.0f, -10.0f), Quat.init);
 
         spawnSoldierEnemy(vec3(0.0f, 0.0f, -30.0f), Quat.init);
         spawnSoldierEnemy(vec3(0.0f, 0.0f, -40.0f), Quat.init);
-        spawnSoldierEnemy(vec3(10.0f, 0.0f, -10.0f), Quat.init);
-        spawnSoldierEnemy(vec3(20.0f, 0.0f, -10.0f), Quat.init);
-        spawnSoldierEnemy(vec3(10.0f, 0.0f, -30.0f), Quat.init);
-        spawnSoldierEnemy(vec3(40.0f, 0.0f, 10.0f), Quat.init);
-
-       
-
-
-
-
-
-
-
+        spawnSoldierEnemy(vec3(13.0f, 0.0f, -17.0f), Quat.init);
+        spawnSoldierEnemy(vec3(23.0f, 0.0f, -17.0f), Quat.init);
+        spawnSoldierEnemy(vec3(13.0f, 0.0f, -37.0f), Quat.init);
+        spawnSoldierEnemy(vec3(43.0f, 0.0f, 17.0f), Quat.init);
 
         //Setup Skybox Vertices
-
-
         // Create the Skybox shader
         new Pipeline("skybox", "./pipelines/skybox/skybox.vert",
                                     "./pipelines/skybox/skybox.frag");
-
 
         float[] skyboxVertices = [
 
@@ -545,85 +517,86 @@ class GameApplication : IGame{
         mCubemapTexture = loadCubemap(grass_terrain_faces);
 
 
-
-
-
-
-
-
-        // Test map kit
-        import assimp;
-        import std.string : fromStringz;
-        auto mapScene = aiImportFile("./assets/fps_map_kit/uploads_files_3151797_FPS_Modular_Map_Kit_FBX/FPS_Modular_Map_Meshes.fbx".toStringz,
-            aiProcess_Triangulate | aiProcess_GenNormals);
-        if (mapScene !is null)
-        {
-            writeln("[mapkit] meshes: ", mapScene.mNumMeshes);
-            writeln("[mapkit] materials: ", mapScene.mNumMaterials);
-            for (uint i = 0; i < mapScene.mNumMeshes && i < 10; i++)
-            {
-                auto mesh = mapScene.mMeshes[i];
-                writeln("[mapkit] mesh ", i, ": verts=", mesh.mNumVertices,
-                        " faces=", mesh.mNumFaces,
-                        " hasUVs=", mesh.mTextureCoords[0] !is null);
-            }
-            aiReleaseImport(mapScene);
-        }
-        else
-            writeln("[mapkit] ERROR: ", fromStringz(aiGetErrorString()));
-
-
-
-
-
-
-
-
+        //Set up the map as the last item
+        SetupMap();
     }
 
-    // uint spawnSoldierEnemy(vec3 pos, Quat orient = Quat.init)
-    // {
-    //     string soldierModel = "./assets/modern_soldier/scene.gltf";
 
-    //     // Measure soldier bounding box
-    //     import assimp;
-    //     import std.string : fromStringz;
-    //     auto scene = aiImportFile(soldierModel.toStringz,
-    //         aiProcess_Triangulate | aiProcess_GenNormals);
-    //     if (scene !is null)
-    //     {
-    //         float minY = float.max, maxY = -float.max;
-    //         float minX = float.max, maxX = -float.max;
-    //         float minZ = float.max, maxZ = -float.max;
-    //         for (uint m = 0; m < scene.mNumMeshes; m++)
-    //         {
-    //             auto mesh = scene.mMeshes[m];
-    //             for (uint i = 0; i < mesh.mNumVertices; i++)
-    //             {
-    //                 auto v = mesh.mVertices[i];
-    //                 if (v.x < minX) minX = v.x;
-    //                 if (v.x > maxX) maxX = v.x;
-    //                 if (v.y < minY) minY = v.y;
-    //                 if (v.y > maxY) maxY = v.y;
-    //                 if (v.z < minZ) minZ = v.z;
-    //                 if (v.z > maxZ) maxZ = v.z;
-    //             }
-    //         }
-    //         writeln("[soldier] bounds X: ", minX, " to ", maxX, " width=", maxX - minX);
-    //         writeln("[soldier] bounds Y: ", minY, " to ", maxY, " height=", maxY - minY);
-    //         writeln("[soldier] bounds Z: ", minZ, " to ", maxZ, " depth=", maxZ - minZ);
-    //         aiReleaseImport(scene);
-    //     }
+    void SetupMap(){
 
-    //     string soldierPhysics = "soldier.urdf";
-    //     uint eid = spawnPhysicsObject(soldierPhysics, soldierModel, pos, orient);
-    //     writeln("[soldier] spawned entity=", eid, " at ", pos);
-    //     return eid;
-    // }
+        // === MAP: Build arena from presets ===
+        auto presetScene = aiImportFile(
+            "./assets/fps_map_kit/uploads_files_3151797_FPS_Modular_Map_Kit_FBX/Fps_Modular_Map_Presets.fbx".toStringz,
+            aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs);
+        
+        if (presetScene !is null){
+
+            IMaterial mapMat = new LitTexturedMaterial("lit_textured",
+                "./assets/fps_map_kit/uploads_files_3151797_FPS_Modular_Map_Kit_Map/FPS_Modular_Map_BaseColor.png");
+            mapMat.AddUniform(new Uniform("uTexture", 0));
+            mapMat.AddUniform(new Uniform("uModel", "mat4", null));
+            mapMat.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+            mapMat.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+
+            float sc = 0.015f;
+
+            // Helper: recursively add all meshes under a node
+            void addNodeMeshes(const(aiNode)* node, const(aiScene)* scene, mat4 parentTransform)
+            {
+                for (uint i = 0; i < node.mNumMeshes; i++)
+                {
+                    uint meshIdx = node.mMeshes[i];
+                    auto mesh = scene.mMeshes[meshIdx];
+                    auto surf = new SurfaceAssimp(cast(aiMesh*)mesh);
+                    auto mn = new MeshNode("preset_" ~ meshIdx.to!string, surf, mapMat);
+                    mn.mModelMatrix = parentTransform;
+                    mSceneTree.GetRootNode().AddChildSceneNode(mn);
+                }
+                for (uint i = 0; i < node.mNumChildren; i++)
+                {
+                    addNodeMeshes(node.mChildren[i], scene, parentTransform);
+                }
+            }
+
+            // Place presets to build an arena
+            // Cabin A at center
+            addNodeMeshes(presetScene.mRootNode.mChildren[13], presetScene,
+                MatrixMakeTranslation(vec3(0.0f, 0.0f, -20.0f)) * MatrixMakeScale(vec3(sc, sc, sc)));
+
+            // Cabin B offset
+            addNodeMeshes(presetScene.mRootNode.mChildren[16], presetScene,
+                MatrixMakeTranslation(vec3(30.0f, 0.0f, -20.0f)) * MatrixMakeScale(vec3(sc, sc, sc)));
+
+            // Building
+            addNodeMeshes(presetScene.mRootNode.mChildren[1], presetScene,
+                MatrixMakeTranslation(vec3(15.0f, 0.0f, -40.0f)) * MatrixMakeScale(vec3(sc, sc, sc)));
+
+            // Exterior walls
+            addNodeMeshes(presetScene.mRootNode.mChildren[18], presetScene,
+                MatrixMakeTranslation(vec3(-10.0f, 0.0f, 0.0f)) * MatrixMakeScale(vec3(sc, sc, sc)));
+            addNodeMeshes(presetScene.mRootNode.mChildren[18], presetScene,
+                MatrixMakeTranslation(vec3(40.0f, 0.0f, 0.0f)) * MatrixMakeScale(vec3(sc, sc, sc)));
+
+            // Sandbags for cover
+            addNodeMeshes(presetScene.mRootNode.mChildren[20], presetScene,
+                MatrixMakeTranslation(vec3(10.0f, 0.0f, -10.0f)) * MatrixMakeScale(vec3(sc, sc, sc)));
+            addNodeMeshes(presetScene.mRootNode.mChildren[21], presetScene,
+                MatrixMakeTranslation(vec3(20.0f, 0.0f, -15.0f)) * MatrixMakeScale(vec3(sc, sc, sc)));
+            addNodeMeshes(presetScene.mRootNode.mChildren[22], presetScene,
+                MatrixMakeTranslation(vec3(5.0f, 0.0f, -30.0f)) * MatrixMakeScale(vec3(sc, sc, sc)));
+
+            // Corner wall
+            addNodeMeshes(presetScene.mRootNode.mChildren[19], presetScene,
+                MatrixMakeTranslation(vec3(-10.0f, 0.0f, -40.0f)) * MatrixMakeScale(vec3(sc, sc, sc)));
+
+            writeln("[arena] built from presets");
+            aiReleaseImport(presetScene);
+        }
+    }
 
 
-    uint spawnSoldierEnemy(vec3 pos, Quat orient = Quat.init)
-    {
+    uint spawnSoldierEnemy(vec3 pos, Quat orient = Quat.init){
+
         string soldierModel = "./assets/modern_soldier/scene.gltf";
         string soldierPhysics = "soldier.urdf";
 
@@ -652,13 +625,6 @@ class GameApplication : IGame{
         writeln("[soldier] spawned entity=", eid, " at ", pos);
         return eid;
     }
-
-
-
-
-
-
-
 
     void attachAudio(AudioEngine* audio){
         mAudio = audio;
@@ -719,22 +685,6 @@ class GameApplication : IGame{
             //load each of the faces
             auto data = stbi_load(faces[i].toStringz, &width, &height, &nrChannels, 0);
 
-
-
-
-            // auto data = stbi_load("./assets/skybox/back.jpg".toStringz, &w, &h, &channels, 0);
-        // if (data !is null)
-        // {
-        //     writeln("[stb] skybox back.jpg: ", w, "x", h, " channels=", channels);
-        //     stbi_image_free(data);
-        // }
-
-
-
-
-
-
-
             if (data){
                 writeln("[stb] successfully loaded: ", faces[i]);
 
@@ -758,32 +708,6 @@ class GameApplication : IGame{
 
         return textureID;
     }  
-
-
-    void testLoadWithStb(){
-
-        int w, h, channels;
-        stbi_set_flip_vertically_on_load(1);
-        auto data = stbi_load("./assets/skybox/back.jpg".toStringz, &w, &h, &channels, 0);
-
-        if (data !is null){
-            writeln("[stb] skybox back.jpg: ", w, "x", h, " channels=", channels);
-            stbi_image_free(data);
-        }
-
-        else{
-            writeln("[stb] failed to load");
-        }       
-    }
-
-
-
-
-
-
-
-
-
 
     void setUpLights(){
 
@@ -809,13 +733,6 @@ class GameApplication : IGame{
         float speed  = 0.1f;   // controls day/night speed
         inc += 0.0002 * speed;
 
-        //rotate the light in sunlike manner
-        // gLight.mPosition = [
-        //     radius * cos(inc),
-        //     radius * sin(inc),
-        //     radius * 0.2f
-        // ];
-
         gLight.mPosition = [
             radius * cos(inc),
             radius,
@@ -840,12 +757,6 @@ class GameApplication : IGame{
             glUniform3f(glGetUniformLocation(litTexID, "viewpos"),
                 mCamera.mEyePosition.x, mCamera.mEyePosition.y, mCamera.mEyePosition.z);
         }
-
-
-
-
-       
-
     }
 
     void startBackgroundSound(){

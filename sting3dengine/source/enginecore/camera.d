@@ -16,7 +16,7 @@ class Camera{
     float mYaw   = 0.0f;
     float mPitch = 0.0f;
 
-    float mMoveSpeed = 3.05f;
+    float mMoveSpeed = 0.25f;
     float mMouseSensitivity = 0.005f;
 
     this(){
@@ -141,12 +141,12 @@ class Camera{
     }
 
     void MoveUp(){
-        mEyePosition.y = mEyePosition.y + 4.2f;
+        mEyePosition.y = mEyePosition.y + 0.5f;
         UpdateViewMatrix();
     }
 
     void MoveDown(){
-        mEyePosition.y = mEyePosition.y - 4.2f;
+        mEyePosition.y = mEyePosition.y - 0.5f;
         UpdateViewMatrix();
     }
 }
