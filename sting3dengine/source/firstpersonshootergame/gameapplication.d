@@ -516,7 +516,6 @@ class GameApplication : IGame{
         stbi_set_flip_vertically_on_load(0);
         mCubemapTexture = loadCubemap(grass_terrain_faces);
 
-
         //Set up the map as the last item
         SetupMap();
     }

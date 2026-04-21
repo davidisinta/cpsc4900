@@ -40,7 +40,6 @@ class GraphicsEngine{
         SceneTree mSceneTree;
         Camera mCamera;
         Renderer mRenderer;
-        // Light gLight;
 
         //--------------------------------------------------------------
         // Physics + entity management
@@ -195,7 +194,6 @@ class GraphicsEngine{
                 moving = true;
             }
             
-
             if (moving) {
                 if (!mGame.mWalkingSoundPlaying) {
                     mGame.playSound(mGame.mWalkingSound, &mGame.mWalkingSoundChannel);
@@ -223,78 +221,6 @@ class GraphicsEngine{
             mGame.Input();
         }
 
-        /// A helper function to setup a scene.
-        // void SetupScene(){
-
-        //     // Create a pipeline and associate it with a material
-        //     Pipeline basicPipeline = new Pipeline("basic","./pipelines/basic/basic.vert","./pipelines/basic/basic.frag");
-        //     mBasicMaterial = new BasicMaterial("basic");  // cache for spawning
-
-        //     // Create a pipeline for our light
-        //     Pipeline lightPipeline = new Pipeline("light","./pipelines/light/basic.vert","./pipelines/light/basic.frag");
-        //     IMaterial lightMaterial    = new BasicMaterial("light");
-
-        //     //we create another object for our light box and add it to scene tree
-        //     GLfloat[] lightboxVBO = [
-        //         -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-        //             0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-        //             0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-        //             0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-        //         -0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-        //         -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-
-        //         -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-        //             0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-        //             0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-        //             0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-        //         -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-        //         -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-
-        //         -0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
-        //         -0.5f,  0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
-        //         -0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
-        //         -0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
-        //         -0.5f, -0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
-        //         -0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
-
-        //             0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-        //             0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-        //             0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-        //             0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-        //             0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-        //             0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-
-        //         -0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
-        //             0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
-        //             0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
-        //             0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
-        //         -0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
-        //         -0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
-
-        //         -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-        //             0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-        //             0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-        //             0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-        //         -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-        //         -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f
-        //     ];
-        //     ISurface lightBox = new SurfaceTriangle(lightboxVBO);
-        //     MeshNode light = new MeshNode("light", lightBox, lightMaterial);
-        //     mSceneTree.GetRootNode().AddChildSceneNode(light);
-
-        //     // Add uniforms to the basic material
-        //     mBasicMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-        //     mBasicMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-        //     mBasicMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
-
-        //     //Add uniforms to our light shader as well
-        //     lightMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-        //     lightMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-        //     lightMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
-        // }
-
-        
-
         void Update(){
 
             // Update game audio
@@ -310,9 +236,6 @@ class GraphicsEngine{
 			// A rotation value that 'updates' every frame to give some animation in our scene
 			static float yRotation = 0.0f;   yRotation += 0.01f;
 
-			
-            
-
             //Update the FPS which the games gui is reading
             mGame.mGui.fps = this.fps;
             mGame.mGui.screenWidth = mScreenWidth;
@@ -322,8 +245,6 @@ class GraphicsEngine{
         }
 
         void Render(){
-
-            // glDisable(GL_CULL_FACE);
 
             // Render 3D scene
             if(mRenderWireframe){
