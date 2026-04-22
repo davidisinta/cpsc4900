@@ -1,50 +1,3 @@
-// module gamegui;
-
-
-// // standard library files
-// import std.stdio;
-// import std.string;
-
-// // project files
-// import editor;
-
-
-// class GameGUI{
-
-//     string mGuiName;
-
-//     this(string name){
-//         mGuiName = name;
-//     }
-
-
-//     void Input(){
-
-//     }
-
-//     void Update(){
-
-//     }
-
-//     void Render(int fps){
-//         // ImGui UI
-//         igBegin("HUD", null, ImGuiWindowFlags_None);
-//         igText("TOPSHOTAA");
-//         igText("FPS: %d", fps);
-//         igEnd();
-
-//         // Finish ImGui frame and draw it
-//         igRender();
-//         ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
-
-//     }
-
-    
-
-// }
-
-
-
 module gamegui;
 
 import std.stdio;
@@ -68,6 +21,8 @@ class GameGUI
     int roundTimeSeconds = 38;
     int comboCount = 0;
     int fps = 0;
+
+    double lastFiveSecFps = 60;
 
     // Screen dimensions — set from engine
     int screenWidth = 960;
@@ -119,7 +74,7 @@ class GameGUI
         // ============================================
         // TOP RIGHT — FPS
         // ============================================
-        igSetNextWindowPos(cast(float)screenWidth - 10, 10, 4, 1.0f, 0);
+        igSetNextWindowPos(cast(float)screenWidth - 30, 10, 4, 1.0f, 0);
         igSetNextWindowBgAlpha(0.4f);
         igBegin("##topright", null,
             ImGuiWindowFlags_NoTitleBar |
@@ -128,7 +83,7 @@ class GameGUI
             ImGuiWindowFlags_AlwaysAutoResize |
             ImGuiWindowFlags_NoScrollbar);
 
-        igText("FPS: %d", fps);
+        igText("FPS: %d", cast(int)lastFiveSecFps);
 
         igEnd();
 

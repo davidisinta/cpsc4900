@@ -33,13 +33,16 @@ class GraphicsEngine{
         SDL_Window* mWindow;
         int i = 0;
         int fps = 0;
-        int MS_PER_FRAME = 16;
+        // int MS_PER_FRAME = 16;
         int mScreenWidth;
         int mScreenHeight;
 
         SceneTree mSceneTree;
         Camera mCamera;
         Renderer mRenderer;
+        double mFpsLogAccumTime = 0.0;
+        int mFpsLogFrameCount = 0;
+        double mAvgFiveSecFps = 0.0;
 
         //--------------------------------------------------------------
         // Physics + entity management
@@ -238,6 +241,7 @@ class GraphicsEngine{
 
             //Update the FPS which the games gui is reading
             mGame.mGui.fps = this.fps;
+            mGame.mGui.lastFiveSecFps = mAvgFiveSecFps;
             mGame.mGui.screenWidth = mScreenWidth;
             mGame.mGui.screenHeight = mScreenHeight;
 
@@ -278,6 +282,18 @@ class GraphicsEngine{
             mLastFrameTime = now;
             mFrameDt = elapsed / 1000.0;
 
+            mFpsLogAccumTime += mFrameDt;
+            mFpsLogFrameCount++;
+
+            if (mFpsLogAccumTime >= 5.0)
+            {
+                mAvgFiveSecFps = mFpsLogFrameCount / mFpsLogAccumTime;
+                // writeln("[perf] 5s avg fps: ", mAvgFiveSecFps);
+
+                mFpsLogAccumTime = 0.0;
+                mFpsLogFrameCount = 0;
+            }
+
             // Start ImGui frame BEFORE input
             // beacuse we need to check if there are any events to imgui
             ImGui_ImplOpenGL3_NewFrame();
@@ -288,10 +304,10 @@ class GraphicsEngine{
             Update();
             Render();
 
-            // Frame cap
+            // Frame cap at about 120 fps
             int frame_elapsed = SDL_GetTicks() - now;
-            if(frame_elapsed < 16){
-                SDL_Delay(16 - frame_elapsed);
+            if(frame_elapsed < 8){
+                SDL_Delay(8 - frame_elapsed);
                 int curr_fps = 1000/(SDL_GetTicks() - now);
                 if(this.fps!=curr_fps)
                 {

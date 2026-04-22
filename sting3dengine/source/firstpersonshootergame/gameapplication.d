@@ -48,6 +48,9 @@ class GameApplication : IGame{
     GLuint mSkyBoxVAO;
     GLuint  mSkyBoxVBO;
     GLuint mCubemapTexture;
+    vec3 mFogColor;
+    float mFogStart;
+    float mFogEnd;
 
     //Game Materials
     IMaterial mLitTexturedMaterial;
@@ -76,6 +79,9 @@ class GameApplication : IGame{
         mSceneTree = tree;
         mBasicMaterial = mat;
         mGui = new GameGUI("topshoota-game-gui");
+        mFogColor = vec3(0.55f, 0.68f, 0.78f);
+        mFogStart = 80.0f;
+        mFogEnd = 180.0f;
     }
 
     override void Input(){
@@ -264,6 +270,11 @@ class GameApplication : IGame{
         mLitTexturedMaterial.AddUniform(new Uniform("uModel", "mat4", null));
         mLitTexturedMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
         mLitTexturedMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+        mLitTexturedMaterial.AddUniform(new Uniform("uFogColor", "vec3", &mFogColor));
+        mLitTexturedMaterial.AddUniform(new Uniform("uFogStart", mFogStart));
+        mLitTexturedMaterial.AddUniform(new Uniform("uFogEnd", mFogEnd));
+
+      
 
         //----------------------------------------------------------------
         // Add Materials for the tree
@@ -277,6 +288,9 @@ class GameApplication : IGame{
         mLindenBarkMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
         mLindenBarkMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
 
+        mLitTexturedMaterial.AddUniform(new Uniform("uFogColor", "vec3", &mFogColor));
+        mLitTexturedMaterial.AddUniform(new Uniform("uFogStart", mFogStart));
+        mLitTexturedMaterial.AddUniform(new Uniform("uFogEnd", mFogEnd));
         //-----------------------------------------------------------------
         // add terrain to the game now 
         //-----------------------------------------------------------------
@@ -458,7 +472,7 @@ class GameApplication : IGame{
         writeln("[tree-test] A before linden block");
 
         // 30 trees, all at least radius 40 from origin
-        foreach (i; 0 .. 60){
+        foreach (i; 0 .. 160){
             float x, z;
 
             // keep sampling until outside radius 40
