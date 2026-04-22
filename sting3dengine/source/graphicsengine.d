@@ -260,14 +260,6 @@ class GraphicsEngine{
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glEnable(GL_DEPTH_TEST);	
 
-
-            // Draw skybox FIRST with depth writing off
-
-            // glEnable(GL_DEPTH_TEST);
-            // glDepthMask(GL_FALSE);
-            // mGame.drawSkyBox();
-            // glDepthMask(GL_TRUE);
-
             // to do: check if perhaps renderer can do all rendering
             // even from game side
             mRenderer.Render(mSceneTree,mCamera);

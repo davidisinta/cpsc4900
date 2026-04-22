@@ -6,6 +6,7 @@ import std.conv;
 import std.datetime.systime : Clock;
 import std.string : toStringz, fromStringz;
 import std.math;
+import std.random : uniform;
 
 // project files
 import enginecore;
@@ -118,9 +119,6 @@ class GameApplication : IGame{
 
     void Render(){
 
-        //Render the Skybox Last
-        // drawSkyBox();
-
         //Render Cross Hair as it is like a GUI element
         drawCrosshair();
 
@@ -141,8 +139,7 @@ class GameApplication : IGame{
     string urdfPath,
     string modelPath,
     vec3 pos,
-    Quat orient = Quat.init)
-    {
+    Quat orient = Quat.init){
         uint eid = mEntityManager.create();
 
         // add physics to the object
@@ -171,38 +168,6 @@ class GameApplication : IGame{
         writeln("[spawn] entity=", eid, " urdf=", urdfPath, " model=", modelPath, " pos=", pos);
         return eid;
     }
-
-    void drawSkyBox(){
-
-        glDepthFunc(GL_LEQUAL);
-
-        uint skyboxProgram = Pipeline.sPipeline["skybox"];
-        glUseProgram(skyboxProgram);
-
-        mat4 view = mCamera.mViewMatrix;
-        view[3]  = 0.0f;
-        view[7]  = 0.0f;
-        view[11] = 0.0f;
-
-        glUniformMatrix4fv(
-            glGetUniformLocation(skyboxProgram, "view"),
-            1, GL_FALSE, view.DataPtr());
-
-        glUniformMatrix4fv(
-            glGetUniformLocation(skyboxProgram, "projection"),
-            1, GL_FALSE, mCamera.mProjectionMatrix.DataPtr());
-
-        glUniform1i(glGetUniformLocation(skyboxProgram, "skybox"), 0);
-
-        glBindVertexArray(mSkyBoxVAO);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, mCubemapTexture);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        glBindVertexArray(0);
-
-        glDepthFunc(GL_LESS);
-    }
-
 
     void drawCrosshair(){
         if (!mCrosshairReady) return;
@@ -304,30 +269,13 @@ class GameApplication : IGame{
         // Add Materials for the tree
         //----------------------------------------------------------------
 
-        // mTreeBarkMaterial = new LitTexturedMaterial("lit_textured",
-        //     "./assets/free-tree-downloadfbx/textures/Tree_bark.jpg");
-        // mTreeBarkMaterial.AddUniform(new Uniform("uTexture", 0));
-        // mTreeBarkMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-        // mTreeBarkMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-        // mTreeBarkMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
-
-        // mTreeLeafMaterial = new LitTexturedMaterial("lit_textured",
-        //     "./assets/free-tree-downloadfbx/textures/Tree_leafs_Demo_class.jpg");
-        // mTreeLeafMaterial.AddUniform(new Uniform("uTexture", 0));
-        // mTreeLeafMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-        // mTreeLeafMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-        // mTreeLeafMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
-
-
         // simple tree
-                mLindenBarkMaterial = new LitTexturedMaterial("lit_textured",
-            "./assets/4-linden-trees-pack-medium-poly/import_1/nature_bark_linden_04_m_0001.jpg");
+        mLindenBarkMaterial = new LitTexturedMaterial("lit_textured", "./assets/4-linden-trees-pack-medium-poly/import_1/nature_bark_linden_04_m_0001.jpg");
 
         mLindenBarkMaterial.AddUniform(new Uniform("uTexture", 0));
         mLindenBarkMaterial.AddUniform(new Uniform("uModel", "mat4", null));
         mLindenBarkMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
         mLindenBarkMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
-
 
         //-----------------------------------------------------------------
         // add terrain to the game now 
@@ -368,63 +316,19 @@ class GameApplication : IGame{
         TransformComponent planeTc;
         mEntityManager.addTransform(mGroundEntity, planeTc);
 
-        // Spawn target
-        // to do: perhaps remove this cube entity object
-        mCubeEntity = spawnPhysicsObject(
-            "cube.urdf",
-            "./assets/meshes/bunny_centered.obj",
-            vec3(0.0f, 0.0f, 0.0f),
-            Quat.init
-        );
+        // // Spawn target
+        // // to do: perhaps remove this cube entity object
+        // mCubeEntity = spawnPhysicsObject(
+        //     "cube.urdf",
+        //     "./assets/meshes/bunny_centered.obj",
+        //     vec3(0.0f, 0.0f, 0.0f),
+        //     Quat.init
+        // );
 
-        // Another target for testing
-        vec3 testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -4.0f);
-        spawnPhysicsObject(
-            "cube.urdf",
-            "./assets/meshes/bunny_centered.obj",
-            testPos,
-            Quat.init
-        );
-
-        // Another target for testing
-        testPos = mCamera.mEyePosition + vec3(0.0f, 0.0f, -14.0f);
-        spawnPhysicsObject(
-            "cube.urdf",
-            "./assets/meshes/bunny_centered.obj",
-            testPos,
-            Quat.init
-        );
-
-        //  Another target for testing
-        testPos = mCamera.mEyePosition + vec3(0.0f, 20.0f, -24.0f);
-        spawnPhysicsObject(
-            "cube.urdf",
-            "./assets/meshes/bunny_centered.obj",
-            testPos,
-            Quat.init
-        );
-
-        // Another target for testing
-        testPos = mCamera.mEyePosition + vec3(10.0f, 0.0f, -24.0f);
-        spawnPhysicsObject(
-            "cube.urdf",
-            "./assets/meshes/bunny_centered.obj",
-            testPos,
-            Quat.init
-        );
-
-        // Another target for testing
-        testPos = mCamera.mEyePosition + vec3(20.0f, 0.0f, -54.0f);
-        spawnPhysicsObject(
-            "cube.urdf",
-            "./assets/meshes/bunny_centered.obj",
-            testPos,
-            Quat.init
-        );
-
-
+        // -------------------------------------------------------
+        // Spawn Soldiers
+        // -------------------------------------------------------
         spawnSoldierEnemy(vec3(33.0f, 0.0f, -10.0f), Quat.init);
-
         spawnSoldierEnemy(vec3(0.0f, 0.0f, -30.0f), Quat.init);
         spawnSoldierEnemy(vec3(0.0f, 0.0f, -40.0f), Quat.init);
         spawnSoldierEnemy(vec3(13.0f, 0.0f, -17.0f), Quat.init);
@@ -439,7 +343,6 @@ class GameApplication : IGame{
 
         float[] skyboxVertices = [
 
-        
             // positions          
             -1.0f,  1.0f, -1.0f,
             -1.0f, -1.0f, -1.0f,
@@ -547,27 +450,30 @@ class GameApplication : IGame{
         ];
 
         stbi_set_flip_vertically_on_load(0);
-        mCubemapTexture = loadCubemap(grass_terrain_faces);
+        mCubemapTexture = loadCubemap(faces);
 
         //Set up the map as the last item
         SetupMap();
 
-
-        //draw trees
-        // spawnTreeVisualOnly(vec3(8.0f, 0.0f, -12.0f), Quat.init);
-        // spawnLinden1VisualOnly(vec3(8.0f, 0.0f, -12.0f), Quat.init);
-
         writeln("[tree-test] A before linden block");
 
-        spawnLinden1VisualOnly(vec3(8.0f, 0.0f, -12.0f), Quat.init);
+        // 30 trees, all at least radius 40 from origin
+        foreach (i; 0 .. 60){
+            float x, z;
+
+            // keep sampling until outside radius 40
+            do
+            {
+                x = uniform(-120.0f, 120.0f);
+                z = uniform(-120.0f, 120.0f);
+            }
+            while ((x * x + z * z) < (100.0f * 100.0f));
+
+            spawnLinden1VisualOnly(vec3(x, 0.0f, z), Quat.init);
+        }
+
         debugLindenAsset();
-
         writeln("[tree-test] B after linden block");
-
-
-        //debugging
-        // debugTreeAsset();
-        // debugLindenAsset();
     }
 
 
@@ -643,227 +549,154 @@ class GameApplication : IGame{
         }
     }
 
+    void debugAssimpNodeTree(const(aiNode)* node, int depth = 0){
+        if (node is null) return;
 
-    // uint spawnTree(vec3 pos, Quat orient = Quat.init)
-    // {
-    //     string treeModel = "./assets/free-tree-downloadfbx/source/Tree test.fbx";
-    //     string treePhysics = "tree.urdf";
+        string indent;
+        foreach (_; 0 .. depth) indent ~= "  ";
 
-    //     uint eid = mEntityManager.create();
+        auto nodeName = aiNodeName(node);
 
-    //     mPhysicsWorld.addURDF(eid, treePhysics,
-    //         pos.x, pos.y, pos.z,
-    //         orient.x, orient.y, orient.z, orient.w);
-    //     mEntityManager.markPhysics(eid);
+        writeln(indent, "[assimp-node] name=", nodeName,
+            " meshes=", node.mNumMeshes,
+            " children=", node.mNumChildren);
 
-    //     auto model = new Model(treeModel);
-    //     auto nodes = model.addToScene(mSceneTree, mLitTexturedMaterial, "tree_" ~ eid.to!string);
+        foreach (i; 0 .. node.mNumMeshes)
+        {
+            writeln(indent, "  meshIndex=", node.mMeshes[i]);
+        }
 
-    //     TransformComponent tc;
-    //     tc.position = pos;
-    //     tc.rotation = orient;
-    //     mEntityManager.addTransform(eid, tc);
-
-    //     foreach (node; nodes)
-    //     {
-    //         node.mModelMatrix = tc.toModelMatrix();
-    //         mEntityManager.addRenderable(eid, node);
-    //     }
-
-    //     writeln("[tree] spawned entity=", eid, " model=", treeModel, " at ", pos);
-    //     return eid;
-    // }
-
-
-
-//     void debugAssimpNodeTree(const(aiNode)* node, int depth = 0)
-// {
-//     if (node is null) return;
-
-//     string indent;
-//     foreach (_; 0 .. depth) indent ~= "  ";
-
-//     auto nodeName = fromStringz(node.mName.data);
-//     writeln(indent, "[assimp-node] name=", nodeName,
-//         " meshes=", node.mNumMeshes,
-//         " children=", node.mNumChildren);
-
-//     if (node.mNumMeshes > 0)
-//     {
-//         foreach (i; 0 .. node.mNumMeshes)
-//         {
-//             writeln(indent, "  meshIndex=", node.mMeshes[i]);
-//         }
-//     }
-
-//     foreach (i; 0 .. node.mNumChildren)
-//     {
-//         debugAssimpNodeTree(node.mChildren[i], depth + 1);
-//     }
-// }
-
-void debugAssimpNodeTree(const(aiNode)* node, int depth = 0)
-{
-    if (node is null) return;
-
-    string indent;
-    foreach (_; 0 .. depth) indent ~= "  ";
-
-    auto nodeName = aiNodeName(node);
-
-    writeln(indent, "[assimp-node] name=", nodeName,
-        " meshes=", node.mNumMeshes,
-        " children=", node.mNumChildren);
-
-    foreach (i; 0 .. node.mNumMeshes)
-    {
-        writeln(indent, "  meshIndex=", node.mMeshes[i]);
+        foreach (i; 0 .. node.mNumChildren)
+        {
+            debugAssimpNodeTree(node.mChildren[i], depth + 1);
+        }
     }
 
-    foreach (i; 0 .. node.mNumChildren)
-    {
-        debugAssimpNodeTree(node.mChildren[i], depth + 1);
-    }
-}
-
-
-
-void debugLindenAsset()
-{
-    auto scene = aiImportFile(
-        "./assets/4-linden-trees-pack-medium-poly/import_1/linden.obj".toStringz,
-        aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs
-    );
-
-    if (scene is null)
-    {
-        writeln("[linden-debug] failed to import OBJ");
-        return;
-    }
-
-    writeln("[linden-debug] mesh count = ", scene.mNumMeshes);
-    writeln("[linden-debug] material count = ", scene.mNumMaterials);
-
-    for (uint i = 0; i < scene.mNumMeshes; ++i)
-    {
-        auto mesh = scene.mMeshes[i];
-        writeln("[linden-debug] mesh ", i,
-            " materialIndex=", mesh.mMaterialIndex,
-            " vertexCount=", mesh.mNumVertices,
-            " faceCount=", mesh.mNumFaces);
-    }
-
-    writeln("[linden-debug] NODE TREE:");
-    debugAssimpNodeTree(scene.mRootNode);
-
-    aiReleaseImport(scene);
-}
-
-string aiNodeName(const(aiNode)* node)
-{
-    if (node is null) return "";
-
-    size_t len = cast(size_t)node.mName.length;
-    return cast(string) node.mName.data[0 .. len];
-}
-
-
-const(aiNode)* findNodeByName(const(aiNode)* node, string targetName)
-{
-    if (node is null) return null;
-
-    auto nodeName = fromStringz(node.mName.data);
-    if (nodeName == targetName)
-        return node;
-
-    foreach (i; 0 .. node.mNumChildren)
-    {
-        auto found = findNodeByName(node.mChildren[i], targetName);
-        if (found !is null)
-            return found;
-    }
-
-    return null;
-}
-
-
-void addMeshesFromNode(
-    const(aiNode)* node,
-    const(aiScene)* scene,
-    uint eid,
-    vec3 pos,
-    IMaterial mat)
-{
-    if (node is null || scene is null) return;
-
-    foreach (i; 0 .. node.mNumMeshes)
-    {
-        uint meshIdx = node.mMeshes[i];
-        auto mesh = scene.mMeshes[meshIdx];
-
-        auto surf = new SurfaceAssimp(cast(aiMesh*)mesh);
-        auto renderNode = new MeshNode(
-            "linden_" ~ eid.to!string ~ "_" ~ meshIdx.to!string,
-            surf,
-            mat
+    void debugLindenAsset(){
+        auto scene = aiImportFile(
+            "./assets/4-linden-trees-pack-medium-poly/import_1/linden.obj".toStringz,
+            aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs
         );
 
-        renderNode.mModelMatrix =
-            MatrixMakeTranslation(pos) *
-            MatrixMakeScale(vec3(1.0f, 1.0f, 1.0f));
+        if (scene is null)
+        {
+            writeln("[linden-debug] failed to import OBJ");
+            return;
+        }
 
-        mSceneTree.GetRootNode().AddChildSceneNode(renderNode);
-        mEntityManager.addRenderable(eid, renderNode);
-    }
-}
+        writeln("[linden-debug] mesh count = ", scene.mNumMeshes);
+        writeln("[linden-debug] material count = ", scene.mNumMaterials);
 
+        for (uint i = 0; i < scene.mNumMeshes; ++i)
+        {
+            auto mesh = scene.mMeshes[i];
+            writeln("[linden-debug] mesh ", i,
+                " materialIndex=", mesh.mMaterialIndex,
+                " vertexCount=", mesh.mNumVertices,
+                " faceCount=", mesh.mNumFaces);
+        }
 
-uint spawnLinden1VisualOnly(vec3 pos, Quat orient = Quat.init)
-{
-    string modelPath = "./assets/4-linden-trees-pack-medium-poly/import_1/linden.obj";
+        writeln("[linden-debug] NODE TREE:");
+        debugAssimpNodeTree(scene.mRootNode);
 
-    uint eid = mEntityManager.create();
-
-    auto scene = aiImportFile(
-        modelPath.toStringz,
-        aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs
-    );
-
-    if (scene is null)
-    {
-        writeln("[linden] failed to import ", modelPath);
-        return eid;
-    }
-
-    TransformComponent tc;
-    tc.position = pos;
-    tc.rotation = orient;
-    mEntityManager.addTransform(eid, tc);
-
-    auto lindenNode = findNodeByName(scene.mRootNode, "linden_1");
-
-    if (lindenNode is null)
-    {
-        writeln("[linden] node linden_1 not found");
         aiReleaseImport(scene);
+    }
+
+    string aiNodeName(const(aiNode)* node){
+        if (node is null) return "";
+
+        size_t len = cast(size_t)node.mName.length;
+        return cast(string) node.mName.data[0 .. len];
+    }
+
+    const(aiNode)* findNodeByName(const(aiNode)* node, string targetName){
+        if (node is null) return null;
+
+        auto nodeName = fromStringz(node.mName.data);
+        if (nodeName == targetName)
+            return node;
+
+        foreach (i; 0 .. node.mNumChildren)
+        {
+            auto found = findNodeByName(node.mChildren[i], targetName);
+            if (found !is null)
+                return found;
+        }
+
+        return null;
+    }
+
+
+    void addMeshesFromNode(
+        const(aiNode)* node,
+        const(aiScene)* scene,
+        uint eid,
+        vec3 pos,
+        IMaterial mat){
+
+        if (node is null || scene is null) return;
+
+        foreach (i; 0 .. node.mNumMeshes)
+        {
+            uint meshIdx = node.mMeshes[i];
+            auto mesh = scene.mMeshes[meshIdx];
+
+            auto surf = new SurfaceAssimp(cast(aiMesh*)mesh);
+            auto renderNode = new MeshNode(
+                "linden_" ~ eid.to!string ~ "_" ~ meshIdx.to!string,
+                surf,
+                mat
+            );
+
+            renderNode.mModelMatrix =
+                MatrixMakeTranslation(pos) *
+                MatrixMakeScale(vec3(1.0f, 1.0f, 1.0f));
+
+            mSceneTree.GetRootNode().AddChildSceneNode(renderNode);
+            mEntityManager.addRenderable(eid, renderNode);
+        }
+    }
+
+
+    uint spawnLinden1VisualOnly(vec3 pos, Quat orient = Quat.init){
+
+        string modelPath = "./assets/4-linden-trees-pack-medium-poly/import_1/linden.obj";
+
+        uint eid = mEntityManager.create();
+
+        auto scene = aiImportFile(
+            modelPath.toStringz,
+            aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs
+        );
+
+        if (scene is null)
+        {
+            writeln("[linden] failed to import ", modelPath);
+            return eid;
+        }
+
+        TransformComponent tc;
+        tc.position = pos;
+        tc.rotation = orient;
+        mEntityManager.addTransform(eid, tc);
+
+        auto lindenNode = findNodeByName(scene.mRootNode, "linden_1");
+
+        if (lindenNode is null){
+            writeln("[linden] node linden_1 not found");
+            aiReleaseImport(scene);
+            return eid;
+        }
+
+        addMeshesFromNode(lindenNode, scene, eid, pos, mLindenBarkMaterial);
+
+        aiReleaseImport(scene);
+
+        writeln("[linden] visual-only entity=", eid, " spawned at ", pos);
         return eid;
     }
 
-    addMeshesFromNode(lindenNode, scene, eid, pos, mLindenBarkMaterial);
-
-    aiReleaseImport(scene);
-
-    writeln("[linden] visual-only entity=", eid, " spawned at ", pos);
-    return eid;
-}
-
-
-
-
-
-
-    uint spawnTreeVisualOnly(vec3 pos, Quat orient = Quat.init)
-    {
+    uint spawnTreeVisualOnly(vec3 pos, Quat orient = Quat.init){
         string treeModel = "./assets/free-tree-downloadfbx/source/Tree test.fbx";
 
         uint eid = mEntityManager.create();
@@ -891,13 +724,9 @@ uint spawnLinden1VisualOnly(vec3 pos, Quat orient = Quat.init)
 
             auto surf = new SurfaceAssimp(cast(aiMesh*)mesh);
             auto node = new MeshNode("tree_" ~ eid.to!string ~ "_" ~ i.to!string, surf, mat);
-            // node.mModelMatrix = tc.toModelMatrix();
-
-        
-
-            node.mModelMatrix =
-    MatrixMakeTranslation(pos) *
-    MatrixMakeScale(vec3(1.02f, 1.02f, 1.02f));
+          
+            node.mModelMatrix = MatrixMakeTranslation(pos) *
+            MatrixMakeScale(vec3(1.02f, 1.02f, 1.02f));
 
             mSceneTree.GetRootNode().AddChildSceneNode(node);
             mEntityManager.addRenderable(eid, node);
@@ -909,11 +738,6 @@ uint spawnLinden1VisualOnly(vec3 pos, Quat orient = Quat.init)
         return eid;
     }
 
-
-
-
-
-
     void debugTreeAsset(){
 
         auto scene = aiImportFile(
@@ -921,8 +745,7 @@ uint spawnLinden1VisualOnly(vec3 pos, Quat orient = Quat.init)
             aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs
         );
 
-        if (scene is null)
-        {
+        if (scene is null){
             writeln("[tree-debug] failed to import tree FBX");
             return;
         }
@@ -930,8 +753,7 @@ uint spawnLinden1VisualOnly(vec3 pos, Quat orient = Quat.init)
         writeln("[tree-debug] mesh count = ", scene.mNumMeshes);
         writeln("[tree-debug] material count = ", scene.mNumMaterials);
 
-        for (uint i = 0; i < scene.mNumMeshes; ++i)
-        {
+        for (uint i = 0; i < scene.mNumMeshes; ++i){
             auto mesh = scene.mMeshes[i];
             writeln("[tree-debug] mesh ", i,
                 " materialIndex=", mesh.mMaterialIndex,
@@ -964,8 +786,7 @@ uint spawnLinden1VisualOnly(vec3 pos, Quat orient = Quat.init)
         tc.rotation = orient;
         mEntityManager.addTransform(eid, tc);
 
-        foreach (node; nodes)
-        {
+        foreach (node; nodes){
             node.mModelMatrix = tc.toModelMatrix();
             mEntityManager.addRenderable(eid, node);
         }
@@ -1257,7 +1078,6 @@ uint spawnLinden1VisualOnly(vec3 pos, Quat orient = Quat.init)
         writeln("[destroy] entity=", entityId);
     }
 }
-
 
 
 // top links:
