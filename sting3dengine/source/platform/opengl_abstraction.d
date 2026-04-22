@@ -72,5 +72,3 @@ void GetOpenGLVersionInfo(){
 //        const GLubyte* glGetStringi(GL_EXTENSIONS,index);
 
 }
-
-

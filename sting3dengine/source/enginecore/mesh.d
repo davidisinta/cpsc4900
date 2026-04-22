@@ -56,4 +56,3 @@ class MeshNode : ISceneNode{
         return mGeometry;
     }
 }
-

@@ -710,5 +710,3 @@ unittest{
 
     writeln(m*v);
 }
-
-

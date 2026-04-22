@@ -29,6 +29,3 @@ class TextureMaterial : IMaterial{
 				}
     }
 }
-
-
-

@@ -48,18 +48,6 @@ class Model
 
     /// Add all meshes to a scene tree under a parent node, using the given material.
     /// Returns the MeshNode array so caller can set model matrices.
-    // MeshNode[] addToScene(SceneTree sceneTree, IMaterial material, string namePrefix)
-    // {
-    //     MeshNode[] nodes;
-    //     foreach (i, submesh; mMeshes)
-    //     {
-    //         string nodeName = namePrefix ~ "_mesh" ~ i.to!string;
-    //         auto node = new MeshNode(nodeName, submesh.surface, material);
-    //         sceneTree.GetRootNode().AddChildSceneNode(node);
-    //         nodes ~= node;
-    //     }
-    //     return nodes;
-    // }
     MeshNode[] addToScene(SceneTree sceneTree, IMaterial material, string namePrefix)
     {
         MeshNode[] nodes;
@@ -130,4 +118,55 @@ class Model
         sm.materialIndex = mesh.mMaterialIndex;
         mMeshes ~= sm;
     }
+
+
+    /// Create new MeshNodes from cached mesh data.
+    /// Each call produces independent nodes that can be positioned separately.
+    // MeshNode[] createNodes(SceneTree sceneTree, IMaterial material, string namePrefix)
+    // {
+    //     import surfaceassimp;
+
+    //     MeshNode[] nodes;
+    //     foreach (i, submesh; mMeshes)
+    //     {
+    //         string nodeName = namePrefix ~ "_mesh" ~ i.to!string;
+    //         auto node = new MeshNode(nodeName, submesh.surface, material);
+
+    //         auto assimpSurf = cast(SurfaceAssimp)submesh.surface;
+    //         if (assimpSurf !is null)
+    //             node.mBoundingRadius = assimpSurf.mBoundingRadius;
+
+    //         sceneTree.GetRootNode().AddChildSceneNode(node);
+    //         nodes ~= node;
+    //     }
+    //     return nodes;
+    // }
+
+    MeshNode[] createNodes(SceneTree sceneTree, IMaterial material, string namePrefix, int maxMeshes = 0)
+    {
+        import surfaceassimp;
+
+        MeshNode[] nodes;
+        auto limit = (maxMeshes > 0 && maxMeshes < mMeshes.length) ? maxMeshes : mMeshes.length;
+        
+        foreach (i; 0 .. limit)
+        {
+            string nodeName = namePrefix ~ "_mesh" ~ i.to!string;
+            auto node = new MeshNode(nodeName, mMeshes[i].surface, material);
+
+            auto assimpSurf = cast(SurfaceAssimp)mMeshes[i].surface;
+            if (assimpSurf !is null)
+                node.mBoundingRadius = assimpSurf.mBoundingRadius;
+
+            sceneTree.GetRootNode().AddChildSceneNode(node);
+            nodes ~= node;
+        }
+        return nodes;
+    }
+
+
+
+
+
+
 }
