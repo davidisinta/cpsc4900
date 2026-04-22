@@ -250,15 +250,6 @@ class LevelBuilder
     MaterialRegistry mMaterials;
     float mMapKitScaleFactor = 0.015f;
 
-    // this(Camera cam, SceneTree tree, EntityManager em, PhysicsWorld physics, MaterialRegistry materials)
-    // {
-    //     mCamera = cam;
-    //     mSceneTree = tree;
-    //     mMaterials = materials;
-    //     mSpawnFactory = new SpawnFactory(cam, em, tree, physics, materials);
-    // }
-
-
     this(Camera cam, SceneTree tree, EntityManager em, PhysicsWorld physics,
          MaterialRegistry materials, ResourceManager resources)
     {

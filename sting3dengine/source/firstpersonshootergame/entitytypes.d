@@ -30,19 +30,6 @@ struct EntityType
         return t;
     }
 
-    // static EntityType lindenTree()
-    // {
-    //     EntityType t;
-    //     t.name = "linden";
-    //     t.modelPath = "./assets/4-linden-trees-pack-medium-poly/import_1/linden.obj";
-    //     t.urdfPath = null;
-    //     t.texturePath = "linden";
-    //     t.scale = 1.0f;
-    //     t.yOffset = 0.0f;
-    //     t.hasPhysics = false;
-    //     return t;
-    // }
-
     static EntityType lindenTree()
     {
         EntityType t;

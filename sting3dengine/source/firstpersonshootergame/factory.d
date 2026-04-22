@@ -24,75 +24,7 @@ import materialregistry;
 
 class SpawnFactory
 {
-    // EntityManager mEntityManager;
-    // SceneTree mSceneTree;
-    // Camera mCamera;
-    // PhysicsWorld mPhysicsWorld;
-    // MaterialRegistry mMaterials;
-
-    // this(Camera cam, EntityManager em, SceneTree tree, PhysicsWorld physics, MaterialRegistry materials)
-    // {
-    //     mCamera = cam;
-    //     mEntityManager = em;
-    //     mSceneTree = tree;
-    //     mPhysicsWorld = physics;
-    //     mMaterials = materials;
-    // }
-
-    // /// Core factory method — spawns any entity type at a position
-    // uint spawn(EntityType type, vec3 pos, Quat orient = Quat.init)
-    // {
-    //     uint eid = mEntityManager.create();
-
-    //     vec3 adjustedPos = vec3(pos.x, pos.y + type.yOffset, pos.z);
-
-    //     // Physics (if needed)
-    //     if (type.hasPhysics && type.urdfPath !is null)
-    //     {
-    //         mPhysicsWorld.addURDF(eid, type.urdfPath,
-    //             adjustedPos.x, adjustedPos.y, adjustedPos.z,
-    //             orient.x, orient.y, orient.z, orient.w);
-    //         mEntityManager.markPhysics(eid);
-    //     }
-
-    //     // Choose material
-    //     IMaterial mat;
-    //     if (type.texturePath !is null)
-    //         mat = mMaterials.get(type.texturePath);
-    //     else
-    //         mat = mMaterials.get("basic");
-
-    //     // Load model and add to scene
-    //     // auto model = new Model(type.modelPath);
-    //     // auto nodes = model.addToScene(mSceneTree, mat, type.name ~ "_" ~ eid.to!string);
-
-
-
-    //     auto model = mResources.getModel(type.modelPath);
-    //     auto nodes = model.createNodes(mSceneTree, mat, type.name ~ "_" ~ eid.to!string);
-
-    //     // Limit submeshes if specified
-    //     if (type.maxSubmeshes > 0 && nodes.length > type.maxSubmeshes)
-    //         nodes = nodes[0 .. type.maxSubmeshes];
-
-    //     // Transform
-    //     TransformComponent tc;
-    //     tc.position = adjustedPos;
-    //     tc.rotation = orient;
-    //     mEntityManager.addTransform(eid, tc);
-
-    //     foreach (node; nodes)
-    //     {
-    //         node.mModelMatrix = tc.toModelMatrix()
-    //             * MatrixMakeScale(vec3(type.scale, type.scale, type.scale));
-    //         mEntityManager.addRenderable(eid, node);
-    //     }
-
-    //     writeln("[spawn] ", type.name, " entity=", eid, " at ", adjustedPos);
-    //     return eid;
-    // }
-
-
+    
     EntityManager mEntityManager;
     SceneTree mSceneTree;
     Camera mCamera;
@@ -131,14 +63,10 @@ class SpawnFactory
         else
             mat = mMaterials.get("basic");
 
-        // Use resource manager — model loaded once, reused for all instances
-        // auto model = mResources.getModel(type.modelPath);
-        // auto nodes = model.createNodes(mSceneTree, mat, type.name ~ "_" ~ eid.to!string);
-
         auto model = mResources.getModel(type.modelPath);
         auto nodes = model.createNodes(mSceneTree, mat, type.name ~ "_" ~ eid.to!string, type.maxSubmeshes);
 
-            // Limit submeshes if specified
+        // Limit submeshes if specified
         if (type.maxSubmeshes > 0 && nodes.length > type.maxSubmeshes)
             nodes = nodes[0 .. type.maxSubmeshes];
 
@@ -157,12 +85,6 @@ class SpawnFactory
         writeln("[spawn] ", type.name, " entity=", eid, " at ", adjustedPos);
         return eid;
     }
-
-
-
-
-
-
 
     /// Convenience: spawn multiple soldiers at fixed positions
     void spawnSoldiers()
@@ -211,78 +133,3 @@ class SpawnFactory
         writeln("[stress] spawned ", count, " trees");
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-// import resourcemanager;
-
-// class SpawnFactory
-// {
-//     EntityManager mEntityManager;
-//     SceneTree mSceneTree;
-//     Camera mCamera;
-//     PhysicsWorld mPhysicsWorld;
-//     MaterialRegistry mMaterials;
-//     ResourceManager mResources;
-
-//     this(Camera cam, EntityManager em, SceneTree tree, PhysicsWorld physics,
-//          MaterialRegistry materials, ResourceManager resources)
-//     {
-//         mCamera = cam;
-//         mEntityManager = em;
-//         mSceneTree = tree;
-//         mPhysicsWorld = physics;
-//         mMaterials = materials;
-//         mResources = resources;
-//     }
-
-//     uint spawn(EntityType type, vec3 pos, Quat orient = Quat.init)
-//     {
-//         uint eid = mEntityManager.create();
-
-//         vec3 adjustedPos = vec3(pos.x, pos.y + type.yOffset, pos.z);
-
-//         if (type.hasPhysics && type.urdfPath !is null)
-//         {
-//             mPhysicsWorld.addURDF(eid, type.urdfPath,
-//                 adjustedPos.x, adjustedPos.y, adjustedPos.z,
-//                 orient.x, orient.y, orient.z, orient.w);
-//             mEntityManager.markPhysics(eid);
-//         }
-
-//         IMaterial mat;
-//         if (type.texturePath !is null)
-//             mat = mMaterials.get(type.texturePath);
-//         else
-//             mat = mMaterials.get("basic");
-
-//         // Use resource manager — model loaded once, reused for all instances
-//         auto model = mResources.getModel(type.modelPath);
-//         auto nodes = model.createNodes(mSceneTree, mat, type.name ~ "_" ~ eid.to!string);
-
-//         TransformComponent tc;
-//         tc.position = adjustedPos;
-//         tc.rotation = orient;
-//         mEntityManager.addTransform(eid, tc);
-
-//         foreach (node; nodes)
-//         {
-//             node.mModelMatrix = tc.toModelMatrix()
-//                 * MatrixMakeScale(vec3(type.scale, type.scale, type.scale));
-//             mEntityManager.addRenderable(eid, node);
-//         }
-
-//         writeln("[spawn] ", type.name, " entity=", eid, " at ", adjustedPos);
-//         return eid;
-//     }
-
-//     // spawnSoldiers(), spawnTrees(), spawnStressTest() stay the same

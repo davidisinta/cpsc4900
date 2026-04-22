@@ -88,23 +88,6 @@ class GameApplication : IGame{
         mLevelBuilder = new LevelBuilder(cam, tree, em, physics, mMaterialRegistry, mResourceManager);
     }
 
-    // this(string name, PhysicsWorld physics, EntityManager em, Camera cam, SceneTree tree, IMaterial mat){
-    //     this.gameName = name;
-    //     mPhysicsWorld = physics;
-    //     mEntityManager = em;
-    //     mCamera = cam;
-    //     mSceneTree = tree;
-    //     mGui = new GameGUI("topshoota-game-gui");
-    //     mAudioController = new AudioController();
-
-    //     // Create material registry and set up all materials
-    //     mMaterialRegistry = new MaterialRegistry(cam);
-    //     mMaterialRegistry.setup();
-
-    //     // Create level builder with registry
-    //     mLevelBuilder = new LevelBuilder(cam, tree, em, physics, mMaterialRegistry);
-    // }
-
     override void Input(){
         if (mShootRequested){
             shoot();
@@ -341,15 +324,6 @@ class GameApplication : IGame{
         writeln("[stats] shots=", mShotsFired, " hits=", mShotsHit,
                 " accuracy=", accuracy, "%");
     }
-
-
-
-
-
-
-
-
-
 
     // to do: refactor so that this does not check hard coded pairs but rather loops over every object
     private void checkCollisions(){
