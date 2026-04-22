@@ -4,8 +4,6 @@
 module factory;
 
 
-
-
 // standard library files
 import std.stdio;
 import std.conv;
@@ -18,7 +16,7 @@ import std.random : uniform;
 import enginecore;
 import linear;
 import physics;
-// import geometry;
+import geometry;
 import materials;
 // import audiosubsystem;
 import assimp;
@@ -28,11 +26,13 @@ import assimp;
 
 // Third-party libraries
 // import bindbc.sdl;
-// import bindbc.opengl;
+import bindbc.opengl;
 
 
 
 
+
+//to do: refactor to use factory pattern
 class SpawnFactory{
 
 
@@ -50,12 +50,13 @@ class SpawnFactory{
     //Objects belonging to Spawn Factory
     IMaterial mLindenBarkMaterial;
     IMaterial mLitTexturedMaterial;
+    IMaterial mBasicMaterial;
     vec3 mFogColor;
     float mFogStart;
     float mFogEnd;
 
 
-    this(Camera cam, EntityManager em, SceneTree tree, PhysicsWorld physics){
+    this(Camera cam, EntityManager em, SceneTree tree, PhysicsWorld physics, IMaterial mat){
         mCamera = cam;
         mEntityManager = em;
         mSceneTree = tree;
@@ -81,6 +82,10 @@ class SpawnFactory{
 
     /// create Soldiers
     void spawnSoldiers(){
+
+        // to do: create enemy type
+        // to do: refactor the create to now use factory pattern, such that
+        // player and enemy can tweak as needed
         spawnSoldierEnemy(vec3(33.0f, 0.0f, -10.0f), Quat.init);
         spawnSoldierEnemy(vec3(0.0f, 0.0f, -30.0f), Quat.init);
         spawnSoldierEnemy(vec3(0.0f, 0.0f, -40.0f), Quat.init);
@@ -313,6 +318,51 @@ class SpawnFactory{
     }
 
 
+    //--------------------------------------------------------------
+    // Spawn a physics-driven object with both visual + physics
+    //--------------------------------------------------------------
+    /// Creates an entity with:
+    ///   - a Bullet physics body (from URDF)
+    ///   - a rendered mesh (from .obj)
+    ///   - a TransformComponent synced each frame
+    ///
+    /// Returns the entity ID.
+    uint spawnPhysicsObject(
+    string urdfPath,
+    string modelPath,
+    vec3 pos,
+    Quat orient = Quat.init){
+        uint eid = mEntityManager.create();
+
+        // add physics to the object
+        mPhysicsWorld.addURDF(
+            eid, urdfPath,
+            pos.x, pos.y, pos.z,
+            orient.x, orient.y, orient.z, orient.w
+        );
+        mEntityManager.markPhysics(eid);
+
+        // add the model to rendering scene
+        auto model = new Model(modelPath);
+        auto nodes = model.addToScene(mSceneTree, mBasicMaterial, "entity_" ~ eid.to!string);
+
+        //hook up the physics and rendering object together
+        TransformComponent tc;
+        tc.position = pos;
+        tc.rotation = orient;
+        mEntityManager.addTransform(eid, tc);
+
+        foreach (node; nodes) {
+            node.mModelMatrix = tc.toModelMatrix();
+            mEntityManager.addRenderable(eid, node);
+            writeln("[spawn] entity=", eid, " node radius=", node.mBoundingRadius);
+        }
+
+        writeln("[spawn] entity=", eid, " urdf=", urdfPath, " model=", modelPath, " pos=", pos);
+        return eid;
+    }
+
+
 
 
 
@@ -321,6 +371,79 @@ class SpawnFactory{
     // Helper to Setup Materials For Objects such as Trees
     //----------------------------------------------------------------
     void SetupMaterials(){
+
+
+        // Create a pipeline and associate it with a material
+        Pipeline basicPipeline = new Pipeline("basic","./pipelines/basic/basic.vert","./pipelines/basic/basic.frag");
+        mBasicMaterial = new BasicMaterial("basic");  // cache for spawning
+
+        // Create a pipeline for our light
+        Pipeline lightPipeline = new Pipeline("light","./pipelines/light/basic.vert","./pipelines/light/basic.frag");
+        IMaterial lightMaterial    = new BasicMaterial("light");
+
+        //we create another object for our light box and add it to scene tree
+        GLfloat[] lightboxVBO = [
+            -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+                0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+                0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+                0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+            -0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
+
+            -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+            -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+            -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+
+            -0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
+            -0.5f,  0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
+            -0.5f, -0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
+            -0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
+
+                0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+
+            -0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
+                0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
+                0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
+                0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
+            -0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
+
+            -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+                0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+            -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
+            -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f
+        ];
+        ISurface lightBox = new SurfaceTriangle(lightboxVBO);
+        MeshNode light = new MeshNode("light", lightBox, lightMaterial);
+        mSceneTree.GetRootNode().AddChildSceneNode(light);
+
+        // Add uniforms to the basic material
+        mBasicMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+        mBasicMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+        mBasicMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+
+        //Add uniforms to our light shader as well
+        lightMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+        lightMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+        lightMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+
+
+
+
+
+
 
         // Lit + textured pipeline for models with UV + texture
         Pipeline litTexPipeline = new Pipeline("lit_textured",
@@ -364,7 +487,29 @@ class SpawnFactory{
         mLitTexturedMaterial.AddUniform(new Uniform("uFogColor", "vec3", &mFogColor));
         mLitTexturedMaterial.AddUniform(new Uniform("uFogStart", mFogStart));
         mLitTexturedMaterial.AddUniform(new Uniform("uFogEnd", mFogEnd));
-    }
+
+
+
+
+    //-----------------------------------------------------------------
+        // add terrain to the game
+        //-----------------------------------------------------------------
+        // Simple textured pipeline for terrain (position + UV, no normals)
+        Pipeline simpleTexPipeline = new Pipeline("textured_simple",
+            "./pipelines/textured_simple/textured_simple.vert",
+            "./pipelines/textured_simple/textured_simple.frag");
+
+        IMaterial grassMaterial = new LitTexturedMaterial("textured_simple",
+            "./assets/textures/green-grass-background.jpg");
+        grassMaterial.AddUniform(new Uniform("uTexture", 0));
+        grassMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+        grassMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+        grassMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+
+        ISurface terrain = new SurfaceTerrain(512, 512,
+            "./assets/heightmaps/flat_slight_variation_heightmap.ppm");
+        MeshNode m2 = new MeshNode("terrain", terrain, grassMaterial);
+        mSceneTree.GetRootNode().AddChildSceneNode(m2);
 
 
 
@@ -375,6 +520,11 @@ class SpawnFactory{
 
     
 
+
+
+
+
+    } // end setup Materials
 
 
 

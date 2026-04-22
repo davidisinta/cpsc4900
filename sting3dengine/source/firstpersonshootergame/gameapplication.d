@@ -31,7 +31,7 @@ class GameApplication : IGame{
     EntityManager mEntityManager;
     Camera mCamera;
     SceneTree mSceneTree;
-    IMaterial mBasicMaterial;
+    // IMaterial mBasicMaterial;
     AudioEngine* mAudio;
 
     // Game-specific state
@@ -49,16 +49,9 @@ class GameApplication : IGame{
     GLuint mSkyBoxVAO;
     GLuint  mSkyBoxVBO;
     GLuint mCubemapTexture;
-    // vec3 mFogColor;
-    // float mFogStart;
-    // float mFogEnd;
     LevelBuilder mLevelBuilder;
 
     //Game Materials
-    // IMaterial mLitTexturedMaterial;
-    IMaterial mTreeBarkMaterial;
-    IMaterial mTreeLeafMaterial;
-    // IMaterial mLindenBarkMaterial;
 
     //sound specific elements
     bool mWalkingSoundPlaying = false;
@@ -79,16 +72,11 @@ class GameApplication : IGame{
         mEntityManager = em;
         mCamera = cam;
         mSceneTree = tree;
-        mBasicMaterial = mat;
         mGui = new GameGUI("topshoota-game-gui");
-        // mFogColor = vec3(0.55f, 0.68f, 0.78f);
-        // mFogStart = 80.0f;
-        // mFogEnd = 180.0f;
 
         //create Level builder and pass in the engines camera, sceneTree
-        mLevelBuilder = new LevelBuilder(cam, tree, em, physics);
+        mLevelBuilder = new LevelBuilder(cam, tree, em, physics, mat);
 
-       
     }
 
     override void Input(){
@@ -139,50 +127,6 @@ class GameApplication : IGame{
         mGui.Render();
     }
 
-    //--------------------------------------------------------------
-    // Spawn a physics-driven object with both visual + physics
-    //--------------------------------------------------------------
-    /// Creates an entity with:
-    ///   - a Bullet physics body (from URDF)
-    ///   - a rendered mesh (from .obj)
-    ///   - a TransformComponent synced each frame
-    ///
-    /// Returns the entity ID.
-    uint spawnPhysicsObject(
-    string urdfPath,
-    string modelPath,
-    vec3 pos,
-    Quat orient = Quat.init){
-        uint eid = mEntityManager.create();
-
-        // add physics to the object
-        mPhysicsWorld.addURDF(
-            eid, urdfPath,
-            pos.x, pos.y, pos.z,
-            orient.x, orient.y, orient.z, orient.w
-        );
-        mEntityManager.markPhysics(eid);
-
-        // add the model to rendering scene
-        auto model = new Model(modelPath);
-        auto nodes = model.addToScene(mSceneTree, mBasicMaterial, "entity_" ~ eid.to!string);
-
-        //hook up the physics and rendering object together
-        TransformComponent tc;
-        tc.position = pos;
-        tc.rotation = orient;
-        mEntityManager.addTransform(eid, tc);
-
-        foreach (node; nodes) {
-            node.mModelMatrix = tc.toModelMatrix();
-            mEntityManager.addRenderable(eid, node);
-            writeln("[spawn] entity=", eid, " node radius=", node.mBoundingRadius);
-        }
-
-        writeln("[spawn] entity=", eid, " urdf=", urdfPath, " model=", modelPath, " pos=", pos);
-        return eid;
-    }
-
     void drawCrosshair(){
         if (!mCrosshairReady) return;
 
@@ -200,127 +144,6 @@ class GameApplication : IGame{
     //Setup the Scene for the Game
     override void Setup(){
         
-        // Create a pipeline and associate it with a material
-        Pipeline basicPipeline = new Pipeline("basic","./pipelines/basic/basic.vert","./pipelines/basic/basic.frag");
-        mBasicMaterial = new BasicMaterial("basic");  // cache for spawning
-
-        // Create a pipeline for our light
-        Pipeline lightPipeline = new Pipeline("light","./pipelines/light/basic.vert","./pipelines/light/basic.frag");
-        IMaterial lightMaterial    = new BasicMaterial("light");
-
-        //we create another object for our light box and add it to scene tree
-        GLfloat[] lightboxVBO = [
-            -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-                0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-                0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-                0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-            -0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 1.0f,
-
-            -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-            -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-            -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-
-            -0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
-            -0.5f,  0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
-            -0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
-            -0.5f, -0.5f, -0.5f, 1.0f,  1.0f,  1.0f,
-            -0.5f, -0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
-            -0.5f,  0.5f,  0.5f, 1.0f,  1.0f,  1.0f,
-
-                0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-                0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-                0.5f, -0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-                0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-
-            -0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
-                0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
-                0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
-                0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
-            -0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  1.0f,
-            -0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  1.0f,
-
-            -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-                0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f,
-                0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-                0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-            -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  1.0f,
-            -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  1.0f
-        ];
-        ISurface lightBox = new SurfaceTriangle(lightboxVBO);
-        MeshNode light = new MeshNode("light", lightBox, lightMaterial);
-        mSceneTree.GetRootNode().AddChildSceneNode(light);
-
-        // Add uniforms to the basic material
-        mBasicMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-        mBasicMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-        mBasicMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
-
-        //Add uniforms to our light shader as well
-        lightMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-        lightMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-        lightMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
-
-        // // Lit + textured pipeline for models with UV + texture
-        // Pipeline litTexPipeline = new Pipeline("lit_textured",
-        //     "./pipelines/lit_textured/lit_textured.vert",
-        //     "./pipelines/lit_textured/lit_textured.frag");
-
-        // mLitTexturedMaterial = new LitTexturedMaterial("lit_textured",
-        //     "./assets/modern_soldier/textures/material_0_baseColor.jpeg");
-
-        // mLitTexturedMaterial.AddUniform(new Uniform("uTexture", 0));
-        // mLitTexturedMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-        // mLitTexturedMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-        // mLitTexturedMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
-        // mLitTexturedMaterial.AddUniform(new Uniform("uFogColor", "vec3", &mFogColor));
-        // mLitTexturedMaterial.AddUniform(new Uniform("uFogStart", mFogStart));
-        // mLitTexturedMaterial.AddUniform(new Uniform("uFogEnd", mFogEnd));
-
-      
-        // //----------------------------------------------------------------
-        // // Add Materials for the tree
-        // //----------------------------------------------------------------
-
-
-
-        // // simple tree
-        // mLindenBarkMaterial = new LitTexturedMaterial("lit_textured", "./assets/4-linden-trees-pack-medium-poly/import_1/nature_bark_linden_04_m_0001.jpg");
-
-        // mLindenBarkMaterial.AddUniform(new Uniform("uTexture", 0));
-        // mLindenBarkMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-        // mLindenBarkMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-        // mLindenBarkMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
-
-        // mLitTexturedMaterial.AddUniform(new Uniform("uFogColor", "vec3", &mFogColor));
-        // mLitTexturedMaterial.AddUniform(new Uniform("uFogStart", mFogStart));
-        // mLitTexturedMaterial.AddUniform(new Uniform("uFogEnd", mFogEnd));
-
-        //-----------------------------------------------------------------
-        // add terrain to the game
-        //-----------------------------------------------------------------
-        // Simple textured pipeline for terrain (position + UV, no normals)
-        Pipeline simpleTexPipeline = new Pipeline("textured_simple",
-            "./pipelines/textured_simple/textured_simple.vert",
-            "./pipelines/textured_simple/textured_simple.frag");
-
-        IMaterial grassMaterial = new LitTexturedMaterial("textured_simple",
-            "./assets/textures/green-grass-background.jpg");
-        grassMaterial.AddUniform(new Uniform("uTexture", 0));
-        grassMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-        grassMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-        grassMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
-
-        ISurface terrain = new SurfaceTerrain(512, 512,
-            "./assets/heightmaps/flat_slight_variation_heightmap.ppm");
-        MeshNode m2 = new MeshNode("terrain", terrain, grassMaterial);
-        mSceneTree.GetRootNode().AddChildSceneNode(m2);
-
         setUpLights();
 
         initCrosshair();
@@ -347,76 +170,11 @@ class GameApplication : IGame{
         //     Quat.init
         // );
 
-        // // -------------------------------------------------------
-        // // Spawn Soldiers
-        // // -------------------------------------------------------
-        // spawnSoldierEnemy(vec3(33.0f, 0.0f, -10.0f), Quat.init);
-        // spawnSoldierEnemy(vec3(0.0f, 0.0f, -30.0f), Quat.init);
-        // spawnSoldierEnemy(vec3(0.0f, 0.0f, -40.0f), Quat.init);
-        // spawnSoldierEnemy(vec3(13.0f, 0.0f, -17.0f), Quat.init);
-        // spawnSoldierEnemy(vec3(23.0f, 0.0f, -17.0f), Quat.init);
-        // spawnSoldierEnemy(vec3(13.0f, 0.0f, -37.0f), Quat.init);
-        // spawnSoldierEnemy(vec3(43.0f, 0.0f, 17.0f), Quat.init);
-
         //Let Level Builder Set up the map
         mLevelBuilder.SetupMap();
 
         //Stress testing for Frustum culling
         // spawnStressTest(300);
-    }
-
-
-    
-
-    
-
-    
-
-
-
-    uint spawnTreeVisualOnly(vec3 pos, Quat orient = Quat.init){
-        string treeModel = "./assets/free-tree-downloadfbx/source/Tree test.fbx";
-
-        uint eid = mEntityManager.create();
-
-        auto scene = aiImportFile(
-            treeModel.toStringz,
-            aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs
-        );
-
-        if (scene is null)
-        {
-            writeln("[tree] failed to import ", treeModel);
-            return eid;
-        }
-
-        TransformComponent tc;
-        tc.position = pos;
-        tc.rotation = orient;
-        mEntityManager.addTransform(eid, tc);
-
-        for (uint i = 0; i < scene.mNumMeshes; ++i)
-        {
-            auto mesh = scene.mMeshes[i];
-            IMaterial mat = (mesh.mMaterialIndex == 1) ? mTreeBarkMaterial : mTreeLeafMaterial;
-
-            // auto surf = new SurfaceAssimp(cast(aiMesh*)mesh);
-            // auto node = new MeshNode("tree_" ~ eid.to!string ~ "_" ~ i.to!string, surf, mat);
-
-            auto surf = new SurfaceAssimp(cast(aiMesh*)mesh);
-            auto node = new MeshNode("tree_" ~ eid.to!string ~ "_" ~ i.to!string, surf, mat);
-            node.mBoundingRadius = surf.mBoundingRadius;
-            node.mModelMatrix = MatrixMakeTranslation(pos) *
-            MatrixMakeScale(vec3(1.02f, 1.02f, 1.02f));
-
-            mSceneTree.GetRootNode().AddChildSceneNode(node);
-            mEntityManager.addRenderable(eid, node);
-        }
-
-        aiReleaseImport(scene);
-
-        writeln("[tree] visual-only entity=", eid, " spawned at ", pos);
-        return eid;
     }
 
 
@@ -467,35 +225,6 @@ class GameApplication : IGame{
     }
 
 
-    // uint spawnSoldierEnemy(vec3 pos, Quat orient = Quat.init){
-
-    //     string soldierModel = "./assets/modern_soldier/scene.gltf";
-    //     string soldierPhysics = "soldier.urdf";
-
-    //     uint eid = mEntityManager.create();
-
-    //     mPhysicsWorld.addURDF(eid, soldierPhysics,
-    //         pos.x, pos.y + 1.0f, pos.z,
-    //         orient.x, orient.y, orient.z, orient.w);
-    //     mEntityManager.markPhysics(eid);
-
-    //     // Load model and add with TEXTURED material
-    //     auto model = new Model(soldierModel);
-    //     auto nodes = model.addToScene(mSceneTree, mLitTexturedMaterial, "soldier_" ~ eid.to!string);
-
-    //     TransformComponent tc;
-    //     tc.position = vec3(pos.x, pos.y + 1.0f, pos.z);
-    //     tc.rotation = orient;
-    //     mEntityManager.addTransform(eid, tc);
-
-    //     foreach (node; nodes){
-    //         node.mModelMatrix = tc.toModelMatrix();
-    //         mEntityManager.addRenderable(eid, node);
-    //     }
-
-    //     writeln("[soldier] spawned entity=", eid, " at ", pos);
-    //     return eid;
-    // }
 
     void attachAudio(AudioEngine* audio){
         mAudio = audio;

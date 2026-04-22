@@ -43,17 +43,19 @@ class LevelBuilder{
 
     //Objects belonging to Level Builder
     IMaterial mMapMaterial;
+    IMaterial mBasicMaterial;
     float mMapKitScaleFactor = 0.015f;
     SpawnFactory mSpawnFactory;
 
-    this(Camera cam, SceneTree tree, EntityManager em, PhysicsWorld physics){
+    this(Camera cam, SceneTree tree, EntityManager em, PhysicsWorld physics, IMaterial mat){
         mCamera = cam;
         mSceneTree = tree;
+        mBasicMaterial = mat;
 
 
 
         //create spawn Factory that will spawn game Objects
-        mSpawnFactory = new SpawnFactory(cam, em, tree, physics);
+        mSpawnFactory = new SpawnFactory(cam, em, tree, physics, mat);
 
 
 
