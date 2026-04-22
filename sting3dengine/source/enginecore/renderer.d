@@ -1,35 +1,215 @@
-/// Renderer module
+// /// Renderer module
+// module renderer;
+
+// // third party libraries
+// import bindbc.sdl;
+// import bindbc.opengl;
+
+// //project libraries
+// import camera,scene;
+
+// /// Purpose of this class is to make it easy to render part of, or the entirety of a scene
+// /// from a specific camera viewpoint.
+// /// The start and end of a frame is handled by the engine, this just renders object on the scene.
+// class Renderer{
+
+//     SDL_Window* mWindow;
+//     int mScreenWidth;
+//     int mScreenHeight;
+
+//     /// Constructor
+//     this(SDL_Window* window, int width, int height){
+//         mWindow = window;
+//         mScreenWidth = width;
+//         mScreenHeight = height;
+//     }
+
+//     /// Encapsulation of the rendering process of a scene tree with a camera
+//     void Render(SceneTree s, Camera c){
+
+//         // Set the camera prior to our traversal
+//         s.SetCamera(c);
+//         // Start traversing the scene tree
+//         s.StartTraversal();
+//     }
+// }
+
+
 module renderer;
 
-// third party libraries
 import bindbc.sdl;
 import bindbc.opengl;
+import std.stdio;
 
-//project libraries
-import camera,scene;
+import camera, scene, mesh, linear, frustum;
 
-/// Purpose of this class is to make it easy to render part of, or the entirety of a scene
-/// from a specific camera viewpoint.
-/// The start and end of a frame is handled by the engine, this just renders object on the scene.
-class Renderer{
-
+class Renderer {
     SDL_Window* mWindow;
     int mScreenWidth;
     int mScreenHeight;
 
-    /// Constructor
-    this(SDL_Window* window, int width, int height){
+    bool mFrustumCullingEnabled = true;
+    int mDrawnCount = 0;
+    int mCulledCount = 0;
+
+    bool mDrawDistanceEnabled = true;
+    float mDrawDistance = 200.0f;
+    int mDistanceCulledCount = 0;
+
+    this(SDL_Window* window, int width, int height) {
         mWindow = window;
         mScreenWidth = width;
         mScreenHeight = height;
     }
 
-    /// Encapsulation of the rendering process of a scene tree with a camera
-    void Render(SceneTree s, Camera c){
+    
 
-        // Set the camera prior to our traversal
+    void Render(SceneTree s, Camera c, double frameDt) {
+        // mDrawnCount = 0;
+        // mCulledCount = 0;
+
+        mDrawnCount = 0;
+        mCulledCount = 0;
+        mDistanceCulledCount = 0;
+
         s.SetCamera(c);
-        // Start traversing the scene tree
-        s.StartTraversal();
+
+        mat4 vp = c.mProjectionMatrix * c.mViewMatrix;
+        FrustumPlane[6] planes = extractFrustumPlanes(vp);
+
+        // traverseNode(s.GetRootNode(), planes);
+        traverseNode(s.GetRootNode(), planes, c.mEyePosition);
+
+
+        // Performance logging every 5 seconds
+        static int logFrameCount = 0;
+        static double logTimer = 0.0;
+        static int drawnSum = 0;
+        static int culledSum = 0;
+        static int distCulledSum = 0;
+
+        logFrameCount++;
+        drawnSum += mDrawnCount;
+        culledSum += mCulledCount;
+        distCulledSum += mDistanceCulledCount;
+        logTimer += frameDt;
+
+        if (logTimer >= 5.0)
+        {
+            int avgDrawn = drawnSum / logFrameCount;
+            int avgCulled = culledSum / logFrameCount;
+            int avgDistCulled = distCulledSum / logFrameCount;
+            int avgFps = cast(int)(logFrameCount / logTimer);
+
+            writeln("=== PERF REPORT ===");
+            writeln("  Frustum Culling: ", mFrustumCullingEnabled ? "ON" : "OFF");
+            writeln("  Draw Distance: ", mDrawDistanceEnabled ? "ON" : "OFF", " (", mDrawDistance, " units)");
+            writeln("  Avg Drawn: ", avgDrawn);
+            writeln("  Avg Frustum Culled: ", avgCulled);
+            writeln("  Avg Distance Culled: ", avgDistCulled);
+            writeln("  Total: ", avgDrawn + avgCulled + avgDistCulled);
+            writeln("  Avg FPS (5s): ", avgFps);
+            writeln("===================");
+
+            logFrameCount = 0;
+            logTimer = 0.0;
+            drawnSum = 0;
+            culledSum = 0;
+            distCulledSum = 0;
+        }
+
+        
     }
+
+
+
+
+    // private void traverseNode(ISceneNode node, FrustumPlane[6] planes) {
+    //     // Try to cast to MeshNode — only MeshNodes have geometry to draw
+    //     MeshNode meshNode = cast(MeshNode)node;
+
+    //     if (meshNode !is null) {
+    //         if (mFrustumCullingEnabled && meshNode.mBoundingRadius > 0.0f) {
+    //             // Extract position from model matrix
+    //             vec3 center = vec3(
+    //                 meshNode.mModelMatrix[3],
+    //                 meshNode.mModelMatrix[7],
+    //                 meshNode.mModelMatrix[11]
+    //             );
+
+    //             if (!isSphereInFrustum(planes, center, meshNode.mBoundingRadius)) {
+    //                 mCulledCount++;
+    //                 return; // skip this node entirely
+    //             }
+    //         }
+
+    //         // Visible — draw it
+    //         meshNode.Update();
+    //         mDrawnCount++;
+    //     }
+
+    //     // Recurse into children
+    //     foreach (child; node.mChildren) {
+    //         traverseNode(child, planes);
+    //     }
+    // }
+
+    private void traverseNode(ISceneNode node, FrustumPlane[6] planes, vec3 cameraPos) {
+        MeshNode meshNode = cast(MeshNode)node;
+
+        if (meshNode !is null) {
+            vec3 center = vec3(
+                meshNode.mModelMatrix[3],
+                meshNode.mModelMatrix[7],
+                meshNode.mModelMatrix[11]
+            );
+
+            // Frustum culling
+            if (mFrustumCullingEnabled && meshNode.mBoundingRadius > 0.0f) {
+                if (!isSphereInFrustum(planes, center, meshNode.mBoundingRadius)) {
+                    mCulledCount++;
+                    // Still recurse children
+                    foreach (child; node.mChildren)
+                        traverseNode(child, planes, cameraPos);
+                    return;
+                }
+            }
+
+            // Draw distance cutoff
+            if (mDrawDistanceEnabled && meshNode.mBoundingRadius > 0.0f) {
+                float dx = center.x - cameraPos.x;
+                float dy = center.y - cameraPos.y;
+                float dz = center.z - cameraPos.z;
+                float distSq = dx*dx + dy*dy + dz*dz;
+
+                if (distSq > mDrawDistance * mDrawDistance) {
+                    mDistanceCulledCount++;
+                    foreach (child; node.mChildren)
+                        traverseNode(child, planes, cameraPos);
+                    return;
+                }
+            }
+
+            meshNode.Update();
+            mDrawnCount++;
+        }
+
+        foreach (child; node.mChildren) {
+            traverseNode(child, planes, cameraPos);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

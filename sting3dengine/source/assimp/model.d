@@ -48,6 +48,18 @@ class Model
 
     /// Add all meshes to a scene tree under a parent node, using the given material.
     /// Returns the MeshNode array so caller can set model matrices.
+    // MeshNode[] addToScene(SceneTree sceneTree, IMaterial material, string namePrefix)
+    // {
+    //     MeshNode[] nodes;
+    //     foreach (i, submesh; mMeshes)
+    //     {
+    //         string nodeName = namePrefix ~ "_mesh" ~ i.to!string;
+    //         auto node = new MeshNode(nodeName, submesh.surface, material);
+    //         sceneTree.GetRootNode().AddChildSceneNode(node);
+    //         nodes ~= node;
+    //     }
+    //     return nodes;
+    // }
     MeshNode[] addToScene(SceneTree sceneTree, IMaterial material, string namePrefix)
     {
         MeshNode[] nodes;
@@ -55,6 +67,12 @@ class Model
         {
             string nodeName = namePrefix ~ "_mesh" ~ i.to!string;
             auto node = new MeshNode(nodeName, submesh.surface, material);
+
+            // Copy bounding radius from surface
+            auto assimpSurf = cast(SurfaceAssimp)submesh.surface;
+            if (assimpSurf !is null)
+                node.mBoundingRadius = assimpSurf.mBoundingRadius;
+
             sceneTree.GetRootNode().AddChildSceneNode(node);
             nodes ~= node;
         }

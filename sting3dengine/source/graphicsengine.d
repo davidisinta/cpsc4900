@@ -33,13 +33,16 @@ class GraphicsEngine{
         SDL_Window* mWindow;
         int i = 0;
         int fps = 0;
-        int MS_PER_FRAME = 16;
+        // int MS_PER_FRAME = 16;
         int mScreenWidth;
         int mScreenHeight;
 
         SceneTree mSceneTree;
         Camera mCamera;
         Renderer mRenderer;
+        double mFpsLogAccumTime = 0.0;
+        int mFpsLogFrameCount = 0;
+        double mAvgFiveSecFps = 0.0;
 
         //--------------------------------------------------------------
         // Physics + entity management
@@ -62,6 +65,13 @@ class GraphicsEngine{
         // Audio
         //--------------------------------------------------------------
         AudioEngine mAudio;
+
+
+
+        //--------------------------------------------------------------
+        // Profiling Vars
+        //--------------------------------------------------------------
+        bool mBackfaceCulling = false; 
 
         /// Setup OpenGL and any libraries
         this(int major_ogl_version, int minor_ogl_version){
@@ -148,6 +158,7 @@ class GraphicsEngine{
                     writeln("Exit event triggered");
                     mGameIsRunning= false;
                 }
+                
                 if(event.type == SDL_KEYDOWN){
                     if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE){
                             writeln("Pressed escape key and now exiting...");
@@ -156,6 +167,35 @@ class GraphicsEngine{
                     else if(event.key.keysym.sym == SDLK_TAB){
                             mRenderWireframe = !mRenderWireframe;
                     }
+
+                    // toggles for profiling
+                    else if(event.key.keysym.sym == SDLK_1 && event.key.repeat == 0){
+                        mBackfaceCulling = !mBackfaceCulling;
+                        writeln("[toggle] backface culling: ", mBackfaceCulling);
+                    }
+                    else if (event.key.keysym.sym == SDLK_2) {
+                        mRenderer.mFrustumCullingEnabled = !mRenderer.mFrustumCullingEnabled;
+                            writeln("[toggle] frustum culling: ", mRenderer.mFrustumCullingEnabled);
+                        
+                    } 
+
+                    else if (event.key.keysym.sym == SDLK_3) {
+                            mRenderer.mDrawDistanceEnabled = !mRenderer.mDrawDistanceEnabled;
+                            writeln("[toggle] draw distance: ", mRenderer.mDrawDistanceEnabled);
+                    }
+
+            
+
+
+
+
+
+
+
+
+
+
+
                 }
 
                 if(event.type == SDL_MOUSEBUTTONDOWN){
@@ -165,7 +205,6 @@ class GraphicsEngine{
                     }
                 }
             }
-
             // Continuous key state for smooth movement
             const(ubyte)* keys = SDL_GetKeyboardState(null);
             bool moving = false;
@@ -238,6 +277,7 @@ class GraphicsEngine{
 
             //Update the FPS which the games gui is reading
             mGame.mGui.fps = this.fps;
+            mGame.mGui.lastFiveSecFps = mAvgFiveSecFps;
             mGame.mGui.screenWidth = mScreenWidth;
             mGame.mGui.screenHeight = mScreenHeight;
 
@@ -246,6 +286,16 @@ class GraphicsEngine{
 
         void Render(){
 
+            // Add face culling, i.e do not draw back faces facing
+            // away from user 
+            if (mBackfaceCulling){
+                glEnable(GL_CULL_FACE);
+                glCullFace(GL_BACK);  
+
+            } else{
+                glDisable(GL_CULL_FACE);
+            }
+    
             // Render 3D scene
             if(mRenderWireframe){
                     glPolygonMode(GL_FRONT_AND_BACK,GL_LINE); 
@@ -260,17 +310,9 @@ class GraphicsEngine{
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glEnable(GL_DEPTH_TEST);	
 
-
-            // Draw skybox FIRST with depth writing off
-
-            // glEnable(GL_DEPTH_TEST);
-            // glDepthMask(GL_FALSE);
-            // mGame.drawSkyBox();
-            // glDepthMask(GL_TRUE);
-
             // to do: check if perhaps renderer can do all rendering
             // even from game side
-            mRenderer.Render(mSceneTree,mCamera);
+            mRenderer.Render(mSceneTree,mCamera, mFrameDt);
 
             //Do game rendering last
             mGame.Render();
@@ -286,6 +328,18 @@ class GraphicsEngine{
             mLastFrameTime = now;
             mFrameDt = elapsed / 1000.0;
 
+            mFpsLogAccumTime += mFrameDt;
+            mFpsLogFrameCount++;
+
+            if (mFpsLogAccumTime >= 5.0)
+            {
+                mAvgFiveSecFps = mFpsLogFrameCount / mFpsLogAccumTime;
+                // writeln("[perf] 5s avg fps: ", mAvgFiveSecFps);
+
+                mFpsLogAccumTime = 0.0;
+                mFpsLogFrameCount = 0;
+            }
+
             // Start ImGui frame BEFORE input
             // beacuse we need to check if there are any events to imgui
             ImGui_ImplOpenGL3_NewFrame();
@@ -296,10 +350,10 @@ class GraphicsEngine{
             Update();
             Render();
 
-            // Frame cap
+            // Frame cap at about 120 fps
             int frame_elapsed = SDL_GetTicks() - now;
-            if(frame_elapsed < 16){
-                SDL_Delay(16 - frame_elapsed);
+            if(frame_elapsed < 8){
+                SDL_Delay(8 - frame_elapsed);
                 int curr_fps = 1000/(SDL_GetTicks() - now);
                 if(this.fps!=curr_fps)
                 {

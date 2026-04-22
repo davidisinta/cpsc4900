@@ -8,6 +8,11 @@ uniform vec3 uLightPos;
 uniform vec3 viewpos;
 uniform sampler2D uTexture;
 
+// fog uniforms
+uniform vec3 uFogColor;
+uniform float uFogStart;
+uniform float uFogEnd;
+
 out vec4 fragColor;
 
 void main()
@@ -25,10 +30,16 @@ void main()
     float specularStrength = 0.2;
     vec3 viewDir = normalize(viewpos - FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
     vec3 specular = specularStrength * spec * lightColor;
 
     vec3 texColor = texture(uTexture, TexCoord).rgb;
     vec3 result = (ambient + diffuse + specular) * texColor;
-    fragColor = vec4(result, 1.0);
+
+    // linear fog
+    float dist = distance(viewpos, FragPos);
+    float fogFactor = clamp((uFogEnd - dist) / (uFogEnd - uFogStart), 0.0, 1.0);
+
+    vec3 finalColor = mix(uFogColor, result, fogFactor);
+    fragColor = vec4(finalColor, 1.0);
 }

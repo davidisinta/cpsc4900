@@ -2,6 +2,7 @@ module surfaceassimp;
 
 //standard library files
 import std.stdio;
+import std.math;
 
 // Third-party libraries
 import bindbc.opengl;
@@ -15,11 +16,24 @@ class SurfaceAssimp : ISurface{
     GLuint mVBO;
     int mVertexCount;
     bool mHasUVs;
+    float mBoundingRadius = 0.0f;
+
 
     this(aiMesh* mesh)
     {
         mHasUVs = mesh.mTextureCoords[0] !is null;
         int floatsPerVert = mHasUVs ? 8 : 6;
+
+        // Compute bounding radius from vertex data
+        float maxDistSq = 0.0f;
+        for (uint i = 0; i < mesh.mNumVertices; i++)
+        {
+            auto v = mesh.mVertices[i];
+            float distSq = v.x * v.x + v.y * v.y + v.z * v.z;
+            if (distSq > maxDistSq)
+                maxDistSq = distSq;
+        }
+        mBoundingRadius = sqrt(maxDistSq);
 
         GLfloat[] vboData;
         vboData.reserve(mesh.mNumFaces * 3 * floatsPerVert);
@@ -60,8 +74,8 @@ class SurfaceAssimp : ISurface{
         }
 
         mVertexCount = cast(int)(vboData.length / floatsPerVert);
-        writeln("[SurfaceAssimp] vertices=", mVertexCount,
-                " hasUVs=", mHasUVs);
+        // writeln("[SurfaceAssimp] vertices=", mVertexCount,
+        //         " hasUVs=", mHasUVs);
 
         glGenVertexArrays(1, &mVAO);
         glGenBuffers(1, &mVBO);
