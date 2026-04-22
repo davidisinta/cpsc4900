@@ -15,6 +15,7 @@ import bindbc.opengl;
 class MeshNode : ISceneNode{
     ISurface mGeometry;
     IMaterial mMaterial; // The 'shaders' and textures needed to render our mesh
+    float mBoundingRadius = 0.0f;
 
     this(string name, ISurface geometry, IMaterial material){
         mNodeName = name;
@@ -22,9 +23,9 @@ class MeshNode : ISceneNode{
         mMaterial = material;
 
         //printing our model matrix for debgging
-        writeln("model matrix:");
-        writeln(mModelMatrix.toString());
-        writeln("---------------");
+        // writeln("model matrix:");
+        // writeln(mModelMatrix.toString());
+        // writeln("---------------");
     }
 
     override void Update(){

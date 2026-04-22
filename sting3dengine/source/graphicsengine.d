@@ -174,8 +174,16 @@ class GraphicsEngine{
                         writeln("[toggle] backface culling: ", mBackfaceCulling);
                     }
                     else if (event.key.keysym.sym == SDLK_2) {
+                        mRenderer.mFrustumCullingEnabled = !mRenderer.mFrustumCullingEnabled;
+                            writeln("[toggle] frustum culling: ", mRenderer.mFrustumCullingEnabled);
                         
+                    } 
+
+                    else if (event.key.keysym.sym == SDLK_3) {
+                            mRenderer.mDrawDistanceEnabled = !mRenderer.mDrawDistanceEnabled;
+                            writeln("[toggle] draw distance: ", mRenderer.mDrawDistanceEnabled);
                     }
+
             
 
 
@@ -304,7 +312,7 @@ class GraphicsEngine{
 
             // to do: check if perhaps renderer can do all rendering
             // even from game side
-            mRenderer.Render(mSceneTree,mCamera);
+            mRenderer.Render(mSceneTree,mCamera, mFrameDt);
 
             //Do game rendering last
             mGame.Render();

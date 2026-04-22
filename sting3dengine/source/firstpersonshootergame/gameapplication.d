@@ -166,9 +166,15 @@ class GameApplication : IGame{
         tc.rotation = orient;
         mEntityManager.addTransform(eid, tc);
 
+        // foreach (node; nodes) {
+        //     node.mModelMatrix = tc.toModelMatrix();
+        //     mEntityManager.addRenderable(eid, node);
+        // }
+
         foreach (node; nodes) {
             node.mModelMatrix = tc.toModelMatrix();
             mEntityManager.addRenderable(eid, node);
+            writeln("[spawn] entity=", eid, " node radius=", node.mBoundingRadius);
         }
 
         writeln("[spawn] entity=", eid, " urdf=", urdfPath, " model=", modelPath, " pos=", pos);
@@ -330,8 +336,8 @@ class GameApplication : IGame{
         TransformComponent planeTc;
         mEntityManager.addTransform(mGroundEntity, planeTc);
 
-        // // Spawn target
-        // // to do: perhaps remove this cube entity object
+        // Spawn target
+        // to do: perhaps remove this cube entity object
         // mCubeEntity = spawnPhysicsObject(
         //     "cube.urdf",
         //     "./assets/meshes/bunny_centered.obj",
@@ -350,121 +356,121 @@ class GameApplication : IGame{
         spawnSoldierEnemy(vec3(13.0f, 0.0f, -37.0f), Quat.init);
         spawnSoldierEnemy(vec3(43.0f, 0.0f, 17.0f), Quat.init);
 
-        //Setup Skybox Vertices
-        // Create the Skybox shader
-        new Pipeline("skybox", "./pipelines/skybox/skybox.vert",
-                                    "./pipelines/skybox/skybox.frag");
+        // //Setup Skybox Vertices
+        // // Create the Skybox shader
+        // new Pipeline("skybox", "./pipelines/skybox/skybox.vert",
+        //                             "./pipelines/skybox/skybox.frag");
 
-        float[] skyboxVertices = [
+        // float[] skyboxVertices = [
 
-            // positions          
-            -1.0f,  1.0f, -1.0f,
-            -1.0f, -1.0f, -1.0f,
-            1.0f, -1.0f, -1.0f,
-            1.0f, -1.0f, -1.0f,
-            1.0f,  1.0f, -1.0f,
-            -1.0f,  1.0f, -1.0f,
+        //     // positions          
+        //     -1.0f,  1.0f, -1.0f,
+        //     -1.0f, -1.0f, -1.0f,
+        //     1.0f, -1.0f, -1.0f,
+        //     1.0f, -1.0f, -1.0f,
+        //     1.0f,  1.0f, -1.0f,
+        //     -1.0f,  1.0f, -1.0f,
 
-            -1.0f, -1.0f,  1.0f,
-            -1.0f, -1.0f, -1.0f,
-            -1.0f,  1.0f, -1.0f,
-            -1.0f,  1.0f, -1.0f,
-            -1.0f,  1.0f,  1.0f,
-            -1.0f, -1.0f,  1.0f,
+        //     -1.0f, -1.0f,  1.0f,
+        //     -1.0f, -1.0f, -1.0f,
+        //     -1.0f,  1.0f, -1.0f,
+        //     -1.0f,  1.0f, -1.0f,
+        //     -1.0f,  1.0f,  1.0f,
+        //     -1.0f, -1.0f,  1.0f,
 
-            1.0f, -1.0f, -1.0f,
-            1.0f, -1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f, -1.0f,
-            1.0f, -1.0f, -1.0f,
+        //     1.0f, -1.0f, -1.0f,
+        //     1.0f, -1.0f,  1.0f,
+        //     1.0f,  1.0f,  1.0f,
+        //     1.0f,  1.0f,  1.0f,
+        //     1.0f,  1.0f, -1.0f,
+        //     1.0f, -1.0f, -1.0f,
 
-            -1.0f, -1.0f,  1.0f,
-            -1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,
-            1.0f, -1.0f,  1.0f,
-            -1.0f, -1.0f,  1.0f,
+        //     -1.0f, -1.0f,  1.0f,
+        //     -1.0f,  1.0f,  1.0f,
+        //     1.0f,  1.0f,  1.0f,
+        //     1.0f,  1.0f,  1.0f,
+        //     1.0f, -1.0f,  1.0f,
+        //     -1.0f, -1.0f,  1.0f,
 
-            -1.0f,  1.0f, -1.0f,
-            1.0f,  1.0f, -1.0f,
-            1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,
-            -1.0f,  1.0f,  1.0f,
-            -1.0f,  1.0f, -1.0f,
+        //     -1.0f,  1.0f, -1.0f,
+        //     1.0f,  1.0f, -1.0f,
+        //     1.0f,  1.0f,  1.0f,
+        //     1.0f,  1.0f,  1.0f,
+        //     -1.0f,  1.0f,  1.0f,
+        //     -1.0f,  1.0f, -1.0f,
 
-            -1.0f, -1.0f, -1.0f,
-            -1.0f, -1.0f,  1.0f,
-            1.0f, -1.0f, -1.0f,
-            1.0f, -1.0f, -1.0f,
-            -1.0f, -1.0f,  1.0f,
-            1.0f, -1.0f,  1.0f
-        ];
+        //     -1.0f, -1.0f, -1.0f,
+        //     -1.0f, -1.0f,  1.0f,
+        //     1.0f, -1.0f, -1.0f,
+        //     1.0f, -1.0f, -1.0f,
+        //     -1.0f, -1.0f,  1.0f,
+        //     1.0f, -1.0f,  1.0f
+        // ];
 
 
-        // skybox VAO
-        // to do: check if there is better way to set this up, w curr code set up
-        glGenVertexArrays(1, &mSkyBoxVAO);
-        glGenBuffers(1, &mSkyBoxVBO);
-        glBindVertexArray(mSkyBoxVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, mSkyBoxVBO);
+        // // skybox VAO
+        // // to do: check if there is better way to set this up, w curr code set up
+        // glGenVertexArrays(1, &mSkyBoxVAO);
+        // glGenBuffers(1, &mSkyBoxVBO);
+        // glBindVertexArray(mSkyBoxVAO);
+        // glBindBuffer(GL_ARRAY_BUFFER, mSkyBoxVBO);
 
-        glBufferData(GL_ARRAY_BUFFER, 
-        cast(GLsizeiptr)(skyboxVertices.length * float.sizeof),
-        skyboxVertices.ptr,
-        GL_STATIC_DRAW);
+        // glBufferData(GL_ARRAY_BUFFER, 
+        // cast(GLsizeiptr)(skyboxVertices.length * float.sizeof),
+        // skyboxVertices.ptr,
+        // GL_STATIC_DRAW);
 
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * float.sizeof, cast(void*)0);
+        // glEnableVertexAttribArray(0);
+        // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * float.sizeof, cast(void*)0);
 
-        string[] faces = [
-            "./assets/skybox/right.jpg",
-            "./assets/skybox/left.jpg",
-            "./assets/skybox/top.jpg",
-            "./assets/skybox/bottom.jpg",
-            "./assets/skybox/front.jpg",
-            "./assets/skybox/back.jpg"
-        ];
+        // string[] faces = [
+        //     "./assets/skybox/right.jpg",
+        //     "./assets/skybox/left.jpg",
+        //     "./assets/skybox/top.jpg",
+        //     "./assets/skybox/bottom.jpg",
+        //     "./assets/skybox/front.jpg",
+        //     "./assets/skybox/back.jpg"
+        // ];
 
-        string[] faces2 = [
-            "./assets/sky_83_cubemap_2k/pz.png", // +X (RIGHT)
-            "./assets/sky_83_cubemap_2k/nz.png", // -X (LEFT)
-            "./assets/sky_83_cubemap_2k/py.png", // +Y (UP)
-            "./assets/sky_83_cubemap_2k/ny.png", // -Y (DOWN)
-            "./assets/sky_83_cubemap_2k/px.png", // +Z (FRONT)
-            "./assets/sky_83_cubemap_2k/nx.png"  // -Z (BACK)
-        ];
+        // string[] faces2 = [
+        //     "./assets/sky_83_cubemap_2k/pz.png", // +X (RIGHT)
+        //     "./assets/sky_83_cubemap_2k/nz.png", // -X (LEFT)
+        //     "./assets/sky_83_cubemap_2k/py.png", // +Y (UP)
+        //     "./assets/sky_83_cubemap_2k/ny.png", // -Y (DOWN)
+        //     "./assets/sky_83_cubemap_2k/px.png", // +Z (FRONT)
+        //     "./assets/sky_83_cubemap_2k/nx.png"  // -Z (BACK)
+        // ];
 
-        string[] faces3 = [
-            "./assets/sky_77_cubemap_2k/pz.png", // +X (RIGHT)
-            "./assets/sky_77_cubemap_2k/nz.png", // -X (LEFT)
-            "./assets/sky_77_cubemap_2k/py.png", // +Y (UP)
-            "./assets/sky_77_cubemap_2k/ny.png", // -Y (DOWN)
-            "./assets/sky_77_cubemap_2k/px.png", // +Z (FRONT)
-            "./assets/sky_77_cubemap_2k/nx.png"  // -Z (BACK)
-        ];
+        // string[] faces3 = [
+        //     "./assets/sky_77_cubemap_2k/pz.png", // +X (RIGHT)
+        //     "./assets/sky_77_cubemap_2k/nz.png", // -X (LEFT)
+        //     "./assets/sky_77_cubemap_2k/py.png", // +Y (UP)
+        //     "./assets/sky_77_cubemap_2k/ny.png", // -Y (DOWN)
+        //     "./assets/sky_77_cubemap_2k/px.png", // +Z (FRONT)
+        //     "./assets/sky_77_cubemap_2k/nx.png"  // -Z (BACK)
+        // ];
 
-        // https://www.humus.name/index.php?page=Textures&start=24
-        string[] faces4 = [
-            "./assets/Yokohama3/posx.jpg", // +X (RIGHT)
-            "./assets/Yokohama3/negx.jpg", // -X (LEFT)
-            "./assets/Yokohama3/posy.jpg", // +Y (UP)
-            "./assets/Yokohama3/negy.jpg", // -Y (DOWN)
-            "./assets/Yokohama3/posz.jpg", // +Z (FRONT)
-            "./assets/Yokohama3/negz.jpg"  // -Z (BACK)
-        ];
+        // // https://www.humus.name/index.php?page=Textures&start=24
+        // string[] faces4 = [
+        //     "./assets/Yokohama3/posx.jpg", // +X (RIGHT)
+        //     "./assets/Yokohama3/negx.jpg", // -X (LEFT)
+        //     "./assets/Yokohama3/posy.jpg", // +Y (UP)
+        //     "./assets/Yokohama3/negy.jpg", // -Y (DOWN)
+        //     "./assets/Yokohama3/posz.jpg", // +Z (FRONT)
+        //     "./assets/Yokohama3/negz.jpg"  // -Z (BACK)
+        // ];
 
-        string[] grass_terrain_faces = [
-            "./assets/Yokohama2/posx.jpg", // +X (RIGHT)
-            "./assets/Yokohama2/negx.jpg", // -X (LEFT)
-            "./assets/Yokohama2/posy.jpg", // +Y (UP)
-            "./assets/Yokohama2/negy.jpg", // -Y (DOWN)
-            "./assets/Yokohama2/posz.jpg", // +Z (FRONT)
-            "./assets/Yokohama2/negz.jpg"  // -Z (BACK)
-        ];
+        // string[] grass_terrain_faces = [
+        //     "./assets/Yokohama2/posx.jpg", // +X (RIGHT)
+        //     "./assets/Yokohama2/negx.jpg", // -X (LEFT)
+        //     "./assets/Yokohama2/posy.jpg", // +Y (UP)
+        //     "./assets/Yokohama2/negy.jpg", // -Y (DOWN)
+        //     "./assets/Yokohama2/posz.jpg", // +Z (FRONT)
+        //     "./assets/Yokohama2/negz.jpg"  // -Z (BACK)
+        // ];
 
-        stbi_set_flip_vertically_on_load(0);
-        mCubemapTexture = loadCubemap(faces);
+        // stbi_set_flip_vertically_on_load(0);
+        // mCubemapTexture = loadCubemap(faces);
 
         //Set up the map as the last item
         SetupMap();
@@ -488,6 +494,20 @@ class GameApplication : IGame{
 
         debugLindenAsset();
         writeln("[tree-test] B after linden block");
+
+
+
+
+
+
+
+
+
+
+
+
+        //Stress testing for Frustum culling
+        spawnStressTest(300);
     }
 
 
@@ -516,9 +536,14 @@ class GameApplication : IGame{
                 {
                     uint meshIdx = node.mMeshes[i];
                     auto mesh = scene.mMeshes[meshIdx];
+                    // auto surf = new SurfaceAssimp(cast(aiMesh*)mesh);
+                    // auto mn = new MeshNode("preset_" ~ meshIdx.to!string, surf, mapMat);
+                    // mn.mModelMatrix = parentTransform;
+                    // mSceneTree.GetRootNode().AddChildSceneNode(mn);
                     auto surf = new SurfaceAssimp(cast(aiMesh*)mesh);
                     auto mn = new MeshNode("preset_" ~ meshIdx.to!string, surf, mapMat);
                     mn.mModelMatrix = parentTransform;
+                    mn.mBoundingRadius = surf.mBoundingRadius * sc;  // scale the radius too
                     mSceneTree.GetRootNode().AddChildSceneNode(mn);
                 }
                 for (uint i = 0; i < node.mNumChildren; i++)
@@ -594,23 +619,23 @@ class GameApplication : IGame{
 
         if (scene is null)
         {
-            writeln("[linden-debug] failed to import OBJ");
+            // writeln("[linden-debug] failed to import OBJ");
             return;
         }
 
-        writeln("[linden-debug] mesh count = ", scene.mNumMeshes);
-        writeln("[linden-debug] material count = ", scene.mNumMaterials);
+        // writeln("[linden-debug] mesh count = ", scene.mNumMeshes);
+        // writeln("[linden-debug] material count = ", scene.mNumMaterials);
 
         for (uint i = 0; i < scene.mNumMeshes; ++i)
         {
             auto mesh = scene.mMeshes[i];
-            writeln("[linden-debug] mesh ", i,
-                " materialIndex=", mesh.mMaterialIndex,
-                " vertexCount=", mesh.mNumVertices,
-                " faceCount=", mesh.mNumFaces);
+            // writeln("[linden-debug] mesh ", i,
+            //     " materialIndex=", mesh.mMaterialIndex,
+            //     " vertexCount=", mesh.mNumVertices,
+            //     " faceCount=", mesh.mNumFaces);
         }
 
-        writeln("[linden-debug] NODE TREE:");
+        // writeln("[linden-debug] NODE TREE:");
         debugAssimpNodeTree(scene.mRootNode);
 
         aiReleaseImport(scene);
@@ -655,12 +680,23 @@ class GameApplication : IGame{
             uint meshIdx = node.mMeshes[i];
             auto mesh = scene.mMeshes[meshIdx];
 
+            // auto surf = new SurfaceAssimp(cast(aiMesh*)mesh);
+            // auto renderNode = new MeshNode(
+            //     "linden_" ~ eid.to!string ~ "_" ~ meshIdx.to!string,
+            //     surf,
+            //     mat
+            // );
             auto surf = new SurfaceAssimp(cast(aiMesh*)mesh);
             auto renderNode = new MeshNode(
                 "linden_" ~ eid.to!string ~ "_" ~ meshIdx.to!string,
                 surf,
                 mat
             );
+            renderNode.mBoundingRadius = surf.mBoundingRadius;
+
+
+
+
 
             renderNode.mModelMatrix =
                 MatrixMakeTranslation(pos) *
@@ -706,7 +742,7 @@ class GameApplication : IGame{
 
         aiReleaseImport(scene);
 
-        writeln("[linden] visual-only entity=", eid, " spawned at ", pos);
+        // writeln("[linden] visual-only entity=", eid, " spawned at ", pos);
         return eid;
     }
 
@@ -736,8 +772,16 @@ class GameApplication : IGame{
             auto mesh = scene.mMeshes[i];
             IMaterial mat = (mesh.mMaterialIndex == 1) ? mTreeBarkMaterial : mTreeLeafMaterial;
 
+            // auto surf = new SurfaceAssimp(cast(aiMesh*)mesh);
+            // auto node = new MeshNode("tree_" ~ eid.to!string ~ "_" ~ i.to!string, surf, mat);
+
             auto surf = new SurfaceAssimp(cast(aiMesh*)mesh);
             auto node = new MeshNode("tree_" ~ eid.to!string ~ "_" ~ i.to!string, surf, mat);
+            node.mBoundingRadius = surf.mBoundingRadius;
+
+
+
+
           
             node.mModelMatrix = MatrixMakeTranslation(pos) *
             MatrixMakeScale(vec3(1.02f, 1.02f, 1.02f));
@@ -751,6 +795,31 @@ class GameApplication : IGame{
         writeln("[tree] visual-only entity=", eid, " spawned at ", pos);
         return eid;
     }
+
+
+    void spawnStressTest(int count)
+    {
+        import std.random : uniform;
+        
+        for (int i = 0; i < count; i++)
+        {
+            // Random angle around the circle
+            float angle = uniform(0.0f, 2.0f * PI);
+            
+            // Random distance between 150 and 400 units from origin
+            float dist = uniform(150.0f, 400.0f);
+            
+            float x = dist * cos(angle);
+            float z = dist * sin(angle);
+            
+            spawnLinden1VisualOnly(vec3(x, 0.0f, z), Quat.init);
+        }
+        writeln("[stress] spawned ", count, " trees in ring 150-400 units out");
+    }
+
+
+
+
 
     void debugTreeAsset(){
 

@@ -16,7 +16,7 @@ class Camera{
     float mYaw   = 0.0f;
     float mPitch = 0.0f;
 
-    float mMoveSpeed = 0.25f;
+    float mMoveSpeed = 0.1f;
     float mMouseSensitivity = 0.005f;
 
     this(){
