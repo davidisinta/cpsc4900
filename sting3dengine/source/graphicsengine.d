@@ -66,6 +66,13 @@ class GraphicsEngine{
         //--------------------------------------------------------------
         AudioEngine mAudio;
 
+
+
+        //--------------------------------------------------------------
+        // Profiling Vars
+        //--------------------------------------------------------------
+        bool mBackfaceCulling = false; 
+
         /// Setup OpenGL and any libraries
         this(int major_ogl_version, int minor_ogl_version){
 
@@ -151,6 +158,7 @@ class GraphicsEngine{
                     writeln("Exit event triggered");
                     mGameIsRunning= false;
                 }
+                
                 if(event.type == SDL_KEYDOWN){
                     if(event.key.keysym.scancode == SDL_SCANCODE_ESCAPE){
                             writeln("Pressed escape key and now exiting...");
@@ -159,6 +167,27 @@ class GraphicsEngine{
                     else if(event.key.keysym.sym == SDLK_TAB){
                             mRenderWireframe = !mRenderWireframe;
                     }
+
+                    // toggles for profiling
+                    else if(event.key.keysym.sym == SDLK_1 && event.key.repeat == 0){
+                        mBackfaceCulling = !mBackfaceCulling;
+                        writeln("[toggle] backface culling: ", mBackfaceCulling);
+                    }
+                    else if (event.key.keysym.sym == SDLK_2) {
+                        
+                    }
+            
+
+
+
+
+
+
+
+
+
+
+
                 }
 
                 if(event.type == SDL_MOUSEBUTTONDOWN){
@@ -168,7 +197,6 @@ class GraphicsEngine{
                     }
                 }
             }
-
             // Continuous key state for smooth movement
             const(ubyte)* keys = SDL_GetKeyboardState(null);
             bool moving = false;
@@ -250,6 +278,16 @@ class GraphicsEngine{
 
         void Render(){
 
+            // Add face culling, i.e do not draw back faces facing
+            // away from user 
+            if (mBackfaceCulling){
+                glEnable(GL_CULL_FACE);
+                glCullFace(GL_BACK);  
+
+            } else{
+                glDisable(GL_CULL_FACE);
+            }
+    
             // Render 3D scene
             if(mRenderWireframe){
                     glPolygonMode(GL_FRONT_AND_BACK,GL_LINE); 

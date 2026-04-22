@@ -15,7 +15,7 @@ class GameGUI
     int currentAmmo = 30;
     int maxAmmo = 30;
     string weaponName = "PISTOL";
-    string playerName = "Dave";
+    string playerName = "Bazenga";
     float health = 100.0f;
     float maxHealth = 100.0f;
     int roundTimeSeconds = 38;
