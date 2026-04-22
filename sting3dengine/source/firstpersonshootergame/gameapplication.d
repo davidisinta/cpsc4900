@@ -19,6 +19,7 @@ import assimp;
 import editor;
 import gamegui;
 import light;
+import level_builder;
 
 // Third-party libraries
 import bindbc.sdl;
@@ -48,15 +49,16 @@ class GameApplication : IGame{
     GLuint mSkyBoxVAO;
     GLuint  mSkyBoxVBO;
     GLuint mCubemapTexture;
-    vec3 mFogColor;
-    float mFogStart;
-    float mFogEnd;
+    // vec3 mFogColor;
+    // float mFogStart;
+    // float mFogEnd;
+    LevelBuilder mLevelBuilder;
 
     //Game Materials
-    IMaterial mLitTexturedMaterial;
+    // IMaterial mLitTexturedMaterial;
     IMaterial mTreeBarkMaterial;
     IMaterial mTreeLeafMaterial;
-    IMaterial mLindenBarkMaterial;
+    // IMaterial mLindenBarkMaterial;
 
     //sound specific elements
     bool mWalkingSoundPlaying = false;
@@ -79,9 +81,14 @@ class GameApplication : IGame{
         mSceneTree = tree;
         mBasicMaterial = mat;
         mGui = new GameGUI("topshoota-game-gui");
-        mFogColor = vec3(0.55f, 0.68f, 0.78f);
-        mFogStart = 80.0f;
-        mFogEnd = 180.0f;
+        // mFogColor = vec3(0.55f, 0.68f, 0.78f);
+        // mFogStart = 80.0f;
+        // mFogEnd = 180.0f;
+
+        //create Level builder and pass in the engines camera, sceneTree
+        mLevelBuilder = new LevelBuilder(cam, tree, em, physics);
+
+       
     }
 
     override void Input(){
@@ -259,38 +266,40 @@ class GameApplication : IGame{
         lightMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
         lightMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
 
-        // Lit + textured pipeline for models with UV + texture
-        Pipeline litTexPipeline = new Pipeline("lit_textured",
-            "./pipelines/lit_textured/lit_textured.vert",
-            "./pipelines/lit_textured/lit_textured.frag");
+        // // Lit + textured pipeline for models with UV + texture
+        // Pipeline litTexPipeline = new Pipeline("lit_textured",
+        //     "./pipelines/lit_textured/lit_textured.vert",
+        //     "./pipelines/lit_textured/lit_textured.frag");
 
-        mLitTexturedMaterial = new LitTexturedMaterial("lit_textured",
-            "./assets/modern_soldier/textures/material_0_baseColor.jpeg");
+        // mLitTexturedMaterial = new LitTexturedMaterial("lit_textured",
+        //     "./assets/modern_soldier/textures/material_0_baseColor.jpeg");
 
-        mLitTexturedMaterial.AddUniform(new Uniform("uTexture", 0));
-        mLitTexturedMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-        mLitTexturedMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-        mLitTexturedMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
-        mLitTexturedMaterial.AddUniform(new Uniform("uFogColor", "vec3", &mFogColor));
-        mLitTexturedMaterial.AddUniform(new Uniform("uFogStart", mFogStart));
-        mLitTexturedMaterial.AddUniform(new Uniform("uFogEnd", mFogEnd));
+        // mLitTexturedMaterial.AddUniform(new Uniform("uTexture", 0));
+        // mLitTexturedMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+        // mLitTexturedMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+        // mLitTexturedMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+        // mLitTexturedMaterial.AddUniform(new Uniform("uFogColor", "vec3", &mFogColor));
+        // mLitTexturedMaterial.AddUniform(new Uniform("uFogStart", mFogStart));
+        // mLitTexturedMaterial.AddUniform(new Uniform("uFogEnd", mFogEnd));
 
       
-        //----------------------------------------------------------------
-        // Add Materials for the tree
-        //----------------------------------------------------------------
+        // //----------------------------------------------------------------
+        // // Add Materials for the tree
+        // //----------------------------------------------------------------
 
-        // simple tree
-        mLindenBarkMaterial = new LitTexturedMaterial("lit_textured", "./assets/4-linden-trees-pack-medium-poly/import_1/nature_bark_linden_04_m_0001.jpg");
 
-        mLindenBarkMaterial.AddUniform(new Uniform("uTexture", 0));
-        mLindenBarkMaterial.AddUniform(new Uniform("uModel", "mat4", null));
-        mLindenBarkMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-        mLindenBarkMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
 
-        mLitTexturedMaterial.AddUniform(new Uniform("uFogColor", "vec3", &mFogColor));
-        mLitTexturedMaterial.AddUniform(new Uniform("uFogStart", mFogStart));
-        mLitTexturedMaterial.AddUniform(new Uniform("uFogEnd", mFogEnd));
+        // // simple tree
+        // mLindenBarkMaterial = new LitTexturedMaterial("lit_textured", "./assets/4-linden-trees-pack-medium-poly/import_1/nature_bark_linden_04_m_0001.jpg");
+
+        // mLindenBarkMaterial.AddUniform(new Uniform("uTexture", 0));
+        // mLindenBarkMaterial.AddUniform(new Uniform("uModel", "mat4", null));
+        // mLindenBarkMaterial.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+        // mLindenBarkMaterial.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+
+        // mLitTexturedMaterial.AddUniform(new Uniform("uFogColor", "vec3", &mFogColor));
+        // mLitTexturedMaterial.AddUniform(new Uniform("uFogStart", mFogStart));
+        // mLitTexturedMaterial.AddUniform(new Uniform("uFogEnd", mFogEnd));
 
         //-----------------------------------------------------------------
         // add terrain to the game
@@ -338,269 +347,32 @@ class GameApplication : IGame{
         //     Quat.init
         // );
 
-        // -------------------------------------------------------
-        // Spawn Soldiers
-        // -------------------------------------------------------
-        spawnSoldierEnemy(vec3(33.0f, 0.0f, -10.0f), Quat.init);
-        spawnSoldierEnemy(vec3(0.0f, 0.0f, -30.0f), Quat.init);
-        spawnSoldierEnemy(vec3(0.0f, 0.0f, -40.0f), Quat.init);
-        spawnSoldierEnemy(vec3(13.0f, 0.0f, -17.0f), Quat.init);
-        spawnSoldierEnemy(vec3(23.0f, 0.0f, -17.0f), Quat.init);
-        spawnSoldierEnemy(vec3(13.0f, 0.0f, -37.0f), Quat.init);
-        spawnSoldierEnemy(vec3(43.0f, 0.0f, 17.0f), Quat.init);
+        // // -------------------------------------------------------
+        // // Spawn Soldiers
+        // // -------------------------------------------------------
+        // spawnSoldierEnemy(vec3(33.0f, 0.0f, -10.0f), Quat.init);
+        // spawnSoldierEnemy(vec3(0.0f, 0.0f, -30.0f), Quat.init);
+        // spawnSoldierEnemy(vec3(0.0f, 0.0f, -40.0f), Quat.init);
+        // spawnSoldierEnemy(vec3(13.0f, 0.0f, -17.0f), Quat.init);
+        // spawnSoldierEnemy(vec3(23.0f, 0.0f, -17.0f), Quat.init);
+        // spawnSoldierEnemy(vec3(13.0f, 0.0f, -37.0f), Quat.init);
+        // spawnSoldierEnemy(vec3(43.0f, 0.0f, 17.0f), Quat.init);
 
-        //Set up the map as the last item
-        SetupMap();
-
-        writeln("[tree-test] A before linden block");
-
-        // 30 trees, all at least radius 40 from origin
-        foreach (i; 0 .. 160){
-            float x, z;
-
-            // keep sampling until outside radius 40
-            do
-            {
-                x = uniform(-120.0f, 120.0f);
-                z = uniform(-120.0f, 120.0f);
-            }
-            while ((x * x + z * z) < (100.0f * 100.0f));
-
-            spawnLinden1VisualOnly(vec3(x, 0.0f, z), Quat.init);
-        }
-
-        debugLindenAsset();
-        writeln("[tree-test] B after linden block");
+        //Let Level Builder Set up the map
+        mLevelBuilder.SetupMap();
 
         //Stress testing for Frustum culling
         // spawnStressTest(300);
     }
 
 
-    void SetupMap(){
+    
 
-        // === MAP: Build arena from presets ===
-        auto presetScene = aiImportFile(
-            "./assets/fps_map_kit/uploads_files_3151797_FPS_Modular_Map_Kit_FBX/Fps_Modular_Map_Presets.fbx".toStringz,
-            aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs);
-        
-        if (presetScene !is null){
+    
 
-            IMaterial mapMat = new LitTexturedMaterial("lit_textured",
-                "./assets/fps_map_kit/uploads_files_3151797_FPS_Modular_Map_Kit_Map/FPS_Modular_Map_BaseColor.png");
-            mapMat.AddUniform(new Uniform("uTexture", 0));
-            mapMat.AddUniform(new Uniform("uModel", "mat4", null));
-            mapMat.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
-            mapMat.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
-
-            float sc = 0.015f;
-
-            // Helper: recursively add all meshes under a node
-            void addNodeMeshes(const(aiNode)* node, const(aiScene)* scene, mat4 parentTransform)
-            {
-                for (uint i = 0; i < node.mNumMeshes; i++)
-                {
-                    uint meshIdx = node.mMeshes[i];
-                    auto mesh = scene.mMeshes[meshIdx];
-                    // auto surf = new SurfaceAssimp(cast(aiMesh*)mesh);
-                    // auto mn = new MeshNode("preset_" ~ meshIdx.to!string, surf, mapMat);
-                    // mn.mModelMatrix = parentTransform;
-                    // mSceneTree.GetRootNode().AddChildSceneNode(mn);
-                    auto surf = new SurfaceAssimp(cast(aiMesh*)mesh);
-                    auto mn = new MeshNode("preset_" ~ meshIdx.to!string, surf, mapMat);
-                    mn.mModelMatrix = parentTransform;
-                    mn.mBoundingRadius = surf.mBoundingRadius * sc;  // scale the radius too
-                    mSceneTree.GetRootNode().AddChildSceneNode(mn);
-                }
-                for (uint i = 0; i < node.mNumChildren; i++)
-                {
-                    addNodeMeshes(node.mChildren[i], scene, parentTransform);
-                }
-            }
-
-            // Place presets to build an arena
-            // Cabin A at center
-            addNodeMeshes(presetScene.mRootNode.mChildren[13], presetScene,
-                MatrixMakeTranslation(vec3(0.0f, 0.0f, -20.0f)) * MatrixMakeScale(vec3(sc, sc, sc)));
-
-            // Cabin B offset
-            addNodeMeshes(presetScene.mRootNode.mChildren[16], presetScene,
-                MatrixMakeTranslation(vec3(30.0f, 0.0f, -20.0f)) * MatrixMakeScale(vec3(sc, sc, sc)));
-
-            // Building
-            addNodeMeshes(presetScene.mRootNode.mChildren[1], presetScene,
-                MatrixMakeTranslation(vec3(15.0f, 0.0f, -40.0f)) * MatrixMakeScale(vec3(sc, sc, sc)));
-
-            // Exterior walls
-            addNodeMeshes(presetScene.mRootNode.mChildren[18], presetScene,
-                MatrixMakeTranslation(vec3(-10.0f, 0.0f, 0.0f)) * MatrixMakeScale(vec3(sc, sc, sc)));
-            addNodeMeshes(presetScene.mRootNode.mChildren[18], presetScene,
-                MatrixMakeTranslation(vec3(40.0f, 0.0f, 0.0f)) * MatrixMakeScale(vec3(sc, sc, sc)));
-
-            // Sandbags for cover
-            addNodeMeshes(presetScene.mRootNode.mChildren[20], presetScene,
-                MatrixMakeTranslation(vec3(10.0f, 0.0f, -10.0f)) * MatrixMakeScale(vec3(sc, sc, sc)));
-            addNodeMeshes(presetScene.mRootNode.mChildren[21], presetScene,
-                MatrixMakeTranslation(vec3(20.0f, 0.0f, -15.0f)) * MatrixMakeScale(vec3(sc, sc, sc)));
-            addNodeMeshes(presetScene.mRootNode.mChildren[22], presetScene,
-                MatrixMakeTranslation(vec3(5.0f, 0.0f, -30.0f)) * MatrixMakeScale(vec3(sc, sc, sc)));
-
-            // Corner wall
-            addNodeMeshes(presetScene.mRootNode.mChildren[19], presetScene,
-                MatrixMakeTranslation(vec3(-10.0f, 0.0f, -40.0f)) * MatrixMakeScale(vec3(sc, sc, sc)));
-
-            writeln("[arena] built from presets");
-            aiReleaseImport(presetScene);
-        }
-    }
-
-    void debugAssimpNodeTree(const(aiNode)* node, int depth = 0){
-        if (node is null) return;
-
-        string indent;
-        foreach (_; 0 .. depth) indent ~= "  ";
-
-        auto nodeName = aiNodeName(node);
-
-        writeln(indent, "[assimp-node] name=", nodeName,
-            " meshes=", node.mNumMeshes,
-            " children=", node.mNumChildren);
-
-        foreach (i; 0 .. node.mNumMeshes)
-        {
-            writeln(indent, "  meshIndex=", node.mMeshes[i]);
-        }
-
-        foreach (i; 0 .. node.mNumChildren)
-        {
-            debugAssimpNodeTree(node.mChildren[i], depth + 1);
-        }
-    }
-
-    void debugLindenAsset(){
-        auto scene = aiImportFile(
-            "./assets/4-linden-trees-pack-medium-poly/import_1/linden.obj".toStringz,
-            aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs
-        );
-
-        if (scene is null)
-        {
-            // writeln("[linden-debug] failed to import OBJ");
-            return;
-        }
-
-        // writeln("[linden-debug] mesh count = ", scene.mNumMeshes);
-        // writeln("[linden-debug] material count = ", scene.mNumMaterials);
-
-        for (uint i = 0; i < scene.mNumMeshes; ++i)
-        {
-            auto mesh = scene.mMeshes[i];
-            // writeln("[linden-debug] mesh ", i,
-            //     " materialIndex=", mesh.mMaterialIndex,
-            //     " vertexCount=", mesh.mNumVertices,
-            //     " faceCount=", mesh.mNumFaces);
-        }
-
-        // writeln("[linden-debug] NODE TREE:");
-        debugAssimpNodeTree(scene.mRootNode);
-
-        aiReleaseImport(scene);
-    }
-
-    string aiNodeName(const(aiNode)* node){
-        if (node is null) return "";
-
-        size_t len = cast(size_t)node.mName.length;
-        return cast(string) node.mName.data[0 .. len];
-    }
-
-    const(aiNode)* findNodeByName(const(aiNode)* node, string targetName){
-        if (node is null) return null;
-
-        auto nodeName = fromStringz(node.mName.data);
-        if (nodeName == targetName)
-            return node;
-
-        foreach (i; 0 .. node.mNumChildren)
-        {
-            auto found = findNodeByName(node.mChildren[i], targetName);
-            if (found !is null)
-                return found;
-        }
-
-        return null;
-    }
+    
 
 
-    void addMeshesFromNode(
-        const(aiNode)* node,
-        const(aiScene)* scene,
-        uint eid,
-        vec3 pos,
-        IMaterial mat){
-
-        if (node is null || scene is null) return;
-
-        foreach (i; 0 .. node.mNumMeshes)
-        {
-            uint meshIdx = node.mMeshes[i];
-            auto mesh = scene.mMeshes[meshIdx];
-
-            auto surf = new SurfaceAssimp(cast(aiMesh*)mesh);
-            auto renderNode = new MeshNode(
-                "linden_" ~ eid.to!string ~ "_" ~ meshIdx.to!string,
-                surf,
-                mat
-            );
-            renderNode.mBoundingRadius = surf.mBoundingRadius;
-
-            renderNode.mModelMatrix =
-                MatrixMakeTranslation(pos) *
-                MatrixMakeScale(vec3(1.0f, 1.0f, 1.0f));
-
-            mSceneTree.GetRootNode().AddChildSceneNode(renderNode);
-            mEntityManager.addRenderable(eid, renderNode);
-        }
-    }
-
-
-    uint spawnLinden1VisualOnly(vec3 pos, Quat orient = Quat.init){
-
-        string modelPath = "./assets/4-linden-trees-pack-medium-poly/import_1/linden.obj";
-
-        uint eid = mEntityManager.create();
-
-        auto scene = aiImportFile(
-            modelPath.toStringz,
-            aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs
-        );
-
-        if (scene is null)
-        {
-            writeln("[linden] failed to import ", modelPath);
-            return eid;
-        }
-
-        TransformComponent tc;
-        tc.position = pos;
-        tc.rotation = orient;
-        mEntityManager.addTransform(eid, tc);
-
-        auto lindenNode = findNodeByName(scene.mRootNode, "linden_1");
-
-        if (lindenNode is null){
-            writeln("[linden] node linden_1 not found");
-            aiReleaseImport(scene);
-            return eid;
-        }
-
-        addMeshesFromNode(lindenNode, scene, eid, pos, mLindenBarkMaterial);
-
-        aiReleaseImport(scene);
-
-        // writeln("[linden] visual-only entity=", eid, " spawned at ", pos);
-        return eid;
-    }
 
     uint spawnTreeVisualOnly(vec3 pos, Quat orient = Quat.init){
         string treeModel = "./assets/free-tree-downloadfbx/source/Tree test.fbx";
@@ -648,25 +420,25 @@ class GameApplication : IGame{
     }
 
 
-    void spawnStressTest(int count)
-    {
-        import std.random : uniform;
+    // void spawnStressTest(int count)
+    // {
+    //     import std.random : uniform;
         
-        for (int i = 0; i < count; i++)
-        {
-            // Random angle around the circle
-            float angle = uniform(0.0f, 2.0f * PI);
+    //     for (int i = 0; i < count; i++)
+    //     {
+    //         // Random angle around the circle
+    //         float angle = uniform(0.0f, 2.0f * PI);
             
-            // Random distance between 150 and 400 units from origin
-            float dist = uniform(150.0f, 400.0f);
+    //         // Random distance between 150 and 400 units from origin
+    //         float dist = uniform(150.0f, 400.0f);
             
-            float x = dist * cos(angle);
-            float z = dist * sin(angle);
+    //         float x = dist * cos(angle);
+    //         float z = dist * sin(angle);
             
-            spawnLinden1VisualOnly(vec3(x, 0.0f, z), Quat.init);
-        }
-        writeln("[stress] spawned ", count, " trees in ring 150-400 units out");
-    }
+    //         spawnLinden1VisualOnly(vec3(x, 0.0f, z), Quat.init);
+    //     }
+    //     writeln("[stress] spawned ", count, " trees in ring 150-400 units out");
+    // }
 
     void debugTreeAsset(){
 
@@ -695,35 +467,35 @@ class GameApplication : IGame{
     }
 
 
-    uint spawnSoldierEnemy(vec3 pos, Quat orient = Quat.init){
+    // uint spawnSoldierEnemy(vec3 pos, Quat orient = Quat.init){
 
-        string soldierModel = "./assets/modern_soldier/scene.gltf";
-        string soldierPhysics = "soldier.urdf";
+    //     string soldierModel = "./assets/modern_soldier/scene.gltf";
+    //     string soldierPhysics = "soldier.urdf";
 
-        uint eid = mEntityManager.create();
+    //     uint eid = mEntityManager.create();
 
-        mPhysicsWorld.addURDF(eid, soldierPhysics,
-            pos.x, pos.y + 1.0f, pos.z,
-            orient.x, orient.y, orient.z, orient.w);
-        mEntityManager.markPhysics(eid);
+    //     mPhysicsWorld.addURDF(eid, soldierPhysics,
+    //         pos.x, pos.y + 1.0f, pos.z,
+    //         orient.x, orient.y, orient.z, orient.w);
+    //     mEntityManager.markPhysics(eid);
 
-        // Load model and add with TEXTURED material
-        auto model = new Model(soldierModel);
-        auto nodes = model.addToScene(mSceneTree, mLitTexturedMaterial, "soldier_" ~ eid.to!string);
+    //     // Load model and add with TEXTURED material
+    //     auto model = new Model(soldierModel);
+    //     auto nodes = model.addToScene(mSceneTree, mLitTexturedMaterial, "soldier_" ~ eid.to!string);
 
-        TransformComponent tc;
-        tc.position = vec3(pos.x, pos.y + 1.0f, pos.z);
-        tc.rotation = orient;
-        mEntityManager.addTransform(eid, tc);
+    //     TransformComponent tc;
+    //     tc.position = vec3(pos.x, pos.y + 1.0f, pos.z);
+    //     tc.rotation = orient;
+    //     mEntityManager.addTransform(eid, tc);
 
-        foreach (node; nodes){
-            node.mModelMatrix = tc.toModelMatrix();
-            mEntityManager.addRenderable(eid, node);
-        }
+    //     foreach (node; nodes){
+    //         node.mModelMatrix = tc.toModelMatrix();
+    //         mEntityManager.addRenderable(eid, node);
+    //     }
 
-        writeln("[soldier] spawned entity=", eid, " at ", pos);
-        return eid;
-    }
+    //     writeln("[soldier] spawned entity=", eid, " at ", pos);
+    //     return eid;
+    // }
 
     void attachAudio(AudioEngine* audio){
         mAudio = audio;
