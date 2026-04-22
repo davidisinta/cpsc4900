@@ -56,7 +56,6 @@ struct aiMesh {
     uint mNumAnimMeshes;
     void** mAnimMeshes;
     uint mMethod;
-    // aiAABB is two aiVector3D (min + max)
     aiVector3D mAABBMin;
     aiVector3D mAABBMax;
     aiString** mTextureCoordsNames;

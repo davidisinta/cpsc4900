@@ -166,11 +166,6 @@ class GameApplication : IGame{
         tc.rotation = orient;
         mEntityManager.addTransform(eid, tc);
 
-        // foreach (node; nodes) {
-        //     node.mModelMatrix = tc.toModelMatrix();
-        //     mEntityManager.addRenderable(eid, node);
-        // }
-
         foreach (node; nodes) {
             node.mModelMatrix = tc.toModelMatrix();
             mEntityManager.addRenderable(eid, node);
@@ -281,7 +276,6 @@ class GameApplication : IGame{
         mLitTexturedMaterial.AddUniform(new Uniform("uFogEnd", mFogEnd));
 
       
-
         //----------------------------------------------------------------
         // Add Materials for the tree
         //----------------------------------------------------------------
@@ -297,11 +291,10 @@ class GameApplication : IGame{
         mLitTexturedMaterial.AddUniform(new Uniform("uFogColor", "vec3", &mFogColor));
         mLitTexturedMaterial.AddUniform(new Uniform("uFogStart", mFogStart));
         mLitTexturedMaterial.AddUniform(new Uniform("uFogEnd", mFogEnd));
-        //-----------------------------------------------------------------
-        // add terrain to the game now 
-        //-----------------------------------------------------------------
-        // to do: check if need to get rid of multitexture code
 
+        //-----------------------------------------------------------------
+        // add terrain to the game
+        //-----------------------------------------------------------------
         // Simple textured pipeline for terrain (position + UV, no normals)
         Pipeline simpleTexPipeline = new Pipeline("textured_simple",
             "./pipelines/textured_simple/textured_simple.vert",
@@ -356,122 +349,6 @@ class GameApplication : IGame{
         spawnSoldierEnemy(vec3(13.0f, 0.0f, -37.0f), Quat.init);
         spawnSoldierEnemy(vec3(43.0f, 0.0f, 17.0f), Quat.init);
 
-        // //Setup Skybox Vertices
-        // // Create the Skybox shader
-        // new Pipeline("skybox", "./pipelines/skybox/skybox.vert",
-        //                             "./pipelines/skybox/skybox.frag");
-
-        // float[] skyboxVertices = [
-
-        //     // positions          
-        //     -1.0f,  1.0f, -1.0f,
-        //     -1.0f, -1.0f, -1.0f,
-        //     1.0f, -1.0f, -1.0f,
-        //     1.0f, -1.0f, -1.0f,
-        //     1.0f,  1.0f, -1.0f,
-        //     -1.0f,  1.0f, -1.0f,
-
-        //     -1.0f, -1.0f,  1.0f,
-        //     -1.0f, -1.0f, -1.0f,
-        //     -1.0f,  1.0f, -1.0f,
-        //     -1.0f,  1.0f, -1.0f,
-        //     -1.0f,  1.0f,  1.0f,
-        //     -1.0f, -1.0f,  1.0f,
-
-        //     1.0f, -1.0f, -1.0f,
-        //     1.0f, -1.0f,  1.0f,
-        //     1.0f,  1.0f,  1.0f,
-        //     1.0f,  1.0f,  1.0f,
-        //     1.0f,  1.0f, -1.0f,
-        //     1.0f, -1.0f, -1.0f,
-
-        //     -1.0f, -1.0f,  1.0f,
-        //     -1.0f,  1.0f,  1.0f,
-        //     1.0f,  1.0f,  1.0f,
-        //     1.0f,  1.0f,  1.0f,
-        //     1.0f, -1.0f,  1.0f,
-        //     -1.0f, -1.0f,  1.0f,
-
-        //     -1.0f,  1.0f, -1.0f,
-        //     1.0f,  1.0f, -1.0f,
-        //     1.0f,  1.0f,  1.0f,
-        //     1.0f,  1.0f,  1.0f,
-        //     -1.0f,  1.0f,  1.0f,
-        //     -1.0f,  1.0f, -1.0f,
-
-        //     -1.0f, -1.0f, -1.0f,
-        //     -1.0f, -1.0f,  1.0f,
-        //     1.0f, -1.0f, -1.0f,
-        //     1.0f, -1.0f, -1.0f,
-        //     -1.0f, -1.0f,  1.0f,
-        //     1.0f, -1.0f,  1.0f
-        // ];
-
-
-        // // skybox VAO
-        // // to do: check if there is better way to set this up, w curr code set up
-        // glGenVertexArrays(1, &mSkyBoxVAO);
-        // glGenBuffers(1, &mSkyBoxVBO);
-        // glBindVertexArray(mSkyBoxVAO);
-        // glBindBuffer(GL_ARRAY_BUFFER, mSkyBoxVBO);
-
-        // glBufferData(GL_ARRAY_BUFFER, 
-        // cast(GLsizeiptr)(skyboxVertices.length * float.sizeof),
-        // skyboxVertices.ptr,
-        // GL_STATIC_DRAW);
-
-        // glEnableVertexAttribArray(0);
-        // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * float.sizeof, cast(void*)0);
-
-        // string[] faces = [
-        //     "./assets/skybox/right.jpg",
-        //     "./assets/skybox/left.jpg",
-        //     "./assets/skybox/top.jpg",
-        //     "./assets/skybox/bottom.jpg",
-        //     "./assets/skybox/front.jpg",
-        //     "./assets/skybox/back.jpg"
-        // ];
-
-        // string[] faces2 = [
-        //     "./assets/sky_83_cubemap_2k/pz.png", // +X (RIGHT)
-        //     "./assets/sky_83_cubemap_2k/nz.png", // -X (LEFT)
-        //     "./assets/sky_83_cubemap_2k/py.png", // +Y (UP)
-        //     "./assets/sky_83_cubemap_2k/ny.png", // -Y (DOWN)
-        //     "./assets/sky_83_cubemap_2k/px.png", // +Z (FRONT)
-        //     "./assets/sky_83_cubemap_2k/nx.png"  // -Z (BACK)
-        // ];
-
-        // string[] faces3 = [
-        //     "./assets/sky_77_cubemap_2k/pz.png", // +X (RIGHT)
-        //     "./assets/sky_77_cubemap_2k/nz.png", // -X (LEFT)
-        //     "./assets/sky_77_cubemap_2k/py.png", // +Y (UP)
-        //     "./assets/sky_77_cubemap_2k/ny.png", // -Y (DOWN)
-        //     "./assets/sky_77_cubemap_2k/px.png", // +Z (FRONT)
-        //     "./assets/sky_77_cubemap_2k/nx.png"  // -Z (BACK)
-        // ];
-
-        // // https://www.humus.name/index.php?page=Textures&start=24
-        // string[] faces4 = [
-        //     "./assets/Yokohama3/posx.jpg", // +X (RIGHT)
-        //     "./assets/Yokohama3/negx.jpg", // -X (LEFT)
-        //     "./assets/Yokohama3/posy.jpg", // +Y (UP)
-        //     "./assets/Yokohama3/negy.jpg", // -Y (DOWN)
-        //     "./assets/Yokohama3/posz.jpg", // +Z (FRONT)
-        //     "./assets/Yokohama3/negz.jpg"  // -Z (BACK)
-        // ];
-
-        // string[] grass_terrain_faces = [
-        //     "./assets/Yokohama2/posx.jpg", // +X (RIGHT)
-        //     "./assets/Yokohama2/negx.jpg", // -X (LEFT)
-        //     "./assets/Yokohama2/posy.jpg", // +Y (UP)
-        //     "./assets/Yokohama2/negy.jpg", // -Y (DOWN)
-        //     "./assets/Yokohama2/posz.jpg", // +Z (FRONT)
-        //     "./assets/Yokohama2/negz.jpg"  // -Z (BACK)
-        // ];
-
-        // stbi_set_flip_vertically_on_load(0);
-        // mCubemapTexture = loadCubemap(faces);
-
         //Set up the map as the last item
         SetupMap();
 
@@ -495,19 +372,8 @@ class GameApplication : IGame{
         debugLindenAsset();
         writeln("[tree-test] B after linden block");
 
-
-
-
-
-
-
-
-
-
-
-
         //Stress testing for Frustum culling
-        spawnStressTest(300);
+        // spawnStressTest(300);
     }
 
 
@@ -680,12 +546,6 @@ class GameApplication : IGame{
             uint meshIdx = node.mMeshes[i];
             auto mesh = scene.mMeshes[meshIdx];
 
-            // auto surf = new SurfaceAssimp(cast(aiMesh*)mesh);
-            // auto renderNode = new MeshNode(
-            //     "linden_" ~ eid.to!string ~ "_" ~ meshIdx.to!string,
-            //     surf,
-            //     mat
-            // );
             auto surf = new SurfaceAssimp(cast(aiMesh*)mesh);
             auto renderNode = new MeshNode(
                 "linden_" ~ eid.to!string ~ "_" ~ meshIdx.to!string,
@@ -693,10 +553,6 @@ class GameApplication : IGame{
                 mat
             );
             renderNode.mBoundingRadius = surf.mBoundingRadius;
-
-
-
-
 
             renderNode.mModelMatrix =
                 MatrixMakeTranslation(pos) *
@@ -778,11 +634,6 @@ class GameApplication : IGame{
             auto surf = new SurfaceAssimp(cast(aiMesh*)mesh);
             auto node = new MeshNode("tree_" ~ eid.to!string ~ "_" ~ i.to!string, surf, mat);
             node.mBoundingRadius = surf.mBoundingRadius;
-
-
-
-
-          
             node.mModelMatrix = MatrixMakeTranslation(pos) *
             MatrixMakeScale(vec3(1.02f, 1.02f, 1.02f));
 
@@ -816,10 +667,6 @@ class GameApplication : IGame{
         }
         writeln("[stress] spawned ", count, " trees in ring 150-400 units out");
     }
-
-
-
-
 
     void debugTreeAsset(){
 
@@ -1167,3 +1014,7 @@ class GameApplication : IGame{
 // https://www.cgtrader.com/3d-models/exterior/other/lowpoly-fps-modular-map-kit
 // https://www.cgtrader.com/3d-models/military/gun/fps-animations-single-pistol
 // https://www.cgtrader.com/3d-models/military/gun/fps-automatic-rifle-01-animations
+
+
+
+// to do: look at architecture from 2D game and try to get nifty game strategies here

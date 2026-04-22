@@ -97,4 +97,3 @@ class SurfaceTexturedTriangle: ISurface{
         DisableVertexAttributes!VertexFormat3F2F();
     }
 }
-

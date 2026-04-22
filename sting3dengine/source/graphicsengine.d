@@ -66,8 +66,6 @@ class GraphicsEngine{
         //--------------------------------------------------------------
         AudioEngine mAudio;
 
-
-
         //--------------------------------------------------------------
         // Profiling Vars
         //--------------------------------------------------------------
@@ -173,29 +171,16 @@ class GraphicsEngine{
                         mBackfaceCulling = !mBackfaceCulling;
                         writeln("[toggle] backface culling: ", mBackfaceCulling);
                     }
+
                     else if (event.key.keysym.sym == SDLK_2) {
                         mRenderer.mFrustumCullingEnabled = !mRenderer.mFrustumCullingEnabled;
                             writeln("[toggle] frustum culling: ", mRenderer.mFrustumCullingEnabled);
-                        
                     } 
 
                     else if (event.key.keysym.sym == SDLK_3) {
                             mRenderer.mDrawDistanceEnabled = !mRenderer.mDrawDistanceEnabled;
                             writeln("[toggle] draw distance: ", mRenderer.mDrawDistanceEnabled);
                     }
-
-            
-
-
-
-
-
-
-
-
-
-
-
                 }
 
                 if(event.type == SDL_MOUSEBUTTONDOWN){
@@ -394,9 +379,6 @@ class GraphicsEngine{
 
         /// Main application loop
         void Loop(){
-
-            // Setup the graphics scene
-            // SetupScene();
 
             //imgui set up
             igCreateContext(null);

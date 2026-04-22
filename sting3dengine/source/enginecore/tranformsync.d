@@ -66,9 +66,6 @@ void syncPhysicsToRender(ref PhysicsWorld world, EntityManager em, bool debugLog
                 }
             }
 
-
-
-
             // if (auto node = entityId in em.renderables)
             // {
             //     node.mModelMatrix = tc.toModelMatrix();

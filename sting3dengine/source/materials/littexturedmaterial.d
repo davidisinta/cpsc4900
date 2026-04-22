@@ -16,87 +16,43 @@ class LitTexturedMaterial : IMaterial
         loadTexturePNG(texturePath);
     }
 
-    // void loadTexturePNG(string path)
-    // {
-    //     int w, h, channels;
-    //     stbi_set_flip_vertically_on_load(1);
-    //     auto data = stbi_load(path.toStringz, &w, &h, &channels, 0);
+    void loadTexturePNG(string path){
 
-    //     if (data is null)
-    //     {
-    //         writeln("[LitTexturedMaterial] FAILED to load: ", path);
-    //         return;
-    //     }
+        int w, h, channels;
+        stbi_set_flip_vertically_on_load(1);
+        auto data = stbi_load(path.toStringz, &w, &h, &channels, 0);
 
-    //     writeln("[LitTexturedMaterial] loaded: ", path, " ", w, "x", h, " ch=", channels);
+        if (data is null)
+        {
+            writeln("[LitTexturedMaterial] FAILED to load: ", path);
+            return;
+        }
 
-    //     GLenum format = GL_RGB;
-    //     if (channels == 4) format = GL_RGBA;
-    //     if (channels == 1) format = GL_RED;
+        writeln("[LitTexturedMaterial] loaded: ", path, " ", w, "x", h, " ch=", channels);
 
-    //     glGenTextures(1, &mTextureID);
-    //     glBindTexture(GL_TEXTURE_2D, mTextureID);
+        GLenum format = GL_RGB;
+        if (channels == 4) format = GL_RGBA;
+        if (channels == 1) format = GL_RED;
 
-    //     glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, GL_UNSIGNED_BYTE, data);
-    //     glGenerateMipmap(GL_TEXTURE_2D);
+        glGenTextures(1, &mTextureID);
+        glBindTexture(GL_TEXTURE_2D, mTextureID);
 
-    //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        // Important for odd-width RGB textures like 1273x1600
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    //     stbi_image_free(data);
-    // }
+        glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
 
-    void loadTexturePNG(string path)
-{
-    int w, h, channels;
-    stbi_set_flip_vertically_on_load(1);
-    auto data = stbi_load(path.toStringz, &w, &h, &channels, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    if (data is null)
-    {
-        writeln("[LitTexturedMaterial] FAILED to load: ", path);
-        return;
+        // Restore default unpack alignment if you want to be safe for later uploads
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+
+        stbi_image_free(data);
     }
-
-    writeln("[LitTexturedMaterial] loaded: ", path, " ", w, "x", h, " ch=", channels);
-
-    GLenum format = GL_RGB;
-    if (channels == 4) format = GL_RGBA;
-    if (channels == 1) format = GL_RED;
-
-    glGenTextures(1, &mTextureID);
-    glBindTexture(GL_TEXTURE_2D, mTextureID);
-
-    // Important for odd-width RGB textures like 1273x1600
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    // Restore default unpack alignment if you want to be safe for later uploads
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-
-    stbi_image_free(data);
-}
-
-    // override void Update()
-    // {
-    //     PipelineUse(mPipelineName);
-
-    //     if ("uTexture" in mUniformMap)
-    //     {
-    //         glActiveTexture(GL_TEXTURE0);
-    //         glBindTexture(GL_TEXTURE_2D, mTextureID);
-    //         mUniformMap["uTexture"].Set(0);
-    //     }
-    // }
 
     override void Update()
     {

@@ -14,13 +14,10 @@ class Pipeline{
     // Name in OpenGL of the current pipeline
     GLint mProgramObjectID;
 
-
     /// Constructor to build a graphics pipeline with a vertex shader and fragment shader source file
     this(string pipelineName, string vertexShaderSourceFilename, string fragmentShaderSourceFilename){
         CompilePipeline(pipelineName, vertexShaderSourceFilename, fragmentShaderSourceFilename);
     }
-
-
 
     /// Create a shader and store it in our pipelines map
     GLuint CompilePipeline(string pipelineName, string vertexShaderSourceFilename, string fragmentShaderSourceFilename){
@@ -202,9 +199,6 @@ void PrintShaderAttributesAndUniforms(string pipelineName, GLuint programme) {
     }
     writeln("--------------------------------------");
 }
-
-
-
 
 // Helper function for printing out uniforms and attributes
 // Translated From: https://web.archive.org/web/20240823152221/https://antongerdelan.net/opengl/shaders.html

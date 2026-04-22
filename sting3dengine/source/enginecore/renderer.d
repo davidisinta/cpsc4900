@@ -1,40 +1,3 @@
-// /// Renderer module
-// module renderer;
-
-// // third party libraries
-// import bindbc.sdl;
-// import bindbc.opengl;
-
-// //project libraries
-// import camera,scene;
-
-// /// Purpose of this class is to make it easy to render part of, or the entirety of a scene
-// /// from a specific camera viewpoint.
-// /// The start and end of a frame is handled by the engine, this just renders object on the scene.
-// class Renderer{
-
-//     SDL_Window* mWindow;
-//     int mScreenWidth;
-//     int mScreenHeight;
-
-//     /// Constructor
-//     this(SDL_Window* window, int width, int height){
-//         mWindow = window;
-//         mScreenWidth = width;
-//         mScreenHeight = height;
-//     }
-
-//     /// Encapsulation of the rendering process of a scene tree with a camera
-//     void Render(SceneTree s, Camera c){
-
-//         // Set the camera prior to our traversal
-//         s.SetCamera(c);
-//         // Start traversing the scene tree
-//         s.StartTraversal();
-//     }
-// }
-
-
 module renderer;
 
 import bindbc.sdl;
@@ -62,12 +25,8 @@ class Renderer {
         mScreenHeight = height;
     }
 
-    
 
     void Render(SceneTree s, Camera c, double frameDt) {
-        // mDrawnCount = 0;
-        // mCulledCount = 0;
-
         mDrawnCount = 0;
         mCulledCount = 0;
         mDistanceCulledCount = 0;
@@ -77,9 +36,7 @@ class Renderer {
         mat4 vp = c.mProjectionMatrix * c.mViewMatrix;
         FrustumPlane[6] planes = extractFrustumPlanes(vp);
 
-        // traverseNode(s.GetRootNode(), planes);
         traverseNode(s.GetRootNode(), planes, c.mEyePosition);
-
 
         // Performance logging every 5 seconds
         static int logFrameCount = 0;
@@ -117,42 +74,7 @@ class Renderer {
             culledSum = 0;
             distCulledSum = 0;
         }
-
-        
     }
-
-
-
-
-    // private void traverseNode(ISceneNode node, FrustumPlane[6] planes) {
-    //     // Try to cast to MeshNode — only MeshNodes have geometry to draw
-    //     MeshNode meshNode = cast(MeshNode)node;
-
-    //     if (meshNode !is null) {
-    //         if (mFrustumCullingEnabled && meshNode.mBoundingRadius > 0.0f) {
-    //             // Extract position from model matrix
-    //             vec3 center = vec3(
-    //                 meshNode.mModelMatrix[3],
-    //                 meshNode.mModelMatrix[7],
-    //                 meshNode.mModelMatrix[11]
-    //             );
-
-    //             if (!isSphereInFrustum(planes, center, meshNode.mBoundingRadius)) {
-    //                 mCulledCount++;
-    //                 return; // skip this node entirely
-    //             }
-    //         }
-
-    //         // Visible — draw it
-    //         meshNode.Update();
-    //         mDrawnCount++;
-    //     }
-
-    //     // Recurse into children
-    //     foreach (child; node.mChildren) {
-    //         traverseNode(child, planes);
-    //     }
-    // }
 
     private void traverseNode(ISceneNode node, FrustumPlane[6] planes, vec3 cameraPos) {
         MeshNode meshNode = cast(MeshNode)node;
@@ -198,18 +120,4 @@ class Renderer {
             traverseNode(child, planes, cameraPos);
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

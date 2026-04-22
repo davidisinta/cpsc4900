@@ -71,33 +71,6 @@ class Camera{
         return mViewMatrix;
     }
 
-    // void MouseLook(int mouseX, int mouseY){
-    //     static bool firstMouse = true;
-    //     static lastX = 0;
-    //     static lastY = 0;
-
-    //     if(firstMouse){
-    //         firstMouse = false;
-    //         lastX = mouseX;
-    //         lastY = mouseY;
-    //     }
-
-    //     float deltaX = (mouseX - lastX) * mMouseSensitivity;
-    //     float deltaY = (mouseY - lastY) * mMouseSensitivity;
-
-    //     mYaw   += deltaX;
-    //     mPitch -= deltaY;
-
-    //     if (mPitch >  1.4f) mPitch =  1.4f;
-    //     if (mPitch < -1.4f) mPitch = -1.4f;
-
-    //     updateVectors();
-    //     UpdateViewMatrix();
-
-    //     lastX = mouseX;
-    //     lastY = mouseY;
-    // }
-
     void MouseLook(int deltaX, int deltaY){
         float dx = cast(float)deltaX * mMouseSensitivity;
         float dy = cast(float)deltaY * mMouseSensitivity;
@@ -111,10 +84,6 @@ class Camera{
         updateVectors();
         UpdateViewMatrix();
     }
-
-
-
-
 
     void MoveForward(){
         vec3 groundForward = Normalize(vec3(mForwardVector.x, 0.0f, mForwardVector.z));

@@ -27,4 +27,3 @@ unittest{
     assert(ToAngle(2.09439).isClose(120),"2.09439 radian conversion");
     assert(ToAngle(PI).isClose(180),"PI angle conversion");
 }
-
