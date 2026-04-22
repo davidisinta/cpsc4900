@@ -181,6 +181,10 @@ class GraphicsEngine{
                             mRenderer.mDrawDistanceEnabled = !mRenderer.mDrawDistanceEnabled;
                             writeln("[toggle] draw distance: ", mRenderer.mDrawDistanceEnabled);
                     }
+
+                    else if (event.key.keysym.sym == SDLK_r){
+                            mGame.reload();
+                    }
                 }
 
                 if(event.type == SDL_MOUSEBUTTONDOWN){
@@ -217,18 +221,13 @@ class GraphicsEngine{
                 mCamera.MoveDown();
                 moving = true;
             }
-            
+
             if (moving) {
-                if (!mGame.mWalkingSoundPlaying) {
-                    mGame.playSound(mGame.mWalkingSound, &mGame.mWalkingSoundChannel);
-                    mGame.mWalkingSoundPlaying = true;
-                }
+                mGame.mAudioController.startWalking();
             } else {
-                if (mGame.mWalkingSoundPlaying) {
-                    mGame.stopSound(&mGame.mWalkingSoundChannel);
-                    mGame.mWalkingSoundPlaying = false;
-                }
+                mGame.mAudioController.stopWalking();
             }
+            
             
             int mouseX, mouseY;
             SDL_GetMouseState(&mouseX, &mouseY);

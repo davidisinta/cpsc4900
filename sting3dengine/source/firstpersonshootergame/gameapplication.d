@@ -20,6 +20,9 @@ import editor;
 import gamegui;
 import light;
 import level_builder;
+import audiocontroller;
+import materialregistry;
+import resourcemanager;
 
 // Third-party libraries
 import bindbc.sdl;
@@ -51,20 +54,22 @@ class GameApplication : IGame{
     GLuint mCubemapTexture;
     LevelBuilder mLevelBuilder;
 
+
+
+    //Shooting elements
+    int mCurrentAmmo = 30;
+    int mMaxAmmo = 30;
+    double mRoundTimer = 120.0;
+
     //Game Materials
 
-    //sound specific elements
-    bool mWalkingSoundPlaying = false;
-    FMOD_SOUND* mWalkingSound;
-    FMOD_CHANNEL* mWalkingSoundChannel;
-    FMOD_SYSTEM* mSystem;
+    /// sound specific elements
+    AudioController mAudioController;
 
-    FMOD_SOUND* mPistolSound;
-    FMOD_CHANNEL* mPistolSoundChannel;
 
-    FMOD_SOUND* mBackgroundSound;
-    FMOD_CHANNEL* mBackgroundChannel;
-    bool mBackgroundPlaying = false;
+    MaterialRegistry mMaterialRegistry;
+
+    ResourceManager mResourceManager;
 
     this(string name, PhysicsWorld physics, EntityManager em, Camera cam, SceneTree tree, IMaterial mat){
         this.gameName = name;
@@ -73,11 +78,32 @@ class GameApplication : IGame{
         mCamera = cam;
         mSceneTree = tree;
         mGui = new GameGUI("topshoota-game-gui");
+        mAudioController = new AudioController();
 
-        //create Level builder and pass in the engines camera, sceneTree
-        mLevelBuilder = new LevelBuilder(cam, tree, em, physics, mat);
+        mMaterialRegistry = new MaterialRegistry(cam);
+        mMaterialRegistry.setup();
 
+        mResourceManager = new ResourceManager();
+
+        mLevelBuilder = new LevelBuilder(cam, tree, em, physics, mMaterialRegistry, mResourceManager);
     }
+
+    // this(string name, PhysicsWorld physics, EntityManager em, Camera cam, SceneTree tree, IMaterial mat){
+    //     this.gameName = name;
+    //     mPhysicsWorld = physics;
+    //     mEntityManager = em;
+    //     mCamera = cam;
+    //     mSceneTree = tree;
+    //     mGui = new GameGUI("topshoota-game-gui");
+    //     mAudioController = new AudioController();
+
+    //     // Create material registry and set up all materials
+    //     mMaterialRegistry = new MaterialRegistry(cam);
+    //     mMaterialRegistry.setup();
+
+    //     // Create level builder with registry
+    //     mLevelBuilder = new LevelBuilder(cam, tree, em, physics, mMaterialRegistry);
+    // }
 
     override void Input(){
         if (mShootRequested){
@@ -88,14 +114,18 @@ class GameApplication : IGame{
 
     override void Update(double frameDt){
         checkCollisions();
+        
+        // Round timer
+        mRoundTimer -= frameDt;
+        if (mRoundTimer < 0) mRoundTimer = 0;
 
         // Update GUI state
         mGui.kills = mShotsHit;
         mGui.accuracy = mShotsFired > 0 ? cast(float)mShotsHit / mShotsFired * 100.0f : 0.0f;
+        mGui.currentAmmo = mCurrentAmmo;
+        mGui.maxAmmo = mMaxAmmo;
+        mGui.roundTimeSeconds = cast(int)mRoundTimer;
 
-        // placeholder until weapon system
-        mGui.currentAmmo = 30;
-        mGui.maxAmmo = 30;
 
         //update our light object
         MeshNode lightNode = cast(MeshNode)mSceneTree.FindNode("light");
@@ -126,6 +156,7 @@ class GameApplication : IGame{
         //Render the games GUI last
         mGui.Render();
     }
+
 
     void drawCrosshair(){
         if (!mCrosshairReady) return;
@@ -161,42 +192,12 @@ class GameApplication : IGame{
         TransformComponent planeTc;
         mEntityManager.addTransform(mGroundEntity, planeTc);
 
-        // Spawn target
-        // to do: perhaps remove this cube entity object
-        // mCubeEntity = spawnPhysicsObject(
-        //     "cube.urdf",
-        //     "./assets/meshes/bunny_centered.obj",
-        //     vec3(0.0f, 0.0f, 0.0f),
-        //     Quat.init
-        // );
-
         //Let Level Builder Set up the map
         mLevelBuilder.SetupMap();
 
         //Stress testing for Frustum culling
         // spawnStressTest(300);
     }
-
-
-    // void spawnStressTest(int count)
-    // {
-    //     import std.random : uniform;
-        
-    //     for (int i = 0; i < count; i++)
-    //     {
-    //         // Random angle around the circle
-    //         float angle = uniform(0.0f, 2.0f * PI);
-            
-    //         // Random distance between 150 and 400 units from origin
-    //         float dist = uniform(150.0f, 400.0f);
-            
-    //         float x = dist * cos(angle);
-    //         float z = dist * sin(angle);
-            
-    //         spawnLinden1VisualOnly(vec3(x, 0.0f, z), Quat.init);
-    //     }
-    //     writeln("[stress] spawned ", count, " trees in ring 150-400 units out");
-    // }
 
     void debugTreeAsset(){
 
@@ -224,90 +225,11 @@ class GameApplication : IGame{
         aiReleaseImport(scene);
     }
 
-
-
     void attachAudio(AudioEngine* audio){
         mAudio = audio;
-        mSystem = mAudio.mSystem;
-
-        loadSounds();
-        startBackgroundSound();
+        mAudioController.attach(audio);
+        mAudioController.startBackground();
     }
-
-    void loadSounds(){
-
-        // load footsteps on gravel
-        // to do: check if right mode was set
-        auto result = FMOD_System_CreateSound(
-            mSystem,
-            "./assets/sounds/footsteps_walking_gravel_01_loop.wav".toStringz,
-            FMOD_LOOP_NORMAL | FMOD_2D,
-            null,
-            &mWalkingSound
-        );
-
-        writeln("walk sound load result = ", result, " ptr = ", mWalkingSound);
-
-        // load pistol
-        // to do: check if right mode was set
-        result = FMOD_System_CreateSound(
-            mSystem,
-            "./assets/sounds/gun_22_pistol_04.wav".toStringz,
-            FMOD_LOOP_OFF | FMOD_2D,
-            null,
-            &mPistolSound
-        );
-
-        writeln("pistol sound load result = ", result, " ptr = ", mPistolSound);
-
-        // background sound
-        auto r3 = FMOD_System_CreateSound(
-            mSystem,
-            "./assets/sounds/war_ambience_01_30_loop.wav".toStringz,
-            FMOD_LOOP_NORMAL | FMOD_2D | FMOD_CREATESTREAM,
-            null,
-            &mBackgroundSound
-        );
-
-        writeln("background sound load result = ", result, " ptr = ", mBackgroundSound);
-    }
-
-    /// CubeMap Setup
-    uint loadCubemap(string[] faces){
-
-        uint textureID;
-        glGenTextures(1, &textureID);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
-
-        int width, height, nrChannels;
-        for (uint i = 0; i < faces.length; i++){
-
-            //load each of the faces
-            auto data = stbi_load(faces[i].toStringz, &width, &height, &nrChannels, 0);
-
-            if (data){
-                writeln("[stb] successfully loaded: ", faces[i]);
-
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 
-                            0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
-                );
-                stbi_image_free(data);
-            }
-            else{
-
-                writeln("Cubemap tex failed to load.");
-                stbi_image_free(data);
-            }
-        }
-
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-        return textureID;
-    }  
 
     void setUpLights(){
 
@@ -358,49 +280,41 @@ class GameApplication : IGame{
                 mCamera.mEyePosition.x, mCamera.mEyePosition.y, mCamera.mEyePosition.z);
         }
     }
-
-    void startBackgroundSound(){
-        if (!mBackgroundPlaying && mBackgroundSound !is null) {
-            FMOD_System_PlaySound(mSystem, mBackgroundSound, null, 0, &mBackgroundChannel);
-            mBackgroundPlaying = true;
-        }
-    }
-
-    void stopBackgroundSound(){
-        if (mBackgroundChannel !is null) {
-            FMOD_Channel_Stop(mBackgroundChannel);
-            mBackgroundChannel = null;
-            mBackgroundPlaying = false;
-        }
-    }
-
+   
     void requestShoot(){
         mShootRequested = true;
     }
 
-    void playSound(FMOD_SOUND* s, FMOD_CHANNEL** ch){
-        FMOD_System_PlaySound(mAudio.mSystem, s, null, 0, ch);
+    void reload(){
+        mCurrentAmmo = mMaxAmmo;
+        writeln("[reload] ammo restored to ", mMaxAmmo);
     }
 
-    void stopSound(FMOD_CHANNEL** ch) {
-        if (*ch !is null) {
-            FMOD_Channel_Stop(*ch);
-            *ch = null;
-        }
-    }
 
     private void shoot(){
+        // Ammo check
+        if (mCurrentAmmo <= 0)
+        {
+            writeln("[shoot] EMPTY — press R to reload");
+            return;
+        }
+        mCurrentAmmo--;
+
         vec3 from = mCamera.mEyePosition;
         vec3 dir  = Normalize(mCamera.mForwardVector);
-        vec3 to   = from + dir * 1000.0f;
+
+        // Weapon spread
+        float spread = 0.02f;
+        dir.x += uniform(-spread, spread);
+        dir.y += uniform(-spread, spread);
+        dir.z += uniform(-spread, spread);
+        dir = Normalize(dir);
+
+        vec3 to = from + dir * 1000.0f;
 
         mShotsFired++;
 
-        // Play gunshot sound
-        // to do: perhaps add a clause to stop the shooting just in case
-        if (mAudio !is null){
-            playSound(mPistolSound, &mPistolSoundChannel);
-        }
+        mAudioController.playGunshot();
             
         auto result = mPhysicsWorld.raycast(
             from.x, from.y, from.z,
@@ -416,7 +330,6 @@ class GameApplication : IGame{
                 ", ", result.hitPosition[1],
                 ", ", result.hitPosition[2], "]");
 
-            // Don't destroy the ground
             if (result.entityId != mGroundEntity && result.entityId != 0){
                 destroyEntity(result.entityId);
             }
@@ -428,6 +341,15 @@ class GameApplication : IGame{
         writeln("[stats] shots=", mShotsFired, " hits=", mShotsHit,
                 " accuracy=", accuracy, "%");
     }
+
+
+
+
+
+
+
+
+
 
     // to do: refactor so that this does not check hard coded pairs but rather loops over every object
     private void checkCollisions(){
