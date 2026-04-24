@@ -334,10 +334,11 @@ class GraphicsEngine{
             Update();
             Render();
 
-            // Frame cap at about 120 fps
+            // Frame cap at slightly better than 60 fps, we do this to
+            // keep gameplay smooth, i.e game runs at constant rate
             int frame_elapsed = SDL_GetTicks() - now;
-            if(frame_elapsed < 8){
-                SDL_Delay(8 - frame_elapsed);
+            if(frame_elapsed < 14){
+                SDL_Delay(14 - frame_elapsed);
                 int curr_fps = 1000/(SDL_GetTicks() - now);
                 if(this.fps!=curr_fps)
                 {
