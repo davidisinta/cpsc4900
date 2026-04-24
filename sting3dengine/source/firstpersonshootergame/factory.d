@@ -82,21 +82,38 @@ class SpawnFactory
             mEntityManager.addRenderable(eid, node);
         }
 
-        writeln("[spawn] ", type.name, " entity=", eid, " at ", adjustedPos);
+        // writeln("[spawn] ", type.name, " entity=", eid, " at ", adjustedPos);
         return eid;
     }
 
     /// Convenience: spawn multiple soldiers at fixed positions
     void spawnSoldiers()
     {
+        // auto soldierType = EntityType.soldier();
+        // spawn(soldierType, vec3(33.0f, 0.0f, -10.0f));
+        // spawn(soldierType, vec3(0.0f, 0.0f, -30.0f));
+        // spawn(soldierType, vec3(0.0f, 0.0f, -40.0f));
+        // spawn(soldierType, vec3(13.0f, 0.0f, -17.0f));
+        // spawn(soldierType, vec3(23.0f, 0.0f, -17.0f));
+        // spawn(soldierType, vec3(13.0f, 0.0f, -37.0f));
+        // spawn(soldierType, vec3(43.0f, 0.0f, 17.0f));
+
+
         auto soldierType = EntityType.soldier();
-        spawn(soldierType, vec3(33.0f, 0.0f, -10.0f));
-        spawn(soldierType, vec3(0.0f, 0.0f, -30.0f));
-        spawn(soldierType, vec3(0.0f, 0.0f, -40.0f));
-        spawn(soldierType, vec3(13.0f, 0.0f, -17.0f));
-        spawn(soldierType, vec3(23.0f, 0.0f, -17.0f));
-        spawn(soldierType, vec3(13.0f, 0.0f, -37.0f));
-        spawn(soldierType, vec3(43.0f, 0.0f, 17.0f));
+        // Arena area
+        spawn(soldierType, vec3(21.7f, 0.0f, -7.8f));
+        spawn(soldierType, vec3(35.3f, 0.0f, -13.9f));
+        spawn(soldierType, vec3(41.1f, 0.0f, -26.9f));
+        spawn(soldierType, vec3(20.1f, 0.0f, -32.7f));
+        spawn(soldierType, vec3(12.3f, 0.0f, -30.7f));
+        // Far side
+        spawn(soldierType, vec3(3.3f, 0.0f, 70.9f));
+        spawn(soldierType, vec3(-6.1f, 0.0f, 62.3f));
+        spawn(soldierType, vec3(-31.3f, 0.0f, 10.3f));
+        spawn(soldierType, vec3(-23.0f, 0.0f, -3.5f));
+        spawn(soldierType, vec3(-18.2f, 0.0f, -11.9f));
+        spawn(soldierType, vec3(-17.3f, 0.0f, -25.9f));
+        spawn(soldierType, vec3(-15.2f, 0.0f, -41.1f));
     }
 
     /// Convenience: spawn trees in a ring pattern
@@ -115,7 +132,25 @@ class SpawnFactory
 
             spawn(treeType, vec3(x, 0.0f, z));
         }
-        writeln("[spawn] ", count, " trees placed");
+        // writeln("[spawn] ", count, " trees placed");
+
+        // Hand-placed trees
+        spawn(treeType, vec3(37.8f, 0.0f, -33.0f));
+        spawn(treeType, vec3(29.9f, 0.0f, -36.5f));
+        spawn(treeType, vec3(1.3f, 0.0f, -3.4f));
+        spawn(treeType, vec3(-1.3f, 0.0f, 14.9f));
+        spawn(treeType, vec3(2.2f, 0.0f, 22.7f));
+        spawn(treeType, vec3(13.0f, 0.0f, 32.4f));
+        spawn(treeType, vec3(33.4f, 0.0f, 58.3f));
+        spawn(treeType, vec3(34.4f, 0.0f, 68.0f));
+        spawn(treeType, vec3(26.4f, 0.0f, 75.0f));
+        spawn(treeType, vec3(15.5f, 0.0f, 77.8f));
+        spawn(treeType, vec3(-12.9f, 0.0f, 56.9f));
+        spawn(treeType, vec3(-21.8f, 0.0f, 48.6f));
+        spawn(treeType, vec3(-31.0f, 0.0f, 42.5f));
+        spawn(treeType, vec3(-33.4f, 0.0f, 29.9f));
+        spawn(treeType, vec3(-32.9f, 0.0f, 19.6f));
+        // writeln("[spawn] 15 hand-placed trees");
     }
 
     /// Stress test: spawn N trees in a ring

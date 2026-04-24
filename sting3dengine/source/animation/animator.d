@@ -1,15 +1,7 @@
-/// Animator: plays animation clips on a skeleton.
-/// Each frame, the animator:
-///   1. Advances the current time
-///   2. For each bone, finds the two nearest keyframes and interpolates
-///   3. Walks the bone hierarchy: child = parent × local
-///   4. Applies inverse bind matrix: final = global × inverseBindPose
-///   5. Produces a mat4[] array ready for the skinning shader
-
 module animator;
 
 import std.stdio;
-import std.math : sqrt, acos, sin, abs;
+import std.math : sqrt, acos, sin;
 import linear;
 import skeleton;
 import animationclip;
@@ -26,13 +18,16 @@ struct Animator
     mat4[] mBoneMatrices;      // final skinning matrices (sent to shader)
     mat4[] mGlobalTransforms;  // world-space bone transforms (for gameplay queries)
 
+    // Debug timing
+    double mDebugAccum = 0.0;
+    bool mFirstFrameDebugDone = false;
+
     void init(Skeleton* skel)
     {
         mSkeleton = skel;
         mBoneMatrices.length = skel.boneNames.length;
         mGlobalTransforms.length = skel.boneNames.length;
 
-        // Initialize to identity
         foreach (ref m; mBoneMatrices)
             m = mat4.init;
         foreach (ref m; mGlobalTransforms)
@@ -53,20 +48,17 @@ struct Animator
         mPlaying = false;
     }
 
-    /// Advance animation time and compute bone matrices
     void update(double deltaTime)
     {
         if (!mPlaying || mCurrentClip is null || mSkeleton is null)
             return;
 
-        // Advance time in ticks
         mCurrentTime += deltaTime * mCurrentClip.ticksPerSecond;
 
         if (mCurrentTime >= mCurrentClip.duration)
         {
             if (mLooping)
             {
-                // Wrap around
                 while (mCurrentTime >= mCurrentClip.duration)
                     mCurrentTime -= mCurrentClip.duration;
             }
@@ -78,10 +70,9 @@ struct Animator
             }
         }
 
-        computeBoneMatrices();
+        computeBoneMatrices(deltaTime);
     }
 
-    /// Get the bone world matrix for gameplay queries (e.g. muzzle position)
     mat4 getBoneWorldMatrix(string boneName)
     {
         int idx = mSkeleton.getBoneIndex(boneName);
@@ -89,49 +80,144 @@ struct Animator
         return mGlobalTransforms[idx];
     }
 
-    /// Check if current animation is past a specific frame number
     bool isPastFrame(int frameNumber)
     {
         if (mCurrentClip is null) return false;
         return cast(int)mCurrentTime >= frameNumber;
     }
 
-    private void computeBoneMatrices()
+    private void computeBoneMatrices(double deltaTime)
     {
-        // For each bone, compute local transform from keyframes
-        // Then walk hierarchy: global = parent_global × local
-        // Then final = global × inverseBindPose
-
         auto numBones = mSkeleton.boneNames.length;
 
-        // Compute local transforms from animation
+        foreach (ref m; mGlobalTransforms)
+            m = mat4.init;
+
         mat4[] localTransforms;
         localTransforms.length = numBones;
 
+        buildLocalTransforms(localTransforms);
+        buildGlobalTransforms(localTransforms);
+        buildFinalBoneMatrices();
+        debugBoneState(localTransforms, deltaTime);
+    }
+
+    // private void buildLocalTransforms(ref mat4[] localTransforms)
+    // {
+    //     auto numBones = mSkeleton.boneNames.length;
+
+    //     bool printChannelDebug = false;
+    //     if (!mFirstFrameDebugDone)
+    //     {
+    //         printChannelDebug = true;
+    //         mFirstFrameDebugDone = true;
+    //         writeln("=== DEBUG 5: CHANNEL COVERAGE (first frame) ===");
+    //     }
+
+    //     for (uint i = 0; i < numBones; i++)
+    //     {
+    //         string boneName = mSkeleton.boneNames[i];
+    //         BoneChannel* ch = mCurrentClip.getChannel(boneName);
+
+    //         if (ch !is null)
+    //         {
+    //             vec3 pos = interpolatePosition(ch, mCurrentTime);
+    //             float[4] rot = interpolateRotation(ch, mCurrentTime);
+    //             vec3 scl = interpolateScale(ch, mCurrentTime);
+
+    //             mat4 T = MatrixMakeTranslation(pos);
+    //             mat4 R = quatToMat4(rot[0], rot[1], rot[2], rot[3]);
+    //             mat4 S = MatrixMakeScale(scl);
+
+    //             localTransforms[i] = T * R * S;
+
+    //             if (printChannelDebug && i < 10)
+    //                 writeln("  [", i, "] '", boneName, "' ANIMATED pos=(", pos.x, ",", pos.y, ",", pos.z, ") scl=(", scl.x, ",", scl.y, ",", scl.z, ")");
+    //         }
+    //         else
+    //         {
+    //             localTransforms[i] = mSkeleton.nodeLocalTransforms[i];
+
+    //             if (printChannelDebug && i < 10)
+    //                 writeln("  [", i, "] '", boneName, "' FALLBACK (bind local)");
+    //         }
+    //     }
+
+    //     if (printChannelDebug)
+    //     {
+    //         int animated = 0, fallback = 0;
+    //         for (uint i = 0; i < numBones; i++)
+    //         {
+    //             if (mCurrentClip.getChannel(mSkeleton.boneNames[i]) !is null)
+    //                 animated++;
+    //             else
+    //                 fallback++;
+    //         }
+    //         writeln("  Total: ", animated, " animated, ", fallback, " fallback");
+    //         writeln("================================================");
+    //     }
+    // }
+
+    private void buildLocalTransforms(ref mat4[] localTransforms)
+    {
+        auto numBones = mSkeleton.boneNames.length;
+        bool printChannelDebug = false;
+        if (!mFirstFrameDebugDone)
+        {
+            printChannelDebug = true;
+            mFirstFrameDebugDone = true;
+            writeln("=== DEBUG 5: CHANNEL COVERAGE (first frame) ===");
+        }
         for (uint i = 0; i < numBones; i++)
         {
             string boneName = mSkeleton.boneNames[i];
             BoneChannel* ch = mCurrentClip.getChannel(boneName);
-
             if (ch !is null)
             {
+                if (boneName == "root" || boneName == "Armature" || boneName == "camera")
+                {
+                    localTransforms[i] = mat4.init;
+                    if (printChannelDebug && i < 10)
+                        writeln("  [", i, "] '", boneName, "' LOCKED (identity)");
+                    continue;
+                }
+
                 vec3 pos = interpolatePosition(ch, mCurrentTime);
                 float[4] rot = interpolateRotation(ch, mCurrentTime);
                 vec3 scl = interpolateScale(ch, mCurrentTime);
-
                 mat4 T = MatrixMakeTranslation(pos);
                 mat4 R = quatToMat4(rot[0], rot[1], rot[2], rot[3]);
                 mat4 S = MatrixMakeScale(scl);
-
                 localTransforms[i] = T * R * S;
+                if (printChannelDebug && i < 10)
+                    writeln("  [", i, "] '", boneName, "' ANIMATED pos=(", pos.x, ",", pos.y, ",", pos.z, ") scl=(", scl.x, ",", scl.y, ",", scl.z, ")");
             }
             else
             {
-                localTransforms[i] = mat4.init;
+                localTransforms[i] = mSkeleton.nodeLocalTransforms[i];
+                if (printChannelDebug && i < 10)
+                    writeln("  [", i, "] '", boneName, "' FALLBACK (bind local)");
             }
         }
+        if (printChannelDebug)
+        {
+            int animated = 0, fallback = 0;
+            for (uint i = 0; i < numBones; i++)
+            {
+                if (mCurrentClip.getChannel(mSkeleton.boneNames[i]) !is null)
+                    animated++;
+                else
+                    fallback++;
+            }
+            writeln("  Total: ", animated, " animated, ", fallback, " fallback");
+            writeln("================================================");
+        }
+    }
 
-        // Walk hierarchy: global = parent × local
+    private void buildGlobalTransforms(ref mat4[] localTransforms)
+    {
+        auto numBones = mSkeleton.boneNames.length;
+
         for (uint i = 0; i < numBones; i++)
         {
             int parentIdx = mSkeleton.parentIndices[i];
@@ -140,21 +226,70 @@ struct Animator
             else
                 mGlobalTransforms[i] = localTransforms[i];
         }
+    }
 
-        // Final skinning matrix = global × inverseBindPose
+    private void buildFinalBoneMatrices()
+    {
+        auto numBones = mSkeleton.boneNames.length;
         for (uint i = 0; i < numBones; i++)
         {
             mBoneMatrices[i] = mGlobalTransforms[i] * mSkeleton.inverseBindMatrices[i];
         }
     }
 
-    /// Interpolate position between two keyframes
+    private void debugBoneState(ref mat4[] localTransforms, double deltaTime)
+    {
+        mDebugAccum += deltaTime;
+        if (mDebugAccum < 5.0)
+            return;
+
+        mDebugAccum = 0.0;
+
+        writeln("=== DEBUG 3&4: GUN BONE MATRICES (time=", mCurrentTime, ") ===");
+
+        struct BoneProbe { int idx; string name; }
+        BoneProbe[] probes;
+
+        string[] gunBoneNames = ["root", "camera", "arms", "weapon", "Trigger", "Magazine", "Slide", "Barrel", "Muzzle", "hand_R"];
+        foreach (name; gunBoneNames)
+        {
+            int idx = mSkeleton.getBoneIndex(name);
+            if (idx >= 0)
+                probes ~= BoneProbe(idx, name);
+        }
+
+        foreach (probe; probes)
+        {
+            int idx = probe.idx;
+            auto local = localTransforms[idx];
+            auto global = mGlobalTransforms[idx];
+            auto final_ = mBoneMatrices[idx];
+            auto invBind = mSkeleton.inverseBindMatrices[idx];
+
+            writeln("  bone ", idx, " '", probe.name, "' parentIdx=", mSkeleton.parentIndices[idx]);
+            writeln("    local row-trans:  ", local[3], ", ", local[7], ", ", local[11]);
+            writeln("    local col-trans:  ", local[12], ", ", local[13], ", ", local[14]);
+            writeln("    global row-trans: ", global[3], ", ", global[7], ", ", global[11]);
+            writeln("    global col-trans: ", global[12], ", ", global[13], ", ", global[14]);
+            writeln("    final row-trans:  ", final_[3], ", ", final_[7], ", ", final_[11]);
+            writeln("    final col-trans:  ", final_[12], ", ", final_[13], ", ", final_[14]);
+            writeln("    invBind row-trans:", invBind[3], ", ", invBind[7], ", ", invBind[11]);
+            writeln("    invBind col-trans:", invBind[12], ", ", invBind[13], ", ", invBind[14]);
+
+            float sx = sqrt(final_[0]*final_[0] + final_[1]*final_[1] + final_[2]*final_[2]);
+            float sy = sqrt(final_[4]*final_[4] + final_[5]*final_[5] + final_[6]*final_[6]);
+            float sz = sqrt(final_[8]*final_[8] + final_[9]*final_[9] + final_[10]*final_[10]);
+            writeln("    final scale: ", sx, ", ", sy, ", ", sz);
+        }
+
+        writeln("=======================================================");
+    }
+
     private static vec3 interpolatePosition(BoneChannel* ch, double time)
     {
         if (ch.positionKeys.length == 1)
             return ch.positionKeys[0].value;
 
-        // Find the two keyframes surrounding 'time'
         uint idx0 = 0;
         for (uint i = 0; i < ch.positionKeys.length - 1; i++)
         {
@@ -185,7 +320,6 @@ struct Animator
         );
     }
 
-    /// Interpolate rotation (quaternion slerp) between two keyframes
     private static float[4] interpolateRotation(BoneChannel* ch, double time)
     {
         if (ch.rotationKeys.length == 1)
@@ -213,7 +347,6 @@ struct Animator
         if (factor < 0) factor = 0;
         if (factor > 1) factor = 1;
 
-        // Slerp
         float aw = ch.rotationKeys[idx0].w;
         float ax = ch.rotationKeys[idx0].x;
         float ay = ch.rotationKeys[idx0].y;
@@ -227,7 +360,6 @@ struct Animator
         return slerp(aw, ax, ay, az, bw, bx, by, bz, factor);
     }
 
-    /// Interpolate scale between two keyframes
     private static vec3 interpolateScale(BoneChannel* ch, double time)
     {
         if (ch.scaleKeys.length == 1)
@@ -263,23 +395,19 @@ struct Animator
         );
     }
 
-    /// Quaternion spherical linear interpolation
     private static float[4] slerp(
         float aw, float ax, float ay, float az,
         float bw, float bx, float by, float bz,
         float t)
     {
-        // Dot product
         float dot = aw * bw + ax * bx + ay * by + az * bz;
 
-        // If negative dot, negate one quaternion to take shorter path
         if (dot < 0)
         {
             bw = -bw; bx = -bx; by = -by; bz = -bz;
             dot = -dot;
         }
 
-        // If very close, use linear interpolation to avoid division by zero
         if (dot > 0.9995f)
         {
             float rw = aw + (bw - aw) * t;
@@ -287,7 +415,6 @@ struct Animator
             float ry = ay + (by - ay) * t;
             float rz = az + (bz - az) * t;
 
-            // Normalize
             float len = sqrt(rw * rw + rx * rx + ry * ry + rz * rz);
             return [rw / len, rx / len, ry / len, rz / len];
         }
@@ -308,7 +435,6 @@ struct Animator
         ];
     }
 
-    /// Convert quaternion (w, x, y, z) to a 4x4 rotation matrix
     private static mat4 quatToMat4(float w, float x, float y, float z)
     {
         mat4 m = mat4.init;

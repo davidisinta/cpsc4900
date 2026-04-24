@@ -6,7 +6,6 @@
 module skeleton;
 
 import std.stdio;
-import std.string : fromStringz;
 import assimp_c_api;
 import linear;
 
@@ -16,13 +15,19 @@ struct Skeleton
     int[] parentIndices;
     mat4[] inverseBindMatrices;
     int[string] boneIndexByName;
+    mat4[] nodeLocalTransforms;
 
-    /// Build skeleton from an Assimp scene.
-    /// Reads bone data from the first mesh that has bones,
-    /// then resolves parent indices from the node tree.
+    /// Build skeleton from actual mesh bones only.
+    /// This keeps the bone index space aligned with mesh vertex weights.
     void loadFromScene(const(aiScene)* scene)
     {
         if (scene is null) return;
+
+        boneNames.length = 0;
+        parentIndices.length = 0;
+        inverseBindMatrices.length = 0;
+        nodeLocalTransforms.length = 0;
+        boneIndexByName = null;
 
         // Find first mesh with bones
         const(aiMesh)* skinnedMesh = null;
@@ -43,23 +48,30 @@ struct Skeleton
 
         writeln("[skeleton] extracting from mesh with ", skinnedMesh.mNumBones, " bones");
 
-        // Extract bone names and inverse bind matrices
         boneNames.length = skinnedMesh.mNumBones;
+        parentIndices.length = skinnedMesh.mNumBones;
         inverseBindMatrices.length = skinnedMesh.mNumBones;
+        nodeLocalTransforms.length = skinnedMesh.mNumBones;
+        parentIndices[] = -1;
 
+        // Bone names + inverse bind + local bind transforms
         for (uint i = 0; i < skinnedMesh.mNumBones; i++)
         {
             auto bone = skinnedMesh.mBones[i];
             string name = cast(string)bone.mName.data[0 .. bone.mName.length].dup;
+
             boneNames[i] = name;
             boneIndexByName[name] = cast(int)i;
             inverseBindMatrices[i] = aiToMat4(bone.mOffsetMatrix);
+
+            const(aiNode)* node = findNode(scene.mRootNode, name);
+            if (node !is null)
+                nodeLocalTransforms[i] = aiToMat4(node.mTransformation);
+            else
+                nodeLocalTransforms[i] = mat4.init;
         }
 
-        // Resolve parent indices from the node tree
-        parentIndices.length = skinnedMesh.mNumBones;
-        parentIndices[] = -1; // -1 = no parent (root)
-
+        // Parent indices only among actual bones
         for (uint i = 0; i < skinnedMesh.mNumBones; i++)
         {
             const(aiNode)* node = findNode(scene.mRootNode, boneNames[i]);
@@ -72,12 +84,9 @@ struct Skeleton
         }
 
         writeln("[skeleton] loaded ", boneNames.length, " bones");
-
-        // Debug: print hierarchy
         for (uint i = 0; i < boneNames.length && i < 10; i++)
         {
-            writeln("[skeleton]   [", i, "] '", boneNames[i],
-                    "' parent=", parentIndices[i]);
+            writeln("[skeleton]   [", i, "] '", boneNames[i], "' parent=", parentIndices[i]);
         }
         if (boneNames.length > 10)
             writeln("[skeleton]   ... and ", boneNames.length - 10, " more");
@@ -102,20 +111,15 @@ struct Skeleton
         return null;
     }
 
-    /// Convert Assimp's aiMatrix4x4 to our mat4
-    private static mat4 aiToMat4(aiMatrix4x4 m)
+    /// Convert Assimp matrix into the same convention used by the rest of this engine.
+    /// This is the transposed/import-corrected version for the current engine math path.
+    static mat4 aiToMat4(aiMatrix4x4 m)
     {
         mat4 result;
-        // Assimp is row-major, our mat4 indexing: [col*4 + row] or [flat index]
-        // Assimp: a1 a2 a3 a4 = row 0
-        //         b1 b2 b3 b4 = row 1
-        //         c1 c2 c3 c4 = row 2
-        //         d1 d2 d3 d4 = row 3
-        // Need to verify against your mat4 layout
-        result[0]  = m.a1; result[1]  = m.b1; result[2]  = m.c1; result[3]  = m.d1;
-        result[4]  = m.a2; result[5]  = m.b2; result[6]  = m.c2; result[7]  = m.d2;
-        result[8]  = m.a3; result[9]  = m.b3; result[10] = m.c3; result[11] = m.d3;
-        result[12] = m.a4; result[13] = m.b4; result[14] = m.c4; result[15] = m.d4;
+        result[0]  = m.a1; result[1]  = m.a2; result[2]  = m.a3; result[3]  = m.a4;
+        result[4]  = m.b1; result[5]  = m.b2; result[6]  = m.b3; result[7]  = m.b4;
+        result[8]  = m.c1; result[9]  = m.c2; result[10] = m.c3; result[11] = m.c4;
+        result[12] = m.d1; result[13] = m.d2; result[14] = m.d3; result[15] = m.d4;
         return result;
     }
 

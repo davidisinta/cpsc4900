@@ -185,6 +185,15 @@ class GraphicsEngine{
                     else if (event.key.keysym.sym == SDLK_r){
                             mGame.reload();
                     }
+                    else if (event.key.keysym.sym == SDLK_9) {
+                        mGame.printSpawnPoint("enemy");
+                    }
+                    else if (event.key.keysym.sym == SDLK_0) {
+                        mGame.printSpawnPoint("tree");
+                    }
+                    // else{
+                    //     mGame.mViewWeapon.handleTuning(event.key.keysym.sym);
+                    // }
                 }
 
                 if(event.type == SDL_MOUSEBUTTONDOWN){
@@ -224,8 +233,11 @@ class GraphicsEngine{
 
             if (moving) {
                 mGame.mAudioController.startWalking();
+                mGame.mViewWeapon.setWalking(true);
+
             } else {
                 mGame.mAudioController.stopWalking();
+                mGame.mViewWeapon.setWalking(false);
             }
             
             
@@ -242,6 +254,8 @@ class GraphicsEngine{
             }
 
             mGame.Input();
+
+            // mGame.mViewWeapon.handleTuning(event.key.keysym.sym);
         }
 
         void Update(){

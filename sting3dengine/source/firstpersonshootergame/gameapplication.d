@@ -24,6 +24,7 @@ import audiocontroller;
 import materialregistry;
 import resourcemanager;
 import animation;
+import viewweapon;
 
 // Third-party libraries
 import bindbc.sdl;
@@ -61,6 +62,7 @@ class GameApplication : IGame{
     int mCurrentAmmo = 30;
     int mMaxAmmo = 30;
     double mRoundTimer = 120.0;
+    ViewWeapon mViewWeapon;
 
     //Game Materials
 
@@ -130,9 +132,15 @@ class GameApplication : IGame{
         } else {
             m2.mModelMatrix = MatrixMakeTranslation(vec3(-256.0f, 0.0f, -256.0f));
         }
+
+        // Update view weapon animation
+        mViewWeapon.update(frameDt);
     }
 
     void Render(){
+
+        // Render view weapon
+        mViewWeapon.render();
 
         //Render Cross Hair as it is like a GUI element
         drawCrosshair();
@@ -154,6 +162,12 @@ class GameApplication : IGame{
         glBindVertexArray(0);
 
         glEnable(GL_DEPTH_TEST);
+    }
+
+    void printSpawnPoint(string type)
+    {
+        auto pos = mCamera.mEyePosition;
+        writeln("[spawn-marker] ", type, " at <", pos.x, ",", pos.y, ",", pos.z, ">");
     }
 
     //Setup the Scene for the Game
@@ -243,6 +257,116 @@ class GameApplication : IGame{
         // }
 
 
+// Test skinned mesh loading
+        // import skinnedmesh;
+        // auto glockScene = aiImportFile(
+        //     "./assets/weapons/glock/Glock.fbx".toStringz,
+        //     aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs);
+        // if (glockScene !is null)
+        // {
+        //     auto armsMesh = glockScene.mMeshes[1];
+        //     writeln("[skintest] ArmsMale bones=", armsMesh.mNumBones,
+        //             " verts=", armsMesh.mNumVertices);
+
+        //     // Check first bone's data
+        //     auto bone0 = armsMesh.mBones[0];
+        //     writeln("[skintest] bone0 ptr=", bone0);
+        //     writeln("[skintest] bone0 name length=", bone0.mName.length);
+        //     writeln("[skintest] bone0 name='", bone0.mName.data[0 .. bone0.mName.length], "'");
+        //     writeln("[skintest] bone0 numWeights=", bone0.mNumWeights);
+        //     writeln("[skintest] bone0 weights ptr=", bone0.mWeights);
+
+        //     if (bone0.mNumWeights > 0 && bone0.mWeights !is null)
+        //     {
+        //         writeln("[skintest] bone0 weight[0] vertexId=", bone0.mWeights[0].mVertexId,
+        //                 " weight=", bone0.mWeights[0].mWeight);
+        //     }
+
+        //     writeln("[skintest] bone0 offsetMatrix a1=", bone0.mOffsetMatrix.a1);
+
+        //     aiReleaseImport(glockScene);
+        // }
+
+        // import skinnedmesh;
+        // auto glockScene = aiImportFile(
+        //     "./assets/weapons/glock/Glock.fbx".toStringz,
+        //     aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs);
+        // if (glockScene !is null)
+        // {
+        //     auto armsMesh = glockScene.mMeshes[1];
+
+
+        // // Check bone 4 which has weights
+        //     auto bone4 = armsMesh.mBones[4];
+        //     writeln("[skintest] bone4 name='", bone4.mName.data[0 .. bone4.mName.length], "'");
+        //     writeln("[skintest] bone4 numWeights=", bone4.mNumWeights);
+        //     writeln("[skintest] bone4 weights ptr=", bone4.mWeights);
+
+        //     if (bone4.mNumWeights > 0 && bone4.mWeights !is null)
+        //     {
+        //         writeln("[skintest] bone4 weight[0] vertexId=", bone4.mWeights[0].mVertexId,
+        //                 " weight=", bone4.mWeights[0].mWeight);
+        //         writeln("[skintest] bone4 weight[1] vertexId=", bone4.mWeights[1].mVertexId,
+        //                 " weight=", bone4.mWeights[1].mWeight);
+        //     }
+
+        //     writeln("[skintest] bone4 offsetMatrix:");
+        //     writeln("[skintest]   ", bone4.mOffsetMatrix.a1, " ", bone4.mOffsetMatrix.a2, " ", bone4.mOffsetMatrix.a3, " ", bone4.mOffsetMatrix.a4);
+        //     writeln("[skintest]   ", bone4.mOffsetMatrix.b1, " ", bone4.mOffsetMatrix.b2, " ", bone4.mOffsetMatrix.b3, " ", bone4.mOffsetMatrix.b4);
+        //     writeln("[skintest]   ", bone4.mOffsetMatrix.c1, " ", bone4.mOffsetMatrix.c2, " ", bone4.mOffsetMatrix.c3, " ", bone4.mOffsetMatrix.c4);
+        //     writeln("[skintest]   ", bone4.mOffsetMatrix.d1, " ", bone4.mOffsetMatrix.d2, " ", bone4.mOffsetMatrix.d3, " ", bone4.mOffsetMatrix.d4);
+
+
+        //     auto skinnedSurf = new SkinnedSurface(cast(aiMesh*)armsMesh);
+        //     writeln("[skintest] SUCCESS");}
+
+
+
+        // Setup view weapon
+        // mViewWeapon = new ViewWeapon();
+        // // mViewWeapon.init(mCamera, 
+        // //     "./assets/weapons/glock/Glock.fbx",
+        // //     "./assets/weapons/glock/textures/Glock_BaseColor.png");
+
+        // mViewWeapon.init(mCamera, 
+        //     "./assets/weapons/knife/Knife.fbx",
+        //     "./assets/modern_soldier/textures/material_0_baseColor.jpeg");
+
+        // // Load animation clips
+        // mViewWeapon.loadClip("./assets/weapons/knife/Knife_Idle.fbx", "idle", true);
+
+        
+        // // mViewWeapon.loadClip("./assets/weapons/glock/Glock_Fire1.fbx", "fire");
+        // // mViewWeapon.loadClip("./assets/weapons/glock/Glock_Reload.fbx", "reload");
+        // mViewWeapon.loadClip("./assets/weapons/knife/Knife_Draw.fbx", "draw");
+        // mViewWeapon.loadClip("./assets/weapons/knife/Knife_Walk.fbx", "walk");
+
+        // Register collision boxes from arena pieces
+        // Walls
+        mCamera.addCollisionBox(-11.657f, -0.507f, -8.343f, 0.507f);   // wall1
+        mCamera.addCollisionBox(38.343f, -0.507f, 41.657f, 0.507f);    // wall2
+        // Sandbags
+        mCamera.addCollisionBox(7.519f, -10.527f, 12.481f, -9.473f);   // sandbag1
+        mCamera.addCollisionBox(16.813f, -15.541f, 23.187f, -14.459f); // sandbag2
+        mCamera.addCollisionBox(2.377f, -31.364f, 7.623f, -28.636f);   // sandbag3
+        // Corner wall
+        mCamera.addCollisionBox(-11.972f, -41.964f, -8.028f, -38.036f); // cornerwall
+        // Cabins and building (estimated — we'll refine)
+        mCamera.addCollisionBox(-5.0f, -25.0f, 5.0f, -15.0f);    // cabin1 at (0,0,-20)
+        mCamera.addCollisionBox(25.0f, -25.0f, 35.0f, -15.0f);   // cabin2 at (30,0,-20)
+        mCamera.addCollisionBox(10.0f, -47.0f, 20.0f, -33.0f);   // building at (15,0,-40)
+        writeln("[collision] registered ", mCamera.mCollisionBoxes.length, " collision boxes");
+
+        mViewWeapon = new ViewWeapon();
+        mViewWeapon.init(mCamera, 
+            "./assets/weapons/glock/Glock.fbx",
+            "./assets/modern_soldier/textures/material_0_baseColor.jpeg");
+
+        mViewWeapon.loadClip("./assets/weapons/glock/Glock_Idle.fbx", "idle", true);
+        mViewWeapon.loadClip("./assets/weapons/glock/Glock_Fire1.fbx", "fire");
+        mViewWeapon.loadClip("./assets/weapons/glock/Glock_Reload.fbx", "reload");
+        mViewWeapon.loadClip("./assets/weapons/glock/Glock_Draw.fbx", "draw");
+        mViewWeapon.loadClip("./assets/weapons/glock/Glock_Walk.fbx", "walk");
 
 
 
@@ -339,6 +463,8 @@ class GameApplication : IGame{
     void reload(){
         mCurrentAmmo = mMaxAmmo;
         writeln("[reload] ammo restored to ", mMaxAmmo);
+        mViewWeapon.playReload();
+
     }
 
 
@@ -366,6 +492,8 @@ class GameApplication : IGame{
         mShotsFired++;
 
         mAudioController.playGunshot();
+        mViewWeapon.playFire();
+
             
         auto result = mPhysicsWorld.raycast(
             from.x, from.y, from.z,

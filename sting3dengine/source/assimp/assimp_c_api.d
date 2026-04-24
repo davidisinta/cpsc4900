@@ -180,9 +180,18 @@ struct aiVertexWeight {
     float mWeight;
 }
 
+// struct aiBone {
+//     aiString mName;
+//     uint mNumWeights;
+//     aiVertexWeight* mWeights;
+//     aiMatrix4x4 mOffsetMatrix;
+// }
+
 struct aiBone {
     aiString mName;
     uint mNumWeights;
+    aiNode* mArmature;    // added — skeleton conversion node
+    aiNode* mNode;        // added — bone node in scene
     aiVertexWeight* mWeights;
     aiMatrix4x4 mOffsetMatrix;
 }
