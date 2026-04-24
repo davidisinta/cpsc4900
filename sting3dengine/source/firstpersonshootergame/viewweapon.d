@@ -80,11 +80,11 @@ class ViewWeapon
 
         mShaderProgram = Pipeline.sPipeline["skinned_textured"];
 
-        writeln("[viewweapon] shader program id=", mShaderProgram);
+        // writeln("[viewweapon] shader program id=", mShaderProgram);
 
         GLint numUniforms;
         glGetProgramiv(mShaderProgram, GL_ACTIVE_UNIFORMS, &numUniforms);
-        writeln("[viewweapon] active uniforms: ", numUniforms);
+        // writeln("[viewweapon] active uniforms: ", numUniforms);
         for (int i = 0; i < numUniforms; i++)
         {
             char[256] name;
@@ -93,12 +93,12 @@ class ViewWeapon
             GLenum type;
             glGetActiveUniform(mShaderProgram, cast(GLuint)i, 256, &length, &size, &type, name.ptr);
             GLint loc = glGetUniformLocation(mShaderProgram, name.ptr);
-            writeln("[viewweapon]   uniform ", i, ": '", name[0 .. length], "' loc=", loc, " size=", size);
+            // writeln("[viewweapon]   uniform ", i, ": '", name[0 .. length], "' loc=", loc, " size=", size);
         }
 
         GLint linkStatus;
         glGetProgramiv(mShaderProgram, GL_LINK_STATUS, &linkStatus);
-        writeln("[viewweapon] link status: ", linkStatus);
+        // writeln("[viewweapon] link status: ", linkStatus);
 
         if (linkStatus == GL_FALSE)
         {
@@ -109,7 +109,7 @@ class ViewWeapon
                 char[] log;
                 log.length = logLen;
                 glGetProgramInfoLog(mShaderProgram, logLen, null, log.ptr);
-                writeln("[viewweapon] LINK ERROR: ", log);
+                // writeln("[viewweapon] LINK ERROR: ", log);
             }
         }
 
@@ -121,28 +121,28 @@ class ViewWeapon
         mTexUniformLoc = glGetUniformLocation(mShaderProgram, "uTexture");
         mLightUniformLoc = glGetUniformLocation(mShaderProgram, "uLightPos");
 
-        writeln("[viewweapon] shader uniforms: bones=", mBoneUniformLoc,
-                " model=", mModelUniformLoc, " view=", mViewUniformLoc,
-                " proj=", mProjUniformLoc, " tex=", mTexUniformLoc,
-                " light=", mLightUniformLoc);
+        // writeln("[viewweapon] shader uniforms: bones=", mBoneUniformLoc,
+        //         " model=", mModelUniformLoc, " view=", mViewUniformLoc,
+        //         " proj=", mProjUniformLoc, " tex=", mTexUniformLoc,
+        //         " light=", mLightUniformLoc);
 
         auto scene = aiImportFile(modelPath.toStringz,
             aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs);
 
         if (scene is null)
         {
-            writeln("[viewweapon] ERROR: failed to load ", modelPath);
+            // writeln("[viewweapon] ERROR: failed to load ", modelPath);
             return;
         }
 
         mSkeleton.loadFromScene(scene);
 
-        writeln("[viewweapon] skeleton bones=", mSkeleton.boneNames.length);
+        // writeln("[viewweapon] skeleton bones=", mSkeleton.boneNames.length);
         for (uint i = 0; i < scene.mNumMeshes; i++)
         {
             auto mesh = scene.mMeshes[i];
             auto meshName = cast(string)mesh.mName.data[0 .. mesh.mName.length];
-            writeln("[viewweapon] mesh '", meshName, "' mNumBones=", mesh.mNumBones);
+            // writeln("[viewweapon] mesh '", meshName, "' mNumBones=", mesh.mNumBones);
         }
 
         mAnimator.init(&mSkeleton);
@@ -159,7 +159,7 @@ class ViewWeapon
             if (meshName == "LeupoldRedDotGlass") continue;
             if (meshName == "Supressor") continue;
 
-            writeln("[viewweapon] loading mesh: ", meshName);
+            // writeln("[viewweapon] loading mesh: ", meshName);
             auto surf = new SkinnedSurface(cast(aiMesh*)mesh, mSkeleton.boneIndexByName);
             mSurfaces ~= surf;
             mMeshNames ~= meshName.dup;
@@ -167,50 +167,14 @@ class ViewWeapon
 
         aiReleaseImport(scene);
 
-        writeln("[viewweapon] loaded ", mSurfaces.length, " meshes, ",
-                mSkeleton.boneNames.length, " bones");
+        // writeln("[viewweapon] loaded ", mSurfaces.length, " meshes, ",
+        //         mSkeleton.boneNames.length, " bones");
 
         mReady = true;
     }
 
 
-    /// Adjust weapon position/rotation with keys for tuning
-    // void handleTuning(int key)
-    // {
-    //     import bindbc.sdl;
-    //     float step = 0.02f;
-    //     float rotStep = 0.05f;
-
-    //     switch (key)
-    //     {
-    //         case SDLK_UP:    mOffsetUp += step; break;
-    //         case SDLK_DOWN:  mOffsetUp -= step; break;
-    //         case SDLK_LEFT:  mOffsetRight -= step; break;
-    //         case SDLK_RIGHT: mOffsetRight += step; break;
-    //         case SDLK_PAGEUP:   mOffsetFwd += step; break;
-    //         case SDLK_PAGEDOWN: mOffsetFwd -= step; break;
-    //         case SDLK_j: mExtraRotY -= rotStep; break;  // yaw left
-    //         case SDLK_l: mExtraRotY += rotStep; break;  // yaw right
-    //         case SDLK_i: mExtraRotX -= rotStep; break;  // pitch up
-    //         case SDLK_k: mExtraRotX += rotStep; break;  // pitch down
-    //         case SDLK_u: mExtraRotZ -= rotStep; break;  // roll left
-    //         case SDLK_o: mExtraRotZ += rotStep; break;  // roll right
-    //         case SDLK_EQUALS: mWeaponScale += 0.01f; break;  // + scale up
-    //         case SDLK_MINUS:  mWeaponScale -= 0.01f; break;  // - scale down
-    //         case SDLK_8:
-    //             writeln("=== WEAPON TUNING SAVED ===");
-    //             writeln("  mOffsetRight = ", mOffsetRight, "f;");
-    //             writeln("  mOffsetUp = ", mOffsetUp, "f;");
-    //             writeln("  mOffsetFwd = ", mOffsetFwd, "f;");
-    //             writeln("  mExtraRotX = ", mExtraRotX, "f;");
-    //             writeln("  mExtraRotY = ", mExtraRotY, "f;");
-    //             writeln("  mExtraRotZ = ", mExtraRotZ, "f;");
-    //             writeln("  mWeaponScale = ", mWeaponScale, "f;");
-    //             writeln("===========================");
-    //             break;
-    //         default: break;
-    //     }
-    // }
+   
 
     void handleTuning(int key)
     {
@@ -265,11 +229,11 @@ class ViewWeapon
         {
             mCurrentClipName = name;
             mAnimator.play(clip, loop);
-            writeln("[viewweapon] playing '", name, "' loop=", loop);
+            // writeln("[viewweapon] playing '", name, "' loop=", loop);
         }
         else
         {
-            writeln("[viewweapon] WARNING: clip '", name, "' not found");
+            // writeln("[viewweapon] WARNING: clip '", name, "' not found");
         }
     }
 
@@ -288,10 +252,10 @@ class ViewWeapon
         if (mDebugAccum >= 5.0)
         {
             mDebugAccum = 0.0;
-            writeln("[viewweapon/update] clip=", mCurrentClipName,
-                    " bones=", mSkeleton.boneNames.length,
-                    " meshes=", mSurfaces.length,
-                    " scale=", mWeaponScale);
+            // writeln("[viewweapon/update] clip=", mCurrentClipName,
+            //         " bones=", mSkeleton.boneNames.length,
+            //         " meshes=", mSurfaces.length,
+            //         " scale=", mWeaponScale);
         }
     }
 

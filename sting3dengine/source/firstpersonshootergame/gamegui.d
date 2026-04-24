@@ -4,6 +4,7 @@ import std.stdio;
 import std.string : toStringz;
 import std.conv : to;
 import editor;
+import collisioneditor;
 
 class GameGUI
 {
@@ -23,6 +24,8 @@ class GameGUI
     int fps = 0;
 
     double lastFiveSecFps = 60;
+
+    CollisionEditor mCollisionEditor;
 
     // Screen dimensions — set from engine
     int screenWidth = 960;
@@ -125,10 +128,21 @@ class GameGUI
 
         igEnd();
 
+
+
+        // ============================================
+        // Collision Editor Panel (if active)
+        // ============================================
+        if (mCollisionEditor !is null)
+            mCollisionEditor.renderGUI(screenWidth, screenHeight);
+
         // ============================================
         // Finalize ImGui
         // ============================================
         igRender();
+
+
+
         ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
     }
 }

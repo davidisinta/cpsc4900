@@ -39,6 +39,7 @@ import std.math : min, max;
 import assimp_c_api;
 // import std.math;
 import std.math : min, max;
+import std.string : toStringz, toLower;
 
 // ------------------------------
 // Texture type labels
@@ -191,6 +192,47 @@ string textureTypeName(uint typeId)
     return "UNKNOWN(" ~ typeId.to!string ~ ")";
 }
 
+
+string guessAssetFamily(string name)
+{
+    auto n = name.toLower();
+
+    if (n.canFind("concrete") ||
+        n.canFind("surrounding_wall") ||
+        n.canFind("building_01") ||
+        n.canFind("building_02") ||
+        n.canFind("building_03") ||
+        n.canFind("building_04") ||
+        n.canFind("building_05") ||
+        n.canFind("building_06") ||
+        n.canFind("building_07") ||
+        n.canFind("building_08"))
+    {
+        return "CONCRETE_GRAY";
+    }
+
+    if (n.canFind("metal_cabin") ||
+        n.canFind("metal_wall") ||
+        n.canFind("corrugated") ||
+        n.canFind("metal_beam") ||
+        n.canFind("metal_support"))
+    {
+        return "METAL_BLUE_GRAY";
+    }
+
+    if (n.canFind("barrel") ||
+        n.canFind("pallet") ||
+        n.canFind("target") ||
+        n.canFind("sand_bag") ||
+        n.canFind("decal"))
+    {
+        return "PROP_OR_DECAL";
+    }
+
+    return "UNKNOWN_CHECK_IN_BLENDER";
+}
+
+
 // ------------------------------
 // Embedded textures
 // ------------------------------
@@ -326,6 +368,7 @@ void printMeshes(const(aiScene)* scene)
     {
         auto mesh = scene.mMeshes[i];
         string meshName = aiStringToString(mesh.mName);
+        writeln("    ArtFamily:     ", guessAssetFamily(meshName));
 
         string matName = "(invalid)";
         if (mesh.mMaterialIndex < scene.mNumMaterials)

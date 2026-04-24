@@ -58,15 +58,15 @@ class Renderer {
             int avgDistCulled = distCulledSum / logFrameCount;
             int avgFps = cast(int)(logFrameCount / logTimer);
 
-            writeln("=== PERF REPORT ===");
-            writeln("  Frustum Culling: ", mFrustumCullingEnabled ? "ON" : "OFF");
-            writeln("  Draw Distance: ", mDrawDistanceEnabled ? "ON" : "OFF", " (", mDrawDistance, " units)");
-            writeln("  Avg Drawn: ", avgDrawn);
-            writeln("  Avg Frustum Culled: ", avgCulled);
-            writeln("  Avg Distance Culled: ", avgDistCulled);
-            writeln("  Total: ", avgDrawn + avgCulled + avgDistCulled);
-            writeln("  Avg FPS (5s): ", avgFps);
-            writeln("===================");
+            // writeln("=== PERF REPORT ===");
+            // writeln("  Frustum Culling: ", mFrustumCullingEnabled ? "ON" : "OFF");
+            // writeln("  Draw Distance: ", mDrawDistanceEnabled ? "ON" : "OFF", " (", mDrawDistance, " units)");
+            // writeln("  Avg Drawn: ", avgDrawn);
+            // writeln("  Avg Frustum Culled: ", avgCulled);
+            // writeln("  Avg Distance Culled: ", avgDistCulled);
+            // writeln("  Total: ", avgDrawn + avgCulled + avgDistCulled);
+            // writeln("  Avg FPS (5s): ", avgFps);
+            // writeln("===================");
 
             logFrameCount = 0;
             logTimer = 0.0;

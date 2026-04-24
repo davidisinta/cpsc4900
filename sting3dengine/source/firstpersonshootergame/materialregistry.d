@@ -34,6 +34,7 @@ class MaterialRegistry
         setupLindenMaterial();
         setupMapMaterial();
         setupTerrainMaterial();
+        setupMeshesMaterial();
         writeln("[materials] all materials registered");
     }
 
@@ -100,6 +101,20 @@ class MaterialRegistry
         mat.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
         mMaterials["map"] = mat;
     }
+
+    private void setupMeshesMaterial()
+    {
+        IMaterial mat = new LitTexturedMaterial("lit_textured",
+            "./assets/fps_map_kit/uploads_files_3151797_FPS_Modular_Map_Kit_Map/FPS_Modular_Map_BaseColor.png");
+
+        // uploads_files_3151797_FPS_Modular_Map_Kit_Map/FPS_Modular_Map_BaseColor.png
+        mat.AddUniform(new Uniform("uTexture", 0));
+        mat.AddUniform(new Uniform("uModel", "mat4", null));
+        mat.AddUniform(new Uniform("uView", "mat4", mCamera.mViewMatrix.DataPtr()));
+        mat.AddUniform(new Uniform("uProjection", "mat4", mCamera.mProjectionMatrix.DataPtr()));
+        mMaterials["meshes"] = mat;
+    }
+
 
     private void setupTerrainMaterial()
     {

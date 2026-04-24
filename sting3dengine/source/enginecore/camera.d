@@ -163,9 +163,12 @@ class Camera{
         mCollisionBoxes ~= [minX, minZ, maxX, maxZ];
     }
 
+    bool mEditorMode = false;
+
     bool isBlocked(vec3 pos)
     {
-        float margin = 0.5f;
+        if (mEditorMode) return false;  // don't block in editor
+        float margin = 0.3f;
         foreach (box; mCollisionBoxes)
         {
             if (pos.x + margin > box[0] && pos.x - margin < box[2] &&

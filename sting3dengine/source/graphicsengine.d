@@ -9,6 +9,7 @@ import std.datetime.stopwatch : StopWatch, AutoStart;
 import core.thread : Thread;
 import std.datetime : dur;
 import std.datetime.systime : Clock;
+import std.math : abs;
 
 // Third-party libraries
 import bindbc.sdl;
@@ -194,6 +195,11 @@ class GraphicsEngine{
                     // else{
                     //     mGame.mViewWeapon.handleTuning(event.key.keysym.sym);
                     // }
+
+                    else {
+                        // mGame.mViewWeapon.handleTuning(event.key.keysym.sym);
+                        mGame.mCollisionEditor.handleInput(event.key.keysym.sym);
+                    }
                 }
 
                 if(event.type == SDL_MOUSEBUTTONDOWN){
@@ -241,18 +247,40 @@ class GraphicsEngine{
             }
             
             
-            int mouseX, mouseY;
-            SDL_GetMouseState(&mouseX, &mouseY);
-            int centerX = mScreenWidth / 2;
-            int centerY = mScreenHeight / 2;
-            int deltaX = mouseX - centerX;
-            int deltaY = mouseY - centerY;
+            // int mouseX, mouseY;
+            // SDL_GetMouseState(&mouseX, &mouseY);
+            // int centerX = mScreenWidth / 2;
+            // int centerY = mScreenHeight / 2;
+            // int deltaX = mouseX - centerX;
+            // int deltaY = mouseY - centerY;
 
-            if (deltaX != 0 || deltaY != 0){
-                mCamera.MouseLook(deltaX, deltaY);
-                SDL_WarpMouseInWindow(mWindow, centerX, centerY);
+            // if (deltaX != 0 || deltaY != 0){
+            //     mCamera.MouseLook(deltaX, deltaY);
+            //     SDL_WarpMouseInWindow(mWindow, centerX, centerY);
+            // }
+
+            if (!mGame.mCollisionEditor.isActive())
+            {
+                int mouseX, mouseY;
+                SDL_GetMouseState(&mouseX, &mouseY);
+                int centerX = mScreenWidth / 2;
+                int centerY = mScreenHeight / 2;
+                int deltaX = mouseX - centerX;
+                int deltaY = mouseY - centerY;
+
+                // Skip large deltas (happens when exiting editor)
+                if (abs(deltaX) > 100 || abs(deltaY) > 100)
+                {
+                    SDL_WarpMouseInWindow(mWindow, centerX, centerY);
+                }
+                else if (deltaX != 0 || deltaY != 0)
+                {
+                    mCamera.MouseLook(deltaX, deltaY);
+                    SDL_WarpMouseInWindow(mWindow, centerX, centerY);
+                }
             }
 
+          
             mGame.Input();
 
             // mGame.mViewWeapon.handleTuning(event.key.keysym.sym);

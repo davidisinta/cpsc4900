@@ -86,71 +86,161 @@ class SpawnFactory
         return eid;
     }
 
-    /// Convenience: spawn multiple soldiers at fixed positions
-    void spawnSoldiers()
+    // // / Convenience: spawn multiple soldiers at fixed positions
+    // void spawnSoldiers()
+    // {
+    //     // auto soldierType = EntityType.soldier();
+    //     // spawn(soldierType, vec3(33.0f, 0.0f, -10.0f));
+    //     // spawn(soldierType, vec3(0.0f, 0.0f, -30.0f));
+    //     // spawn(soldierType, vec3(0.0f, 0.0f, -40.0f));
+    //     // spawn(soldierType, vec3(13.0f, 0.0f, -17.0f));
+    //     // spawn(soldierType, vec3(23.0f, 0.0f, -17.0f));
+    //     // spawn(soldierType, vec3(13.0f, 0.0f, -37.0f));
+    //     // spawn(soldierType, vec3(43.0f, 0.0f, 17.0f));
+
+
+    //     auto soldierType = EntityType.soldier();
+    //     // Arena area
+    //     spawn(soldierType, vec3(21.7f, 0.0f, -7.8f));
+    //     spawn(soldierType, vec3(35.3f, 0.0f, -13.9f));
+    //     spawn(soldierType, vec3(41.1f, 0.0f, -26.9f));
+    //     spawn(soldierType, vec3(20.1f, 0.0f, -32.7f));
+    //     spawn(soldierType, vec3(12.3f, 0.0f, -30.7f));
+    //     // Far side
+    //     spawn(soldierType, vec3(3.3f, 0.0f, 70.9f));
+    //     spawn(soldierType, vec3(-6.1f, 0.0f, 62.3f));
+    //     spawn(soldierType, vec3(-31.3f, 0.0f, 10.3f));
+    //     spawn(soldierType, vec3(-23.0f, 0.0f, -3.5f));
+    //     spawn(soldierType, vec3(-18.2f, 0.0f, -11.9f));
+    //     spawn(soldierType, vec3(-17.3f, 0.0f, -25.9f));
+    //     spawn(soldierType, vec3(-15.2f, 0.0f, -41.1f));
+    // }
+
+    vec3[] spawnSoldiers(int extraCount = 30, float mapRadius = 80.0f)
     {
-        // auto soldierType = EntityType.soldier();
-        // spawn(soldierType, vec3(33.0f, 0.0f, -10.0f));
-        // spawn(soldierType, vec3(0.0f, 0.0f, -30.0f));
-        // spawn(soldierType, vec3(0.0f, 0.0f, -40.0f));
-        // spawn(soldierType, vec3(13.0f, 0.0f, -17.0f));
-        // spawn(soldierType, vec3(23.0f, 0.0f, -17.0f));
-        // spawn(soldierType, vec3(13.0f, 0.0f, -37.0f));
-        // spawn(soldierType, vec3(43.0f, 0.0f, 17.0f));
-
-
         auto soldierType = EntityType.soldier();
-        // Arena area
-        spawn(soldierType, vec3(21.7f, 0.0f, -7.8f));
-        spawn(soldierType, vec3(35.3f, 0.0f, -13.9f));
-        spawn(soldierType, vec3(41.1f, 0.0f, -26.9f));
-        spawn(soldierType, vec3(20.1f, 0.0f, -32.7f));
-        spawn(soldierType, vec3(12.3f, 0.0f, -30.7f));
-        // Far side
-        spawn(soldierType, vec3(3.3f, 0.0f, 70.9f));
-        spawn(soldierType, vec3(-6.1f, 0.0f, 62.3f));
-        spawn(soldierType, vec3(-31.3f, 0.0f, 10.3f));
-        spawn(soldierType, vec3(-23.0f, 0.0f, -3.5f));
-        spawn(soldierType, vec3(-18.2f, 0.0f, -11.9f));
-        spawn(soldierType, vec3(-17.3f, 0.0f, -25.9f));
-        spawn(soldierType, vec3(-15.2f, 0.0f, -41.1f));
+        vec3[] positions;
+        float minSpacing = 5.0f;
+
+        // Hand-placed soldiers
+        vec3[] handPlaced = [
+            vec3(21.7f, 0, -7.8f), vec3(35.3f, 0, -13.9f),
+            vec3(41.1f, 0, -26.9f), vec3(20.1f, 0, -32.7f),
+            vec3(12.3f, 0, -30.7f), vec3(3.3f, 0, 70.9f),
+            vec3(-6.1f, 0, 62.3f), vec3(-31.3f, 0, 10.3f),
+            vec3(-23.0f, 0, -3.5f), vec3(-18.2f, 0, -11.9f),
+            vec3(-17.3f, 0, -25.9f), vec3(-15.2f, 0, -41.1f),
+        ];
+        foreach (p; handPlaced)
+        {
+            spawn(soldierType, p);
+            positions ~= p;
+        }
+        writeln("[spawn] ", handPlaced.length, " hand-placed soldiers");
+
+        // Random soldiers
+        int placed = 0;
+        foreach (i; 0 .. extraCount * 3)  // extra attempts
+        {
+            if (placed >= extraCount) break;
+
+            float x = uniform(-mapRadius, mapRadius);
+            float z = uniform(-mapRadius, mapRadius);
+
+            // Don't spawn too close to origin (player start)
+            if (x * x + z * z < 15.0f * 15.0f) continue;
+
+            // Don't spawn too close to other soldiers
+            bool tooClose = false;
+            foreach (p; positions)
+            {
+                float dx = x - p.x;
+                float dz = z - p.z;
+                if (dx * dx + dz * dz < minSpacing * minSpacing)
+                {
+                    tooClose = true;
+                    break;
+                }
+            }
+            if (tooClose) continue;
+
+            spawn(soldierType, vec3(x, 0.0f, z));
+            positions ~= vec3(x, 0.0f, z);
+            placed++;
+        }
+        writeln("[spawn] ", placed, " random soldiers placed");
+
+        return positions;
     }
 
-    /// Convenience: spawn trees in a ring pattern
-    void spawnTrees(int count = 160, float minRadius = 100.0f, float maxRadius = 120.0f)
+    
+
+    vec3[] spawnTrees(int count = 160, float minRadius = 100.0f, float maxRadius = 120.0f)
     {
         auto treeType = EntityType.lindenTree();
+        vec3[] positions;
+        float minSpacing = 8.0f;  // minimum distance between trees
+
         foreach (i; 0 .. count)
         {
             float x, z;
+            bool tooClose;
+            int attempts = 0;
             do
             {
                 x = uniform(-maxRadius, maxRadius);
                 z = uniform(-maxRadius, maxRadius);
-            }
-            while ((x * x + z * z) < (minRadius * minRadius));
+                tooClose = false;
 
-            spawn(treeType, vec3(x, 0.0f, z));
+                // Must be outside inner radius
+                if ((x * x + z * z) < (minRadius * minRadius))
+                {
+                    tooClose = true;
+                    continue;
+                }
+
+                // Must be far enough from other trees
+                foreach (p; positions)
+                {
+                    float dx = x - p.x;
+                    float dz = z - p.z;
+                    if (dx * dx + dz * dz < minSpacing * minSpacing)
+                    {
+                        tooClose = true;
+                        break;
+                    }
+                }
+                attempts++;
+            }
+            while (tooClose && attempts < 50);
+
+            if (attempts < 50)
+            {
+                spawn(treeType, vec3(x, 0.0f, z));
+                positions ~= vec3(x, 0.0f, z);
+            }
         }
-        // writeln("[spawn] ", count, " trees placed");
+        writeln("[spawn] ", positions.length, " random trees placed");
 
         // Hand-placed trees
-        spawn(treeType, vec3(37.8f, 0.0f, -33.0f));
-        spawn(treeType, vec3(29.9f, 0.0f, -36.5f));
-        spawn(treeType, vec3(1.3f, 0.0f, -3.4f));
-        spawn(treeType, vec3(-1.3f, 0.0f, 14.9f));
-        spawn(treeType, vec3(2.2f, 0.0f, 22.7f));
-        spawn(treeType, vec3(13.0f, 0.0f, 32.4f));
-        spawn(treeType, vec3(33.4f, 0.0f, 58.3f));
-        spawn(treeType, vec3(34.4f, 0.0f, 68.0f));
-        spawn(treeType, vec3(26.4f, 0.0f, 75.0f));
-        spawn(treeType, vec3(15.5f, 0.0f, 77.8f));
-        spawn(treeType, vec3(-12.9f, 0.0f, 56.9f));
-        spawn(treeType, vec3(-21.8f, 0.0f, 48.6f));
-        spawn(treeType, vec3(-31.0f, 0.0f, 42.5f));
-        spawn(treeType, vec3(-33.4f, 0.0f, 29.9f));
-        spawn(treeType, vec3(-32.9f, 0.0f, 19.6f));
-        // writeln("[spawn] 15 hand-placed trees");
+        vec3[] handPlaced = [
+            vec3(37.8f, 0, -33.0f), vec3(29.9f, 0, -36.5f),
+            vec3(1.3f, 0, -3.4f), vec3(-1.3f, 0, 14.9f),
+            vec3(2.2f, 0, 22.7f), vec3(13.0f, 0, 32.4f),
+            vec3(33.4f, 0, 58.3f), vec3(34.4f, 0, 68.0f),
+            vec3(26.4f, 0, 75.0f), vec3(15.5f, 0, 77.8f),
+            vec3(-12.9f, 0, 56.9f), vec3(-21.8f, 0, 48.6f),
+            vec3(-31.0f, 0, 42.5f), vec3(-33.4f, 0, 29.9f),
+            vec3(-32.9f, 0, 19.6f),
+        ];
+        foreach (p; handPlaced)
+        {
+            spawn(treeType, p);
+            positions ~= p;
+        }
+        writeln("[spawn] ", handPlaced.length, " hand-placed trees");
+
+        return positions;
     }
 
     /// Stress test: spawn N trees in a ring

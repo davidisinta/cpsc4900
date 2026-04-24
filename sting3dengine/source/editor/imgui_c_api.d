@@ -40,6 +40,22 @@ extern(C)
     void igSeparator();
     bool igSliderFloat(const(char)* label, float* v, float v_min, float v_max, const(char)* format, int flags);
 
+    // Color struct
+    struct ImVec4
+    {
+        float x, y, z, w;
+    }
+
+    // Colored text
+    void igTextColored(ImVec4 col, const(char)* fmt, ...);
+
+    void igSameLine(float offset_from_start_x, float spacing);
+
+    // void igSameLine(float offset_from_start_x, float spacing);
+
+    void igPushItemWidth(float item_width);
+    void igPopItemWidth();
+
     // Positioning
     void igSetNextWindowPos(float x, float y, int cond, float pivot_x, float pivot_y);
     void igSetNextWindowSize(float x, float y, int cond);

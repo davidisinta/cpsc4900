@@ -25,6 +25,7 @@ import materialregistry;
 import resourcemanager;
 import animation;
 import viewweapon;
+import collisioneditor;
 
 // Third-party libraries
 import bindbc.sdl;
@@ -68,6 +69,7 @@ class GameApplication : IGame{
 
     /// sound specific elements
     AudioController mAudioController;
+    CollisionEditor mCollisionEditor;
 
 
     MaterialRegistry mMaterialRegistry;
@@ -142,6 +144,8 @@ class GameApplication : IGame{
         // Render view weapon
         mViewWeapon.render();
 
+        mCollisionEditor.render();
+
         //Render Cross Hair as it is like a GUI element
         drawCrosshair();
 
@@ -193,169 +197,10 @@ class GameApplication : IGame{
         //Let Level Builder Set up the map
         mLevelBuilder.SetupMap();
 
+        
+
         //Stress testing for Frustum culling
         // spawnStressTest(300);
-
-
-        // // Test skeleton loading
-        
-        // auto glockScene = aiImportFile(
-        //     "./assets/weapons/glock/Glock.fbx".toStringz,
-        //     aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs);
-        // if (glockScene !is null)
-        // {
-        //     Skeleton skel;
-        //     skel.loadFromScene(glockScene);
-        //     skel.printHierarchy();
-        //     aiReleaseImport(glockScene);
-        // }
-
-
-        // // Test animation clip loading
-        // AnimationClip idleClip;
-        // idleClip.loadFromFile("./assets/weapons/glock/Glock_Idle.fbx", "idle");
-        // idleClip.printSummary();
-
-        // AnimationClip fireClip;
-        // fireClip.loadFromFile("./assets/weapons/glock/Glock_Fire1.fbx", "fire");
-        // fireClip.printSummary();
-
-        // AnimationClip reloadClip;
-        // reloadClip.loadFromFile("./assets/weapons/glock/Glock_Reload.fbx", "reload");
-        // reloadClip.printSummary();
-
-
-        // // Test full animation pipeline
-        // import animation;
-        // auto glockScene = aiImportFile(
-        //     "./assets/weapons/glock/Glock.fbx".toStringz,
-        //     aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs);
-        // if (glockScene !is null)
-        // {
-        //     Skeleton skel;
-        //     skel.loadFromScene(glockScene);
-        //     aiReleaseImport(glockScene);
-
-        //     AnimationClip idleClip;
-        //     idleClip.loadFromFile("./assets/weapons/glock/Glock_Idle.fbx", "idle");
-
-        //     Animator anim;
-        //     anim.init(&skel);
-        //     anim.play(&idleClip, true);
-
-        //     // Simulate 10 frames at 60fps
-        //     for (int i = 0; i < 10; i++)
-        //     {
-        //         anim.update(1.0 / 60.0);
-                
-        //         // Print muzzle bone world position as sanity check
-        //         mat4 muzzle = anim.getBoneWorldMatrix("Muzzle");
-        //         writeln("[anim] frame ", i,
-        //                 " muzzle pos=(", muzzle[3], ", ", muzzle[7], ", ", muzzle[11], ")",
-        //                 " time=", anim.mCurrentTime);
-        //     }
-        // }
-
-
-// Test skinned mesh loading
-        // import skinnedmesh;
-        // auto glockScene = aiImportFile(
-        //     "./assets/weapons/glock/Glock.fbx".toStringz,
-        //     aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs);
-        // if (glockScene !is null)
-        // {
-        //     auto armsMesh = glockScene.mMeshes[1];
-        //     writeln("[skintest] ArmsMale bones=", armsMesh.mNumBones,
-        //             " verts=", armsMesh.mNumVertices);
-
-        //     // Check first bone's data
-        //     auto bone0 = armsMesh.mBones[0];
-        //     writeln("[skintest] bone0 ptr=", bone0);
-        //     writeln("[skintest] bone0 name length=", bone0.mName.length);
-        //     writeln("[skintest] bone0 name='", bone0.mName.data[0 .. bone0.mName.length], "'");
-        //     writeln("[skintest] bone0 numWeights=", bone0.mNumWeights);
-        //     writeln("[skintest] bone0 weights ptr=", bone0.mWeights);
-
-        //     if (bone0.mNumWeights > 0 && bone0.mWeights !is null)
-        //     {
-        //         writeln("[skintest] bone0 weight[0] vertexId=", bone0.mWeights[0].mVertexId,
-        //                 " weight=", bone0.mWeights[0].mWeight);
-        //     }
-
-        //     writeln("[skintest] bone0 offsetMatrix a1=", bone0.mOffsetMatrix.a1);
-
-        //     aiReleaseImport(glockScene);
-        // }
-
-        // import skinnedmesh;
-        // auto glockScene = aiImportFile(
-        //     "./assets/weapons/glock/Glock.fbx".toStringz,
-        //     aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs);
-        // if (glockScene !is null)
-        // {
-        //     auto armsMesh = glockScene.mMeshes[1];
-
-
-        // // Check bone 4 which has weights
-        //     auto bone4 = armsMesh.mBones[4];
-        //     writeln("[skintest] bone4 name='", bone4.mName.data[0 .. bone4.mName.length], "'");
-        //     writeln("[skintest] bone4 numWeights=", bone4.mNumWeights);
-        //     writeln("[skintest] bone4 weights ptr=", bone4.mWeights);
-
-        //     if (bone4.mNumWeights > 0 && bone4.mWeights !is null)
-        //     {
-        //         writeln("[skintest] bone4 weight[0] vertexId=", bone4.mWeights[0].mVertexId,
-        //                 " weight=", bone4.mWeights[0].mWeight);
-        //         writeln("[skintest] bone4 weight[1] vertexId=", bone4.mWeights[1].mVertexId,
-        //                 " weight=", bone4.mWeights[1].mWeight);
-        //     }
-
-        //     writeln("[skintest] bone4 offsetMatrix:");
-        //     writeln("[skintest]   ", bone4.mOffsetMatrix.a1, " ", bone4.mOffsetMatrix.a2, " ", bone4.mOffsetMatrix.a3, " ", bone4.mOffsetMatrix.a4);
-        //     writeln("[skintest]   ", bone4.mOffsetMatrix.b1, " ", bone4.mOffsetMatrix.b2, " ", bone4.mOffsetMatrix.b3, " ", bone4.mOffsetMatrix.b4);
-        //     writeln("[skintest]   ", bone4.mOffsetMatrix.c1, " ", bone4.mOffsetMatrix.c2, " ", bone4.mOffsetMatrix.c3, " ", bone4.mOffsetMatrix.c4);
-        //     writeln("[skintest]   ", bone4.mOffsetMatrix.d1, " ", bone4.mOffsetMatrix.d2, " ", bone4.mOffsetMatrix.d3, " ", bone4.mOffsetMatrix.d4);
-
-
-        //     auto skinnedSurf = new SkinnedSurface(cast(aiMesh*)armsMesh);
-        //     writeln("[skintest] SUCCESS");}
-
-
-
-        // Setup view weapon
-        // mViewWeapon = new ViewWeapon();
-        // // mViewWeapon.init(mCamera, 
-        // //     "./assets/weapons/glock/Glock.fbx",
-        // //     "./assets/weapons/glock/textures/Glock_BaseColor.png");
-
-        // mViewWeapon.init(mCamera, 
-        //     "./assets/weapons/knife/Knife.fbx",
-        //     "./assets/modern_soldier/textures/material_0_baseColor.jpeg");
-
-        // // Load animation clips
-        // mViewWeapon.loadClip("./assets/weapons/knife/Knife_Idle.fbx", "idle", true);
-
-        
-        // // mViewWeapon.loadClip("./assets/weapons/glock/Glock_Fire1.fbx", "fire");
-        // // mViewWeapon.loadClip("./assets/weapons/glock/Glock_Reload.fbx", "reload");
-        // mViewWeapon.loadClip("./assets/weapons/knife/Knife_Draw.fbx", "draw");
-        // mViewWeapon.loadClip("./assets/weapons/knife/Knife_Walk.fbx", "walk");
-
-        // Register collision boxes from arena pieces
-        // Walls
-        mCamera.addCollisionBox(-11.657f, -0.507f, -8.343f, 0.507f);   // wall1
-        mCamera.addCollisionBox(38.343f, -0.507f, 41.657f, 0.507f);    // wall2
-        // Sandbags
-        mCamera.addCollisionBox(7.519f, -10.527f, 12.481f, -9.473f);   // sandbag1
-        mCamera.addCollisionBox(16.813f, -15.541f, 23.187f, -14.459f); // sandbag2
-        mCamera.addCollisionBox(2.377f, -31.364f, 7.623f, -28.636f);   // sandbag3
-        // Corner wall
-        mCamera.addCollisionBox(-11.972f, -41.964f, -8.028f, -38.036f); // cornerwall
-        // Cabins and building (estimated — we'll refine)
-        mCamera.addCollisionBox(-5.0f, -25.0f, 5.0f, -15.0f);    // cabin1 at (0,0,-20)
-        mCamera.addCollisionBox(25.0f, -25.0f, 35.0f, -15.0f);   // cabin2 at (30,0,-20)
-        mCamera.addCollisionBox(10.0f, -47.0f, 20.0f, -33.0f);   // building at (15,0,-40)
-        writeln("[collision] registered ", mCamera.mCollisionBoxes.length, " collision boxes");
 
         mViewWeapon = new ViewWeapon();
         mViewWeapon.init(mCamera, 
@@ -367,6 +212,75 @@ class GameApplication : IGame{
         mViewWeapon.loadClip("./assets/weapons/glock/Glock_Reload.fbx", "reload");
         mViewWeapon.loadClip("./assets/weapons/glock/Glock_Draw.fbx", "draw");
         mViewWeapon.loadClip("./assets/weapons/glock/Glock_Walk.fbx", "walk");
+
+
+        mCollisionEditor = new CollisionEditor();
+        mCollisionEditor.init(mCamera);
+        
+
+        // Register tree collision boxes
+        float th = 1.0f;
+        foreach (i, p; mLevelBuilder.mTreePositions)
+        {
+            mCollisionEditor.addBox(p.x - th, p.z - th, p.x + th, p.z + th,
+                                    "tree_" ~ (cast(int)i).to!string);
+        }
+
+        // Register soldier collision boxes
+        float sh = 0.4f;  // soldier half-size
+        foreach (i, p; mLevelBuilder.mSoldierPositions)
+        {
+            mCollisionEditor.addBox(p.x - sh, p.z - sh, p.x + sh, p.z + sh,
+                                    "soldier_" ~ (cast(int)i).to!string);
+        }
+
+
+
+//   mCollisionEditor.addBox(-99.4893f, -111.986f, -97.4893f, -109.986f, "tree_0");
+//   mCollisionEditor.addBox(72.4314f, 110.126f, 74.4314f, 112.126f, "tree_1");
+//   mCollisionEditor.addBox(-96.4117f, 67.7784f, -94.4117f, 69.7784f, "tree_2");
+//   mCollisionEditor.addBox(-115.746f, 84.1717f, -113.746f, 86.1717f, "tree_3");
+//   mCollisionEditor.addBox(-54.073f, -114.295f, -52.073f, -112.295f, "tree_4");
+//   mCollisionEditor.addBox(68.8219f, -76.1656f, 70.8219f, -74.1656f, "tree_5");
+//   mCollisionEditor.addBox(93.7183f, 100.695f, 95.7183f, 102.695f, "tree_6");
+//   mCollisionEditor.addBox(19.3494f, 105.089f, 21.3494f, 107.089f, "tree_7");
+//   mCollisionEditor.addBox(-111.617f, -5.24684f, -109.617f, -3.24684f, "tree_8");
+//   mCollisionEditor.addBox(104.148f, 33.0514f, 106.148f, 35.0514f, "tree_9");
+//   mCollisionEditor.addBox(115.989f, 32.5741f, 117.989f, 34.5741f, "tree_10");
+//   mCollisionEditor.addBox(-50.5778f, 103.552f, -48.5778f, 105.552f, "tree_11");
+//   mCollisionEditor.addBox(-110.285f, 16.8501f, -108.285f, 18.8501f, "tree_12");
+//   mCollisionEditor.addBox(-1.82317f, 110.637f, 0.176826f, 112.637f, "tree_13");
+//   mCollisionEditor.addBox(114.743f, 57.2755f, 116.743f, 59.2755f, "tree_14");
+//   mCollisionEditor.addBox(69.5361f, -105.215f, 71.5361f, -103.215f, "tree_15");
+//   mCollisionEditor.addBox(-116.426f, -111.683f, -114.426f, -109.683f, "tree_16");
+//   mCollisionEditor.addBox(-118.065f, -75.8649f, -116.065f, -73.8649f, "tree_17");
+
+
+      mCollisionEditor.addBox(38.04f, -0.507f, 40.907f, 0.507f, "wall2");
+
+
+    mCollisionEditor.addBox(-11.61f, -0.207f, -8.643f, 0.293f, "wall1");
+    // mCollisionEditor.addBox(28.29f, -0.507f, 41.657f, 0.507f, "wall2");
+    mCollisionEditor.addBox(7.82179f, -10.4576f, 12.3838f, -9.55355f, "sandbag1");
+    mCollisionEditor.addBox(17.013f, -15.391f, 23.187f, -14.659f, "sandbag2");
+    mCollisionEditor.addBox(2.477f, -29.664f, 7.573f, -29.086f, "sandbag3");
+    mCollisionEditor.addBox(-12.17f, -41.914f, -8.228f, -41.414f, "cornerwall");
+    mCollisionEditor.addBox(-5f, -25f, 5f, -15f, "cabin1");
+    mCollisionEditor.addBox(25f, -25f, 35f, -15f, "cabin2");
+    mCollisionEditor.addBox(10f, -47f, 20f, -33f, "building");
+    mCollisionEditor.addBox(6.723f, -31.136f, 7.423f, -29.936f, "sandbag3_copy");
+    mCollisionEditor.addBox(-8.82f, -41.114f, -8.128f, -38.114f, "cornerwall_copy");
+    mCollisionEditor.addBox(56.3832f, -115.304f, 58.6332f, -113.804f, "new_11");
+
+
+
+
+
+
+
+
+
+        mGui.mCollisionEditor = mCollisionEditor;
 
 
 
@@ -611,3 +525,26 @@ class GameApplication : IGame{
 
 
 // to do: look at architecture from 2D game and try to get nifty game strategies here
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
