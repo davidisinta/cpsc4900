@@ -298,16 +298,16 @@ class CollisionEditor
             bool changed = false;
 
             if (sliderWithButtons("Left (minX)##e", &mBoxes[mSelectedBox][0],
-                    centerX - 60, mBoxes[mSelectedBox][2] - 0.5f))
+                    centerX - 60, mBoxes[mSelectedBox][2] - 0.1f))
                 changed = true;
             if (sliderWithButtons("Right (maxX)##e", &mBoxes[mSelectedBox][2],
-                    mBoxes[mSelectedBox][0] + 0.5f, centerX + 60))
+                    mBoxes[mSelectedBox][0] + 0.1f, centerX + 60))
                 changed = true;
             if (sliderWithButtons("Near (minZ)##e", &mBoxes[mSelectedBox][1],
-                    centerZ - 60, mBoxes[mSelectedBox][3] - 0.5f))
+                    centerZ - 60, mBoxes[mSelectedBox][3] - 0.1f))
                 changed = true;
             if (sliderWithButtons("Far (maxZ)##e", &mBoxes[mSelectedBox][3],
-                    mBoxes[mSelectedBox][1] + 0.5f, centerZ + 60))
+                    mBoxes[mSelectedBox][1] + 0.1f, centerZ + 60))
                 changed = true;
 
             if (changed) syncToCamera(mSelectedBox);
@@ -316,8 +316,8 @@ class CollisionEditor
 
             // ---- Move ----
             igTextColored(orange, "Move:");
-            float cx = (mBoxes[mSelectedBox][0] + mBoxes[mSelectedBox][2]) * 0.5f;
-            float cz = (mBoxes[mSelectedBox][1] + mBoxes[mSelectedBox][3]) * 0.5f;
+            float cx = (mBoxes[mSelectedBox][0] + mBoxes[mSelectedBox][2]) * 0.1f;
+            float cz = (mBoxes[mSelectedBox][1] + mBoxes[mSelectedBox][3]) * 0.1f;
 
             float newCx = cx;
             float newCz = cz;
@@ -507,8 +507,24 @@ class CollisionEditor
         glBindVertexArray(0);
     }
 
+    // void printAllBoxes()
+    // {
+    //     writeln("=== ALL COLLISION BOXES ===");
+    //     foreach (i, box; mBoxes)
+    //     {
+    //         writeln("  mCollisionEditor.addBox(",
+    //                 box[0], "f, ", box[1], "f, ",
+    //                 box[2], "f, ", box[3], "f, \"",
+    //                 mBoxLabels[i], "\");");
+    //     }
+    //     writeln("===========================");
+    // }
+
+
     void printAllBoxes()
     {
+        import std.stdio : writeln, File;
+
         writeln("=== ALL COLLISION BOXES ===");
         foreach (i, box; mBoxes)
         {
@@ -518,6 +534,19 @@ class CollisionEditor
                     mBoxLabels[i], "\");");
         }
         writeln("===========================");
+
+        // Also save to file
+        auto f = File("collision_boxes.txt", "w");
+        f.writeln("// Generated collision boxes — paste into Setup()");
+        foreach (i, box; mBoxes)
+        {
+            f.writeln("        mCollisionEditor.addBox(",
+                    box[0], "f, ", box[1], "f, ",
+                    box[2], "f, ", box[3], "f, \"",
+                    mBoxLabels[i], "\");");
+        }
+        f.close();
+        writeln("[collision-editor] saved to collision_boxes.txt");
     }
 
     private static float[] buildWireframeCube()

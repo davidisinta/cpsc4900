@@ -243,6 +243,58 @@ class SpawnFactory
         return positions;
     }
 
+    uint spawnChallengeBox(vec3 pos, vec3 scale, vec3 color, string urdfPath = "cube.urdf")
+{
+    uint eid = mEntityManager.create();
+
+    if (urdfPath.length > 0)
+    {
+        mPhysicsWorld.addURDF(eid, urdfPath,
+            pos.x, pos.y, pos.z,
+            0, 0, 0, 1);
+        mEntityManager.markPhysics(eid);
+    }
+
+    GLfloat[] vbo;
+
+    void addVertex(vec3 p)
+    {
+        vbo ~= cast(GLfloat)p.x;
+        vbo ~= cast(GLfloat)p.y;
+        vbo ~= cast(GLfloat)p.z;
+        vbo ~= cast(GLfloat)color.x;
+        vbo ~= cast(GLfloat)color.y;
+        vbo ~= cast(GLfloat)color.z;
+    }
+
+    void addQuad(vec3 a, vec3 b, vec3 c, vec3 d)
+    {
+        addVertex(a); addVertex(b); addVertex(c);
+        addVertex(c); addVertex(d); addVertex(a);
+    }
+
+    // Unit cube centered at origin. The model matrix handles scale and position.
+    addQuad(vec3(-0.5f,-0.5f, 0.5f), vec3( 0.5f,-0.5f, 0.5f), vec3( 0.5f, 0.5f, 0.5f), vec3(-0.5f, 0.5f, 0.5f));
+    addQuad(vec3( 0.5f,-0.5f,-0.5f), vec3(-0.5f,-0.5f,-0.5f), vec3(-0.5f, 0.5f,-0.5f), vec3( 0.5f, 0.5f,-0.5f));
+    addQuad(vec3(-0.5f,-0.5f,-0.5f), vec3(-0.5f,-0.5f, 0.5f), vec3(-0.5f, 0.5f, 0.5f), vec3(-0.5f, 0.5f,-0.5f));
+    addQuad(vec3( 0.5f,-0.5f, 0.5f), vec3( 0.5f,-0.5f,-0.5f), vec3( 0.5f, 0.5f,-0.5f), vec3( 0.5f, 0.5f, 0.5f));
+    addQuad(vec3(-0.5f, 0.5f, 0.5f), vec3( 0.5f, 0.5f, 0.5f), vec3( 0.5f, 0.5f,-0.5f), vec3(-0.5f, 0.5f,-0.5f));
+    addQuad(vec3(-0.5f,-0.5f,-0.5f), vec3( 0.5f,-0.5f,-0.5f), vec3( 0.5f,-0.5f, 0.5f), vec3(-0.5f,-0.5f, 0.5f));
+
+    IMaterial mat = mMaterials.get("basic");
+    ISurface surface = new SurfaceTriangle(vbo);
+    MeshNode node = new MeshNode("challenge_target_" ~ eid.to!string, surface, mat);
+    node.mModelMatrix = MatrixMakeTranslation(pos) * MatrixMakeScale(scale);
+    mSceneTree.GetRootNode().AddChildSceneNode(node);
+
+    TransformComponent tc;
+    tc.position = pos;
+    mEntityManager.addTransform(eid, tc);
+    mEntityManager.addRenderable(eid, node);
+
+    return eid;
+}
+
     /// Stress test: spawn N trees in a ring
     void spawnStressTest(int count)
     {

@@ -71,6 +71,9 @@ class GraphicsEngine{
         // Profiling Vars
         //--------------------------------------------------------------
         bool mBackfaceCulling = false; 
+        bool mCursorCurrentlyVisible = true;
+
+    
 
         /// Setup OpenGL and any libraries
         this(int major_ogl_version, int minor_ogl_version){
@@ -145,6 +148,29 @@ class GraphicsEngine{
             // Destroy our window
             SDL_DestroyWindow(mWindow);
         }
+
+        void showCursor()
+    {
+        auto defaultCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+        if (defaultCursor !is null)
+            SDL_SetCursor(defaultCursor);
+    }
+
+    void syncCursorMode()
+    {
+        bool shouldShow = mGame.wantsCursorVisible();
+        if (shouldShow && !mCursorCurrentlyVisible)
+        {
+            showCursor();
+            mCursorCurrentlyVisible = true;
+        }
+        else if (!shouldShow && mCursorCurrentlyVisible)
+        {
+            hideCursor();
+            SDL_WarpMouseInWindow(mWindow, mScreenWidth / 2, mScreenHeight / 2);
+            mCursorCurrentlyVisible = false;
+        }
+    }
 
         void Input(){
 
@@ -239,27 +265,17 @@ class GraphicsEngine{
 
             if (moving) {
                 mGame.mAudioController.startWalking();
-                mGame.mViewWeapon.setWalking(true);
+                // mGame.mViewWeapon.setWalking(true);
 
             } else {
                 mGame.mAudioController.stopWalking();
-                mGame.mViewWeapon.setWalking(false);
+                // mGame.mViewWeapon.setWalking(false);
             }
             
-            
-            // int mouseX, mouseY;
-            // SDL_GetMouseState(&mouseX, &mouseY);
-            // int centerX = mScreenWidth / 2;
-            // int centerY = mScreenHeight / 2;
-            // int deltaX = mouseX - centerX;
-            // int deltaY = mouseY - centerY;
 
-            // if (deltaX != 0 || deltaY != 0){
-            //     mCamera.MouseLook(deltaX, deltaY);
-            //     SDL_WarpMouseInWindow(mWindow, centerX, centerY);
-            // }
 
-            if (!mGame.mCollisionEditor.isActive())
+           syncCursorMode();
+            if (mGame.wantsGameMouseLook())
             {
                 int mouseX, mouseY;
                 SDL_GetMouseState(&mouseX, &mouseY);
@@ -268,7 +284,6 @@ class GraphicsEngine{
                 int deltaX = mouseX - centerX;
                 int deltaY = mouseY - centerY;
 
-                // Skip large deltas (happens when exiting editor)
                 if (abs(deltaX) > 100 || abs(deltaY) > 100)
                 {
                     SDL_WarpMouseInWindow(mWindow, centerX, centerY);
@@ -279,7 +294,8 @@ class GraphicsEngine{
                     SDL_WarpMouseInWindow(mWindow, centerX, centerY);
                 }
             }
-
+            
+           
           
             mGame.Input();
 
