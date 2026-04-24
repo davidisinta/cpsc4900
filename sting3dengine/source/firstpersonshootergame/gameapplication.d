@@ -23,6 +23,7 @@ import level_builder;
 import audiocontroller;
 import materialregistry;
 import resourcemanager;
+import animation;
 
 // Third-party libraries
 import bindbc.sdl;
@@ -180,6 +181,73 @@ class GameApplication : IGame{
 
         //Stress testing for Frustum culling
         // spawnStressTest(300);
+
+
+        // // Test skeleton loading
+        
+        // auto glockScene = aiImportFile(
+        //     "./assets/weapons/glock/Glock.fbx".toStringz,
+        //     aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs);
+        // if (glockScene !is null)
+        // {
+        //     Skeleton skel;
+        //     skel.loadFromScene(glockScene);
+        //     skel.printHierarchy();
+        //     aiReleaseImport(glockScene);
+        // }
+
+
+        // // Test animation clip loading
+        // AnimationClip idleClip;
+        // idleClip.loadFromFile("./assets/weapons/glock/Glock_Idle.fbx", "idle");
+        // idleClip.printSummary();
+
+        // AnimationClip fireClip;
+        // fireClip.loadFromFile("./assets/weapons/glock/Glock_Fire1.fbx", "fire");
+        // fireClip.printSummary();
+
+        // AnimationClip reloadClip;
+        // reloadClip.loadFromFile("./assets/weapons/glock/Glock_Reload.fbx", "reload");
+        // reloadClip.printSummary();
+
+
+        // // Test full animation pipeline
+        // import animation;
+        // auto glockScene = aiImportFile(
+        //     "./assets/weapons/glock/Glock.fbx".toStringz,
+        //     aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs);
+        // if (glockScene !is null)
+        // {
+        //     Skeleton skel;
+        //     skel.loadFromScene(glockScene);
+        //     aiReleaseImport(glockScene);
+
+        //     AnimationClip idleClip;
+        //     idleClip.loadFromFile("./assets/weapons/glock/Glock_Idle.fbx", "idle");
+
+        //     Animator anim;
+        //     anim.init(&skel);
+        //     anim.play(&idleClip, true);
+
+        //     // Simulate 10 frames at 60fps
+        //     for (int i = 0; i < 10; i++)
+        //     {
+        //         anim.update(1.0 / 60.0);
+                
+        //         // Print muzzle bone world position as sanity check
+        //         mat4 muzzle = anim.getBoneWorldMatrix("Muzzle");
+        //         writeln("[anim] frame ", i,
+        //                 " muzzle pos=(", muzzle[3], ", ", muzzle[7], ", ", muzzle[11], ")",
+        //                 " time=", anim.mCurrentTime);
+        //     }
+        // }
+
+
+
+
+
+
+
     }
 
     void debugTreeAsset(){
