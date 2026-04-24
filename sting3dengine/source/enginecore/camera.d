@@ -19,6 +19,11 @@ class Camera{
     float mMoveSpeed = 0.1f;
     float mMouseSensitivity = 0.005f;
 
+    float[4][] mCollisionBoxes;
+
+
+
+
     this(){
         mViewMatrix = MatrixMakeIdentity();
 
@@ -85,27 +90,59 @@ class Camera{
         UpdateViewMatrix();
     }
 
+    // void MoveForward(){
+    //     vec3 groundForward = Normalize(vec3(mForwardVector.x, 0.0f, mForwardVector.z));
+    //     mEyePosition = mEyePosition + groundForward * mMoveSpeed;
+    //     UpdateViewMatrix();
+    // }
+
+    // void MoveBackward(){
+    //     vec3 groundForward = Normalize(vec3(mForwardVector.x, 0.0f, mForwardVector.z));
+    //     mEyePosition = mEyePosition - groundForward * mMoveSpeed;
+    //     UpdateViewMatrix();
+    // }
+
+    // void MoveLeft(){
+    //     vec3 groundRight = Normalize(vec3(mRightVector.x, 0.0f, mRightVector.z));
+    //     mEyePosition = mEyePosition - groundRight * mMoveSpeed;
+    //     UpdateViewMatrix();
+    // }
+
+    // void MoveRight(){
+    //     vec3 groundRight = Normalize(vec3(mRightVector.x, 0.0f, mRightVector.z));
+    //     mEyePosition = mEyePosition + groundRight * mMoveSpeed;
+    //     UpdateViewMatrix();
+    // }
+
     void MoveForward(){
         vec3 groundForward = Normalize(vec3(mForwardVector.x, 0.0f, mForwardVector.z));
-        mEyePosition = mEyePosition + groundForward * mMoveSpeed;
+        vec3 newPos = mEyePosition + groundForward * mMoveSpeed;
+        if (!isBlocked(newPos))
+            mEyePosition = newPos;
         UpdateViewMatrix();
     }
 
     void MoveBackward(){
         vec3 groundForward = Normalize(vec3(mForwardVector.x, 0.0f, mForwardVector.z));
-        mEyePosition = mEyePosition - groundForward * mMoveSpeed;
+        vec3 newPos = mEyePosition - groundForward * mMoveSpeed;
+        if (!isBlocked(newPos))
+            mEyePosition = newPos;
         UpdateViewMatrix();
     }
 
     void MoveLeft(){
         vec3 groundRight = Normalize(vec3(mRightVector.x, 0.0f, mRightVector.z));
-        mEyePosition = mEyePosition - groundRight * mMoveSpeed;
+        vec3 newPos = mEyePosition - groundRight * mMoveSpeed;
+        if (!isBlocked(newPos))
+            mEyePosition = newPos;
         UpdateViewMatrix();
     }
 
     void MoveRight(){
         vec3 groundRight = Normalize(vec3(mRightVector.x, 0.0f, mRightVector.z));
-        mEyePosition = mEyePosition + groundRight * mMoveSpeed;
+        vec3 newPos = mEyePosition + groundRight * mMoveSpeed;
+        if (!isBlocked(newPos))
+            mEyePosition = newPos;
         UpdateViewMatrix();
     }
 
@@ -117,5 +154,27 @@ class Camera{
     void MoveDown(){
         mEyePosition.y = mEyePosition.y - 0.5f;
         UpdateViewMatrix();
+    }
+
+
+
+    void addCollisionBox(float minX, float minZ, float maxX, float maxZ)
+    {
+        mCollisionBoxes ~= [minX, minZ, maxX, maxZ];
+    }
+
+    bool mEditorMode = false;
+
+    bool isBlocked(vec3 pos)
+    {
+        if (mEditorMode) return false;  // don't block in editor
+        float margin = 0.3f;
+        foreach (box; mCollisionBoxes)
+        {
+            if (pos.x + margin > box[0] && pos.x - margin < box[2] &&
+                pos.z + margin > box[1] && pos.z - margin < box[3])
+                return true;
+        }
+        return false;
     }
 }

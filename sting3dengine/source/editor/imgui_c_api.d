@@ -34,11 +34,44 @@ extern(C)
     bool igBegin(const(char)* name, bool* p_open, int flags);
     void igEnd();
 
+    
+
     // Widgets
     void igText(const(char)* fmt, ...);
     bool igButton(const(char)* label, float size_x, float size_y);
     void igSeparator();
     bool igSliderFloat(const(char)* label, float* v, float v_min, float v_max, const(char)* format, int flags);
+
+    // Text input
+alias ImGuiInputTextCallback = int function(void* data);
+
+bool igInputText(
+    const(char)* label,
+    char* buf,
+    size_t buf_size,
+    int flags,
+    ImGuiInputTextCallback callback,
+    void* user_data
+);
+
+// Wrapped text
+void igTextWrapped(const(char)* fmt, ...);
+
+    // Color struct
+    struct ImVec4
+    {
+        float x, y, z, w;
+    }
+
+    // Colored text
+    void igTextColored(ImVec4 col, const(char)* fmt, ...);
+
+    void igSameLine(float offset_from_start_x, float spacing);
+
+    // void igSameLine(float offset_from_start_x, float spacing);
+
+    void igPushItemWidth(float item_width);
+    void igPopItemWidth();
 
     // Positioning
     void igSetNextWindowPos(float x, float y, int cond, float pivot_x, float pivot_y);

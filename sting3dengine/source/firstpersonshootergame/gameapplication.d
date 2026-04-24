@@ -23,6 +23,11 @@ import level_builder;
 import audiocontroller;
 import materialregistry;
 import resourcemanager;
+import animation;
+import viewweapon;
+import collisioneditor;
+import challenge_state;
+import leaderboard;
 
 // Third-party libraries
 import bindbc.sdl;
@@ -53,6 +58,7 @@ class GameApplication : IGame{
     GLuint  mSkyBoxVBO;
     GLuint mCubemapTexture;
     LevelBuilder mLevelBuilder;
+    
 
 
 
@@ -60,11 +66,28 @@ class GameApplication : IGame{
     int mCurrentAmmo = 30;
     int mMaxAmmo = 30;
     double mRoundTimer = 120.0;
+    // ViewWeapon mViewWeapon;
+
+
+    ChallengePhase mPhase = ChallengePhase.Intro;
+    LeaderboardStore mLeaderboard;
+    ChallengeTarget[] mChallengeTargets;
+    bool[uint] mActiveTargetIds;
+    bool[uint] mSoldierIds;    // entity ids of soldiers spawned in the map — shootable, box dies with them
+
+    string mPlayerName = "Player";
+    int mScore = 0;
+    double mTargetSpawnAccumulator = 0.0;
+
+    bool mIsMoving = false;
+    bool mIsSprinting = false;
+    float mCurrentSpread = 0.0f;
 
     //Game Materials
 
     /// sound specific elements
     AudioController mAudioController;
+    CollisionEditor mCollisionEditor;
 
 
     MaterialRegistry mMaterialRegistry;
@@ -86,28 +109,99 @@ class GameApplication : IGame{
         mResourceManager = new ResourceManager();
 
         mLevelBuilder = new LevelBuilder(cam, tree, em, physics, mMaterialRegistry, mResourceManager);
+
+
+        mLeaderboard = new LeaderboardStore("./data/topshoota_leaderboard.txt");
+        mGui.leaderboard = mLeaderboard.top10();
+        mGui.phase = mPhase;
     }
 
-    override void Input(){
-        if (mShootRequested){
-            shoot();
-            mShootRequested = false;
-        }
+    // override void Input(){
+    //     if (mShootRequested){
+    //         shoot();
+    //         mShootRequested = false;
+    //     }
+    // }
+
+    override void Input()
+{
+    if (mGui.consumeStartPressed())
+        startChallengeRound();
+
+    if (mGui.consumeRestartPressed())
+    {
+        mPhase = ChallengePhase.Intro;
+        mGui.phase = mPhase;
+        mGui.leaderboard = mLeaderboard.top10();
+        // SDL_SetRelativeMouseMode(SDL_FALSE);
+        return;
     }
+
+    const(ubyte)* keys = SDL_GetKeyboardState(null);
+    mIsMoving =
+        keys[SDL_SCANCODE_W] != 0 ||
+        keys[SDL_SCANCODE_A] != 0 ||
+        keys[SDL_SCANCODE_S] != 0 ||
+        keys[SDL_SCANCODE_D] != 0;
+
+    mIsSprinting = mIsMoving &&
+        (keys[SDL_SCANCODE_LSHIFT] != 0 || keys[SDL_SCANCODE_RSHIFT] != 0);
+
+    if (mPhase != ChallengePhase.Live)
+    {
+        mShootRequested = false;
+        return;
+    }
+
+    if (mShootRequested)
+    {
+        shoot();
+        mShootRequested = false;
+    }
+}
+
+
+
+
+
 
     override void Update(double frameDt){
         checkCollisions();
-        
-        // Round timer
-        mRoundTimer -= frameDt;
-        if (mRoundTimer < 0) mRoundTimer = 0;
 
-        // Update GUI state
-        mGui.kills = mShotsHit;
-        mGui.accuracy = mShotsFired > 0 ? cast(float)mShotsHit / mShotsFired * 100.0f : 0.0f;
-        mGui.currentAmmo = mCurrentAmmo;
-        mGui.maxAmmo = mMaxAmmo;
-        mGui.roundTimeSeconds = cast(int)mRoundTimer;
+    if (mPhase == ChallengePhase.Live)
+    {
+        mRoundTimer -= frameDt;
+        if (mRoundTimer < 0)
+            mRoundTimer = 0;
+
+        mTargetSpawnAccumulator += frameDt;
+        while (mTargetSpawnAccumulator >= kTargetSpawnInterval)
+        {
+            mTargetSpawnAccumulator -= kTargetSpawnInterval;
+            spawnFallingTarget();
+        }
+
+        updateChallengeTargets(frameDt);
+
+        if (mRoundTimer <= 0)
+            finishChallengeRound();
+    }
+
+    mCurrentSpread = computeWeaponSpread();
+
+    mGui.phase = mPhase;
+    mGui.score = mScore;
+    mGui.finalScore = mScore;
+    mGui.shotsFired = mShotsFired;
+    mGui.shotsHit = mShotsHit;
+    mGui.playerName = mPlayerName;
+    mGui.accuracy = mShotsFired > 0 ? cast(float)mShotsHit / mShotsFired * 100.0f : 0.0f;
+    mGui.currentAmmo = mCurrentAmmo;
+    mGui.maxAmmo = mMaxAmmo;
+    mGui.roundTimeSeconds = cast(int)mRoundTimer;
+    mGui.leaderboard = mLeaderboard.top10();
+    mGui.movementState = mIsSprinting ? "SPRINTING" : (mIsMoving ? "MOVING" : "STOPPED");
+    mGui.currentSpread = mCurrentSpread;
 
 
         //update our light object
@@ -129,16 +223,39 @@ class GameApplication : IGame{
         } else {
             m2.mModelMatrix = MatrixMakeTranslation(vec3(-256.0f, 0.0f, -256.0f));
         }
+
+        // Update view weapon animation
+        // mViewWeapon.update(frameDt);
     }
 
-    void Render(){
+    // void Render(){
 
-        //Render Cross Hair as it is like a GUI element
+    //     // Render view weapon
+    //     // mViewWeapon.render();
+
+    //     mCollisionEditor.render();
+
+    //     //Render Cross Hair as it is like a GUI element
+    //     drawCrosshair();
+
+    //     //Render the games GUI last
+    //     mGui.Render();
+    // }
+
+
+    void Render()
+{
+    if (mPhase == ChallengePhase.Live)
+    {
+        // Only draw collider boxes when the collision editor is active (CTRL+E).
+        // Otherwise keep the game view clean.
+        if (mCollisionEditor !is null && mCollisionEditor.isActive())
+            mCollisionEditor.render();
         drawCrosshair();
-
-        //Render the games GUI last
-        mGui.Render();
     }
+
+    mGui.Render();
+}
 
 
     void drawCrosshair(){
@@ -153,6 +270,12 @@ class GameApplication : IGame{
         glBindVertexArray(0);
 
         glEnable(GL_DEPTH_TEST);
+    }
+
+    void printSpawnPoint(string type)
+    {
+        auto pos = mCamera.mEyePosition;
+        writeln("[spawn-marker] ", type, " at <", pos.x, ",", pos.y, ",", pos.z, ">");
     }
 
     //Setup the Scene for the Game
@@ -176,10 +299,126 @@ class GameApplication : IGame{
         mEntityManager.addTransform(mGroundEntity, planeTc);
 
         //Let Level Builder Set up the map
-        mLevelBuilder.SetupMap();
+        // mLevelBuilder.SetupMap();
+
+        mLevelBuilder.SetupMap(false, true);
+
+        
 
         //Stress testing for Frustum culling
         // spawnStressTest(300);
+
+        // mViewWeapon = new ViewWeapon();
+        // mViewWeapon.init(mCamera, 
+        //     "./assets/weapons/glock/Glock.fbx",
+        //     "./assets/modern_soldier/textures/material_0_baseColor.jpeg");
+
+        // mViewWeapon.loadClip("./assets/weapons/glock/Glock_Idle.fbx", "idle", true);
+        // mViewWeapon.loadClip("./assets/weapons/glock/Glock_Fire1.fbx", "fire");
+        // mViewWeapon.loadClip("./assets/weapons/glock/Glock_Reload.fbx", "reload");
+        // mViewWeapon.loadClip("./assets/weapons/glock/Glock_Draw.fbx", "draw");
+        // mViewWeapon.loadClip("./assets/weapons/glock/Glock_Walk.fbx", "walk");
+
+
+        mCollisionEditor = new CollisionEditor();
+        mCollisionEditor.init(mCamera);
+        
+
+        // Register tree collision boxes
+        float th = 1.0f;
+        foreach (i, p; mLevelBuilder.mTreePositions)
+        {
+            mCollisionEditor.addBox(p.x - th, p.z - th, p.x + th, p.z + th,
+                                    "tree_" ~ (cast(int)i).to!string);
+        }
+
+        // Register soldier collision boxes, tied to their entity ids so they
+        // are removed when the soldier is destroyed.
+        float sh = 0.4f;  // soldier half-size
+        foreach (i, p; mLevelBuilder.mSoldierPositions)
+        {
+            uint eid = (i < mLevelBuilder.mSoldierEntityIds.length)
+                ? mLevelBuilder.mSoldierEntityIds[i]
+                : 0;
+            mCollisionEditor.addBoxForEntity(eid,
+                p.x - sh, p.z - sh, p.x + sh, p.z + sh,
+                "soldier_" ~ (cast(int)i).to!string);
+
+            // Track soldiers as valid shoot targets so they can be killed.
+            if (eid != 0)
+                mSoldierIds[eid] = true;
+        }
+
+    //   mCollisionEditor.addBox(38.04f, -0.507f, 40.907f, 0.507f, "wall2");
+
+
+    // mCollisionEditor.addBox(-11.61f, -0.207f, -8.643f, 0.293f, "wall1");
+    // // mCollisionEditor.addBox(28.29f, -0.507f, 41.657f, 0.507f, "wall2");
+    // mCollisionEditor.addBox(7.82179f, -10.4576f, 12.3838f, -9.55355f, "sandbag1");
+    // mCollisionEditor.addBox(17.013f, -15.391f, 23.187f, -14.659f, "sandbag2");
+    // mCollisionEditor.addBox(2.477f, -29.664f, 7.573f, -29.086f, "sandbag3");
+    // mCollisionEditor.addBox(-12.17f, -41.914f, -8.228f, -41.414f, "cornerwall");
+    // mCollisionEditor.addBox(-5f, -25f, 5f, -15f, "cabin1");
+    // mCollisionEditor.addBox(25f, -25f, 35f, -15f, "cabin2");
+    // mCollisionEditor.addBox(10f, -47f, 20f, -33f, "building");
+    // mCollisionEditor.addBox(6.723f, -31.136f, 7.423f, -29.936f, "sandbag3_copy");
+    // mCollisionEditor.addBox(-8.82f, -41.114f, -8.128f, -38.114f, "cornerwall_copy");
+    // mCollisionEditor.addBox(56.3832f, -115.304f, 58.6332f, -113.804f, "new_11");
+
+
+    mCollisionEditor.addBox(38.04f, -0.507f, 40.907f, 0.507f, "wall2");
+        mCollisionEditor.addBox(-11.61f, -0.207f, -8.643f, 0.293f, "wall1");
+        mCollisionEditor.addBox(7.82179f, -10.4576f, 12.3838f, -9.55355f, "sandbag1");
+        mCollisionEditor.addBox(17.013f, -15.391f, 23.187f, -14.659f, "sandbag2");
+        mCollisionEditor.addBox(2.477f, -29.664f, 7.573f, -29.086f, "sandbag3");
+        mCollisionEditor.addBox(-12.17f, -41.914f, -8.228f, -41.414f, "cornerwall");
+        // mCollisionEditor.addBox(10.1f, -45.9f, 18.9f, -33f, "building");
+        mCollisionEditor.addBox(6.723f, -31.136f, 7.423f, -29.936f, "sandbag3_copy");
+        mCollisionEditor.addBox(-8.82f, -41.114f, -8.128f, -38.114f, "cornerwall_copy");
+        mCollisionEditor.addBox(56.3832f, -115.304f, 58.6332f, -113.804f, "new_11");
+        mCollisionEditor.addBox(2.76157f, -26.1423f, 3.21157f, -13.9923f, "new_228");
+        mCollisionEditor.addBox(-3.13843f, -26.2423f, -2.68843f, -14.0923f, "new_228_copy");
+        mCollisionEditor.addBox(26.8616f, -26.4423f, 27.3116f, -14.2923f, "new_228_copy_copy");
+        mCollisionEditor.addBox(32.7866f, -26.1924f, 33.2866f, -14.0423f, "new_228_copy_copy_copy");
+        mCollisionEditor.addBox(27.0217f, -25.9311f, 33.0217f, -25.4311f, "new_231");
+        mCollisionEditor.addBox(-2.97832f, -26.2311f, 3.02166f, -25.7311f, "new_231_copy");
+        mCollisionEditor.addBox(-2.96161f, -14.2567f, -0.711613f, -13.7567f, "new_233");
+        mCollisionEditor.addBox(0.938388f, -14.2567f, 3.18839f, -13.7567f, "new_233_copy");
+        mCollisionEditor.addBox(26.9384f, -14.2567f, 29.1884f, -13.7567f, "new_233_copy_copy");
+        mCollisionEditor.addBox(30.9384f, -14.2567f, 33.1884f, -13.7567f, "new_233_copy_copy_copy");
+        mCollisionEditor.addBox(16.3f, -36.9001f, 18.4f, -36.4001f, "building_copy");
+        mCollisionEditor.addBox(11.4f, -36.9001f, 14f, -36.4001f, "building_copy_copy");
+        mCollisionEditor.addBox(18.05f, -43.5251f, 18.65f, -36.7751f, "building_copy_copy");
+        mCollisionEditor.addBox(11.55f, -43.5251f, 12.15f, -36.7751f, "building_copy_copy_copy");
+          mCollisionEditor.addBox(11.8217f, -43.5311f, 17.8217f, -43.0311f, "new_231_copy_copy");
+
+
+
+
+
+          mRoundTimer = kChallengeDuration;
+mGui.phase = mPhase;
+mGui.playerName = mPlayerName;
+mGui.roundTimeSeconds = cast(int)mRoundTimer;
+mGui.leaderboard = mLeaderboard.top10();
+mGui.setDefaultName("Player");
+// SDL_SetRelativeMouseMode(SDL_FALSE);
+
+
+
+
+
+
+
+
+
+
+        mGui.mCollisionEditor = mCollisionEditor;
+
+
+
+
+
     }
 
     void debugTreeAsset(){
@@ -252,78 +491,197 @@ class GameApplication : IGame{
         glUniform3f(field6, mCamera.mEyePosition.x, mCamera.mEyePosition.y, mCamera.mEyePosition.z);
 
 
-        if ("lit_textured" in Pipeline.sPipeline)
-        {
-            GLuint litTexID = Pipeline.sPipeline["lit_textured"];
-            glUseProgram(litTexID);
+        // if ("lit_textured" in Pipeline.sPipeline)
+        // {
 
-            glUniform3f(glGetUniformLocation(litTexID, "uLightPos"),
-                gLight.mPosition[0], gLight.mPosition[1], gLight.mPosition[2]);
-            glUniform3f(glGetUniformLocation(litTexID, "viewpos"),
-                mCamera.mEyePosition.x, mCamera.mEyePosition.y, mCamera.mEyePosition.z);
-        }
+            
+        //     GLuint litTexID = Pipeline.sPipeline["lit_textured"];
+        //     glUseProgram(litTexID);
+
+        //     glUniform3f(glGetUniformLocation(litTexID, "uLightPos"),
+        //         gLight.mPosition[0], gLight.mPosition[1], gLight.mPosition[2]);
+        //     glUniform3f(glGetUniformLocation(litTexID, "viewpos"),
+        //         mCamera.mEyePosition.x, mCamera.mEyePosition.y, mCamera.mEyePosition.z);
+        // }
+
+        if ("lit_textured" in Pipeline.sPipeline)
+{
+    GLuint litTexID = Pipeline.sPipeline["lit_textured"];
+    glUseProgram(litTexID);
+
+    glUniform3f(glGetUniformLocation(litTexID, "uLightPos"),
+        gLight.mPosition[0], gLight.mPosition[1], gLight.mPosition[2]);
+    glUniform3f(glGetUniformLocation(litTexID, "viewpos"),
+        mCamera.mEyePosition.x, mCamera.mEyePosition.y, mCamera.mEyePosition.z);
+
+    // TEMP probe: force fog to obviously-magenta and push it far away
+    glUniform3f(glGetUniformLocation(litTexID, "uFogColor"), 1.0f, 0.0f, 1.0f);
+    glUniform1f(glGetUniformLocation(litTexID, "uFogStart"), 1000.0f);
+    glUniform1f(glGetUniformLocation(litTexID, "uFogEnd"),   2000.0f);
+}
+
+
+
     }
    
-    void requestShoot(){
-        mShootRequested = true;
-    }
+    // void requestShoot(){
+    //     mShootRequested = true;
+    // }
 
-    void reload(){
-        mCurrentAmmo = mMaxAmmo;
-        writeln("[reload] ammo restored to ", mMaxAmmo);
-    }
+    void requestShoot()
+{
+    if (mPhase != ChallengePhase.Live)
+        return;
+
+    if (mCollisionEditor !is null && mCollisionEditor.isActive())
+        return;
+
+    mShootRequested = true;
+}
+
+    // void reload(){
+    //     mCurrentAmmo = mMaxAmmo;
+    //     writeln("[reload] ammo restored to ", mMaxAmmo);
+    //     // mViewWeapon.playReload();
+
+    // }
+
+    void reload()
+{
+    if (mPhase != ChallengePhase.Live)
+        return;
+
+    mCurrentAmmo = mMaxAmmo;
+    writeln("[reload] ammo restored to ", mMaxAmmo);
+}
 
 
-    private void shoot(){
-        // Ammo check
-        if (mCurrentAmmo <= 0)
-        {
-            writeln("[shoot] EMPTY — press R to reload");
-            return;
-        }
-        mCurrentAmmo--;
+    // private void shoot(){
+    //     // Ammo check
+    //     if (mCurrentAmmo <= 0)
+    //     {
+    //         writeln("[shoot] EMPTY — press R to reload");
+    //         return;
+    //     }
+    //     mCurrentAmmo--;
 
-        vec3 from = mCamera.mEyePosition;
-        vec3 dir  = Normalize(mCamera.mForwardVector);
+    //     vec3 from = mCamera.mEyePosition;
+    //     vec3 dir  = Normalize(mCamera.mForwardVector);
 
-        // Weapon spread
-        float spread = 0.02f;
-        dir.x += uniform(-spread, spread);
-        dir.y += uniform(-spread, spread);
-        dir.z += uniform(-spread, spread);
-        dir = Normalize(dir);
+    //     // Weapon spread
+    //     float spread = 0.02f;
+    //     dir.x += uniform(-spread, spread);
+    //     dir.y += uniform(-spread, spread);
+    //     dir.z += uniform(-spread, spread);
+    //     dir = Normalize(dir);
 
-        vec3 to = from + dir * 1000.0f;
+    //     vec3 to = from + dir * 1000.0f;
 
-        mShotsFired++;
+    //     mShotsFired++;
 
-        mAudioController.playGunshot();
+    //     mAudioController.playGunshot();
+    //     // mViewWeapon.playFire();
+
             
-        auto result = mPhysicsWorld.raycast(
-            from.x, from.y, from.z,
-            to.x, to.y, to.z);
+    //     auto result = mPhysicsWorld.raycast(
+    //         from.x, from.y, from.z,
+    //         to.x, to.y, to.z);
 
-        auto now = Clock.currTime();
+    //     auto now = Clock.currTime();
 
-        if (result.hit){
-            mShotsHit++;
-            writeln("[shoot] ", now.toSimpleString(),
-                " HIT entity=", result.entityId,
-                " at pos=[", result.hitPosition[0],
-                ", ", result.hitPosition[1],
-                ", ", result.hitPosition[2], "]");
+    //     if (result.hit){
+    //         mShotsHit++;
+    //         // writeln("[shoot] ", now.toSimpleString(),
+    //         //     " HIT entity=", result.entityId,
+    //         //     " at pos=[", result.hitPosition[0],
+    //         //     ", ", result.hitPosition[1],
+    //         //     ", ", result.hitPosition[2], "]");
 
-            if (result.entityId != mGroundEntity && result.entityId != 0){
-                destroyEntity(result.entityId);
-            }
-        } else{
-            writeln("[shoot] ", now.toSimpleString(), " MISS");
-        }
+    //         if (result.entityId != mGroundEntity && result.entityId != 0){
+    //             destroyEntity(result.entityId);
+    //         }
+    //     } else{
+    //         // writeln("[shoot] ", now.toSimpleString(), " MISS");
+    //     }
 
-        float accuracy = mShotsFired > 0 ? cast(float)mShotsHit / mShotsFired * 100.0f : 0.0f;
-        writeln("[stats] shots=", mShotsFired, " hits=", mShotsHit,
-                " accuracy=", accuracy, "%");
+    //     float accuracy = mShotsFired > 0 ? cast(float)mShotsHit / mShotsFired * 100.0f : 0.0f;
+    //     writeln("[stats] shots=", mShotsFired, " hits=", mShotsHit,
+    //             " accuracy=", accuracy, "%");
+    // }
+
+
+    private void shoot()
+{
+    if (mPhase != ChallengePhase.Live)
+        return;
+
+    if (mCurrentAmmo <= 0)
+    {
+        writeln("[shoot] EMPTY — press R to reload");
+        return;
     }
+
+    mCurrentAmmo--;
+    mShotsFired++;
+
+    vec3 from = mCamera.mEyePosition;
+    vec3 dir  = Normalize(mCamera.mForwardVector);
+
+    float spread = computeWeaponSpread();
+    dir.x += uniform(-spread, spread);
+    dir.y += uniform(-spread, spread);
+    dir.z += uniform(-spread, spread);
+    dir = Normalize(dir);
+
+    vec3 to = from + dir * 1000.0f;
+
+    mAudioController.playGunshot();
+
+    auto result = mPhysicsWorld.raycast(
+        from.x, from.y, from.z,
+        to.x, to.y, to.z);
+
+    if (result.hit)
+    {
+        if ((result.entityId in mActiveTargetIds) !is null)
+        {
+            mShotsHit++;
+            mScore += kPointsPerHit;
+
+            writeln("[challenge] HIT target entity=", result.entityId,
+                " score=", mScore);
+
+            removeChallengeTarget(result.entityId);
+            destroyEntity(result.entityId);
+        }
+        else if ((result.entityId in mSoldierIds) !is null)
+        {
+            mShotsHit++;
+            mScore += kPointsPerHit;
+
+            writeln("[shoot] HIT soldier entity=", result.entityId,
+                " score=", mScore);
+
+            mSoldierIds.remove(result.entityId);
+            destroyEntity(result.entityId);
+        }
+        else
+        {
+            writeln("[shoot] hit non-target entity=", result.entityId);
+        }
+    }
+    else
+    {
+        writeln("[shoot] MISS");
+    }
+
+    float acc = mShotsFired > 0 ? cast(float)mShotsHit / mShotsFired * 100.0f : 0.0f;
+    writeln("[stats] shots=", mShotsFired, " hits=", mShotsHit,
+        " accuracy=", acc, "% score=", mScore);
+}
+
+
+
 
     // to do: refactor so that this does not check hard coded pairs but rather loops over every object
     private void checkCollisions(){
@@ -375,9 +733,164 @@ class GameApplication : IGame{
         mCrosshairReady = true;
     }
 
-    /// Fully destroy an entity: physics body + scene tree node + entity manager
+
+    private float computeWeaponSpread()
+{
+    if (mIsSprinting) return 0.055f;
+    if (mIsMoving)    return 0.030f;
+    return 0.008f;
+}
+
+private void startChallengeRound()
+{
+    clearChallengeTargets();
+
+    mPlayerName = mGui.enteredName();
+    if (mPlayerName.length == 0)
+        mPlayerName = "Player";
+
+    mShotsFired = 0;
+    mShotsHit = 0;
+    mScore = 0;
+    mCurrentAmmo = mMaxAmmo;
+    mRoundTimer = kChallengeDuration;
+    mTargetSpawnAccumulator = 0.0;
+
+    mPhase = ChallengePhase.Live;
+    mGui.phase = mPhase;
+    mGui.playerName = mPlayerName;
+
+    // SDL_SetRelativeMouseMode(SDL_TRUE);
+    writeln("[challenge] started for ", mPlayerName);
+}
+
+private void finishChallengeRound()
+{
+    if (mPhase != ChallengePhase.Live)
+        return;
+
+    clearChallengeTargets();
+
+    mLeaderboard.addScore(mPlayerName, mScore, mShotsFired, mShotsHit);
+    mGui.leaderboard = mLeaderboard.top10();
+
+    mPhase = ChallengePhase.Results;
+    mGui.phase = mPhase;
+    mGui.finalScore = mScore;
+
+    // SDL_SetRelativeMouseMode(SDL_FALSE);
+    writeln("[challenge] finished for ", mPlayerName, " score=", mScore);
+}
+
+
+bool wantsGameMouseLook()
+    {
+        return mPhase == ChallengePhase.Live &&
+               mCollisionEditor !is null &&
+               !mCollisionEditor.isActive();
+    }
+
+    bool wantsCursorVisible()
+    {
+        if (mPhase != ChallengePhase.Live)
+            return true;
+        if (mCollisionEditor !is null && mCollisionEditor.isActive())
+            return true;
+        return false;
+    }
+
+
+
+private void spawnFallingTarget()
+{
+        writeln("[debug] spawnFallingTarget called");
+    auto spawner = mLevelBuilder.getSpawner();
+    writeln("[debug] got spawner: ", spawner !is null);
+    // auto spawner = mLevelBuilder.getSpawner();
+
+    vec3[] scales = [
+        vec3(1.0f, 1.0f, 1.0f),
+        vec3(0.75f, 1.35f, 0.75f),
+        vec3(1.35f, 0.65f, 0.65f)
+    ];
+
+    vec3[] colors = [
+        vec3(0.94f, 0.58f, 0.17f),
+        vec3(0.45f, 0.85f, 0.38f),
+        vec3(0.35f, 0.75f, 1.00f)
+    ];
+
+    int idx = uniform(0, cast(int)scales.length);
+
+    float x = uniform(-6.0f, 38.0f);
+    float z = uniform(-42.0f, 4.0f);
+    float y = uniform(18.0f, 25.0f);
+
+    uint eid = spawner.spawnChallengeProjectile(
+        vec3(x, y, z),
+        scales[idx],
+        colors[idx],
+        "cube.urdf"
+    );
+
+    mChallengeTargets ~= ChallengeTarget(eid, kTargetLifetime);
+    mActiveTargetIds[eid] = true;
+}
+
+private void updateChallengeTargets(double dt)
+{
+    for (int i = cast(int)mChallengeTargets.length - 1; i >= 0; --i)
+    {
+        size_t idx = cast(size_t)i;
+        mChallengeTargets[idx].ttl -= dt;
+
+        if (mChallengeTargets[idx].ttl <= 0)
+        {
+            uint eid = mChallengeTargets[idx].entityId;
+            mActiveTargetIds.remove(eid);
+            destroyEntity(eid);
+
+            if (idx != mChallengeTargets.length - 1)
+                mChallengeTargets[idx] = mChallengeTargets[$ - 1];
+
+            mChallengeTargets.length = mChallengeTargets.length - 1;
+        }
+    }
+}
+
+private void removeChallengeTarget(uint entityId)
+{
+    mActiveTargetIds.remove(entityId);
+
+    foreach (i, t; mChallengeTargets)
+    {
+        if (t.entityId == entityId)
+        {
+            if (i != mChallengeTargets.length - 1)
+                mChallengeTargets[i] = mChallengeTargets[$ - 1];
+
+            mChallengeTargets.length = mChallengeTargets.length - 1;
+            break;
+        }
+    }
+}
+
+private void clearChallengeTargets()
+{
+    foreach (t; mChallengeTargets)
+        destroyEntity(t.entityId);
+
+    mChallengeTargets.length = 0;
+    mActiveTargetIds = null;
+}
+
+    /// Fully destroy an entity: physics body + scene tree node + entity manager + collision box
     void destroyEntity(uint entityId)
     {
+        // 0. Remove any collision editor box bound to this entity (e.g. soldiers)
+        if (mCollisionEditor !is null)
+            mCollisionEditor.removeBoxForEntity(entityId);
+
         // 1. Remove from Bullet physics
         if (entityId in mPhysicsWorld.entityToBody){
             mPhysicsWorld.removeBody(entityId);
