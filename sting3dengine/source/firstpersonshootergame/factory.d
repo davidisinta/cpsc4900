@@ -86,6 +86,15 @@ class SpawnFactory
         return eid;
     }
 
+    /// Spawn a single jackpot enemy (soldier) at the given world position.
+    /// Returns the entity id. Used by the challenge mode to populate enemies
+    /// one at a time instead of all-at-once at map setup.
+    uint spawnEnemyAt(vec3 pos)
+    {
+        auto soldierType = EntityType.soldier();
+        return spawn(soldierType, pos);
+    }
+
     // // / Convenience: spawn multiple soldiers at fixed positions
     // void spawnSoldiers()
     // {
@@ -181,6 +190,58 @@ class SpawnFactory
         }
         writeln("[spawn] ", placed, " random soldiers placed");
 
+        return positions;
+    }
+
+    /// Generate a pool of candidate enemy spawn positions WITHOUT actually
+    /// spawning anything. The challenge mode uses this pool to pick spots
+    /// on-demand as enemies are added/refreshed.
+    vec3[] buildEnemySpawnPool(int extraCount = 20, float mapRadius = 70.0f)
+    {
+        vec3[] positions;
+        float minSpacing = 6.0f;
+
+        // Hand-placed anchor points — these are known-good LOS-visible spots.
+        vec3[] handPlaced = [
+            vec3(21.7f, 0, -7.8f),  vec3(35.3f, 0, -13.9f),
+            vec3(41.1f, 0, -26.9f), vec3(20.1f, 0, -32.7f),
+            vec3(12.3f, 0, -30.7f), vec3(3.3f,  0,  70.9f),
+            vec3(-6.1f, 0,  62.3f), vec3(-31.3f, 0, 10.3f),
+            vec3(-23.0f, 0, -3.5f), vec3(-18.2f, 0, -11.9f),
+            vec3(-17.3f, 0, -25.9f), vec3(-15.2f, 0, -41.1f),
+        ];
+        foreach (p; handPlaced)
+            positions ~= p;
+
+        // Add some random spots too so enemies feel less predictable.
+        int placed = 0;
+        foreach (i; 0 .. extraCount * 3)
+        {
+            if (placed >= extraCount) break;
+
+            float x = uniform(-mapRadius, mapRadius);
+            float z = uniform(-mapRadius, mapRadius);
+
+            if (x * x + z * z < 18.0f * 18.0f) continue;  // keep away from player start
+
+            bool tooClose = false;
+            foreach (p; positions)
+            {
+                float dx = x - p.x;
+                float dz = z - p.z;
+                if (dx * dx + dz * dz < minSpacing * minSpacing)
+                {
+                    tooClose = true;
+                    break;
+                }
+            }
+            if (tooClose) continue;
+
+            positions ~= vec3(x, 0.0f, z);
+            placed++;
+        }
+
+        writeln("[spawn-pool] ", positions.length, " enemy spawn candidates");
         return positions;
     }
 

@@ -14,11 +14,15 @@ class AudioController
     FMOD_SOUND* mWalkingSound;
     FMOD_SOUND* mPistolSound;
     FMOD_SOUND* mBackgroundSound;
+    FMOD_SOUND* mCubeHitSound;
+    FMOD_SOUND* mHumanHitSound;
 
     // Channel handles
     FMOD_CHANNEL* mWalkingChannel;
     FMOD_CHANNEL* mPistolChannel;
     FMOD_CHANNEL* mBackgroundChannel;
+    FMOD_CHANNEL* mCubeHitChannel;
+    FMOD_CHANNEL* mHumanHitChannel;
 
     // State
     bool mWalkingSoundPlaying = false;
@@ -47,12 +51,37 @@ class AudioController
             "./assets/sounds/war_ambience_01_30_loop.wav".toStringz,
             FMOD_LOOP_NORMAL | FMOD_2D | FMOD_CREATESTREAM, null, &mBackgroundSound);
         writeln("[audio] background sound: ", r3);
+
+        // Hit-feedback sounds — same loading pattern as pistol: one-shot, 2D.
+        auto r4 = FMOD_System_CreateSound(mSystem,
+            "./assets/sounds/cube_hit.wav".toStringz,
+            FMOD_LOOP_OFF | FMOD_2D, null, &mCubeHitSound);
+        writeln("[audio] cube_hit sound: ", r4);
+
+        auto r5 = FMOD_System_CreateSound(mSystem,
+            "./assets/sounds/human_hit.wav".toStringz,
+            FMOD_LOOP_OFF | FMOD_2D, null, &mHumanHitSound);
+        writeln("[audio] human_hit sound: ", r5);
     }
 
     void playGunshot()
     {
         if (mSystem !is null)
             FMOD_System_PlaySound(mSystem, mPistolSound, null, 0, &mPistolChannel);
+    }
+
+    /// Called on a cube target hit.
+    void playCubeHit()
+    {
+        if (mSystem !is null && mCubeHitSound !is null)
+            FMOD_System_PlaySound(mSystem, mCubeHitSound, null, 0, &mCubeHitChannel);
+    }
+
+    /// Called on a jackpot enemy hit.
+    void playHumanHit()
+    {
+        if (mSystem !is null && mHumanHitSound !is null)
+            FMOD_System_PlaySound(mSystem, mHumanHitSound, null, 0, &mHumanHitChannel);
     }
 
     void startWalking()
