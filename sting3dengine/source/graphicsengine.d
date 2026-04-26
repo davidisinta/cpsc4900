@@ -255,11 +255,11 @@ class GraphicsEngine{
                 moving = true;
             }
             if (keys[SDL_SCANCODE_UP]) {
-                mCamera.MoveUp();
+                // mCamera.MoveUp();
                 moving = true;
             }
             if (keys[SDL_SCANCODE_DOWN]) {
-                mCamera.MoveDown();
+                // mCamera.MoveDown();
                 moving = true;
             }
 

@@ -24,6 +24,7 @@ class LevelBuilder
     vec3[] mTreePositions;
     vec3[] mSoldierPositions;
     uint[] mSoldierEntityIds;   // parallel to mSoldierPositions
+    vec3[] mEnemySpawnPool;     // candidate positions for challenge-mode enemies
 
     this(Camera cam, SceneTree tree, EntityManager em, PhysicsWorld physics,
          MaterialRegistry materials, ResourceManager resources)
@@ -65,6 +66,10 @@ class LevelBuilder
 
     if (spawnTrees)
         mTreePositions = mSpawnFactory.spawnTrees();
+
+    // Always build an enemy spawn pool — challenge mode uses it to drip-spawn
+    // jackpot enemies on demand, regardless of whether soldiers were batch-spawned.
+    mEnemySpawnPool = mSpawnFactory.buildEnemySpawnPool();
 }
 
     void SetupLightbox()

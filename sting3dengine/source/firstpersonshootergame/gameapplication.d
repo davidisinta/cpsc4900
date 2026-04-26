@@ -33,74 +33,99 @@ import leaderboard;
 import bindbc.sdl;
 import bindbc.opengl;
 
-class GameApplication : IGame{
-    // Refs to engine systems
-    PhysicsWorld mPhysicsWorld;
+class GameApplication : IGame
+{
+    //----------------------------------------------------------------
+    // Engine refs
+    //----------------------------------------------------------------
+    PhysicsWorld  mPhysicsWorld;
     EntityManager mEntityManager;
-    Camera mCamera;
-    SceneTree mSceneTree;
-    // IMaterial mBasicMaterial;
-    AudioEngine* mAudio;
+    Camera        mCamera;
+    SceneTree     mSceneTree;
+    AudioEngine*  mAudio;
 
+    //----------------------------------------------------------------
     // Game-specific state
-    string gameName;
-    uint mGroundEntity;
-    uint mCubeEntity;
-    int mShotsFired;
-    int mShotsHit;
-    bool mShootRequested;
-    GLuint mCrosshairVAO;
-    GLuint mCrosshairVBO;
-    bool mCrosshairReady = false;
-    GameGUI mGui;
-    Light gLight;
-    GLuint mSkyBoxVAO;
-    GLuint  mSkyBoxVBO;
-    GLuint mCubemapTexture;
-    LevelBuilder mLevelBuilder;
-    
+    //----------------------------------------------------------------
+    string  gameName;
+    uint    mGroundEntity;
+    uint    mCubeEntity;
+    int     mShotsFired;
+    int     mShotsHit;
+    bool    mShootRequested;
 
+    // Crosshair
+    GLuint  mCrosshairVAO;
+    GLuint  mCrosshairVBO;
+    bool    mCrosshairReady = false;
 
+    // Environment
+    GameGUI       mGui;
+    Light         gLight;
+    GLuint        mSkyBoxVAO;
+    GLuint        mSkyBoxVBO;
+    GLuint        mCubemapTexture;
+    LevelBuilder  mLevelBuilder;
 
-    //Shooting elements
+    //----------------------------------------------------------------
+    // Weapon
+    //----------------------------------------------------------------
     int mCurrentAmmo = 30;
-    int mMaxAmmo = 30;
-    double mRoundTimer = 120.0;
-    // ViewWeapon mViewWeapon;
+    int mMaxAmmo     = 30;
 
+    //----------------------------------------------------------------
+    // Challenge state
+    //----------------------------------------------------------------
+    ChallengePhase     mPhase = ChallengePhase.Intro;
+    LeaderboardStore   mLeaderboard;
+    double             mRoundTimer = kChallengeDuration;
+    string             mPlayerName = "Player";
+    int                mScore = 0;
 
-    ChallengePhase mPhase = ChallengePhase.Intro;
-    LeaderboardStore mLeaderboard;
-    ChallengeTarget[] mChallengeTargets;
-    bool[uint] mActiveTargetIds;
-    bool[uint] mSoldierIds;    // entity ids of soldiers spawned in the map — shootable, box dies with them
+    // Cubes
+    ChallengeTarget[]  mChallengeTargets;
+    bool[uint]         mActiveTargetIds;
+    double             mTargetSpawnAccumulator = 0.0;
+    double             mCurrentSpawnInterval   = kCubeSpawnIntervalStart;
+    int                mCubesHit = 0;
 
-    string mPlayerName = "Player";
-    int mScore = 0;
-    double mTargetSpawnAccumulator = 0.0;
+    // Jackpot enemies
+    ChallengeEnemy[]   mEnemies;
+    bool[uint]         mSoldierIds;        // fast lookup: is this entity a live enemy?
+    size_t[uint]       mEnemyBoxIndexByEid;// entity id -> index into mEnemies (for O(1) removal)
+    bool[size_t]       mEnemyPoolInUse;    // which spawn-pool slots are currently taken
+    double             mEnemySpawnTimer = 0.0;
+    double             mNextEnemySpawnIn = 2.5;
+    int                mEnemiesKilled = 0;
 
-    bool mIsMoving = false;
-    bool mIsSprinting = false;
+    // Combo
+    int    mCombo = 0;
+    float  mComboMultiplier = 1.0f;
+    double mComboTimer = 0.0;
+
+    // Movement flags (drive spread)
+    bool  mIsMoving = false;
+    bool  mIsSprinting = false;
     float mCurrentSpread = 0.0f;
 
-    //Game Materials
+    //----------------------------------------------------------------
+    // Sub-systems owned by the game
+    //----------------------------------------------------------------
+    AudioController   mAudioController;
+    CollisionEditor   mCollisionEditor;
+    MaterialRegistry  mMaterialRegistry;
+    ResourceManager   mResourceManager;
 
-    /// sound specific elements
-    AudioController mAudioController;
-    CollisionEditor mCollisionEditor;
-
-
-    MaterialRegistry mMaterialRegistry;
-
-    ResourceManager mResourceManager;
-
-    this(string name, PhysicsWorld physics, EntityManager em, Camera cam, SceneTree tree, IMaterial mat){
-        this.gameName = name;
-        mPhysicsWorld = physics;
-        mEntityManager = em;
-        mCamera = cam;
-        mSceneTree = tree;
-        mGui = new GameGUI("topshoota-game-gui");
+    //----------------------------------------------------------------
+    this(string name, PhysicsWorld physics, EntityManager em, Camera cam,
+         SceneTree tree, IMaterial mat)
+    {
+        this.gameName   = name;
+        mPhysicsWorld   = physics;
+        mEntityManager  = em;
+        mCamera         = cam;
+        mSceneTree      = tree;
+        mGui            = new GameGUI("topshoota-game-gui");
         mAudioController = new AudioController();
 
         mMaterialRegistry = new MaterialRegistry(cam);
@@ -108,271 +133,208 @@ class GameApplication : IGame{
 
         mResourceManager = new ResourceManager();
 
-        mLevelBuilder = new LevelBuilder(cam, tree, em, physics, mMaterialRegistry, mResourceManager);
-
+        mLevelBuilder = new LevelBuilder(cam, tree, em, physics,
+            mMaterialRegistry, mResourceManager);
 
         mLeaderboard = new LeaderboardStore("./data/topshoota_leaderboard.txt");
         mGui.leaderboard = mLeaderboard.top10();
         mGui.phase = mPhase;
     }
 
-    // override void Input(){
-    //     if (mShootRequested){
-    //         shoot();
-    //         mShootRequested = false;
-    //     }
-    // }
-
+    //================================================================
+    // Input
+    //================================================================
     override void Input()
-{
-    if (mGui.consumeStartPressed())
-        startChallengeRound();
-
-    if (mGui.consumeRestartPressed())
     {
-        mPhase = ChallengePhase.Intro;
-        mGui.phase = mPhase;
-        mGui.leaderboard = mLeaderboard.top10();
-        // SDL_SetRelativeMouseMode(SDL_FALSE);
-        return;
-    }
+        if (mGui.consumeStartPressed())
+            startChallengeRound();
 
-    const(ubyte)* keys = SDL_GetKeyboardState(null);
-    mIsMoving =
-        keys[SDL_SCANCODE_W] != 0 ||
-        keys[SDL_SCANCODE_A] != 0 ||
-        keys[SDL_SCANCODE_S] != 0 ||
-        keys[SDL_SCANCODE_D] != 0;
-
-    mIsSprinting = mIsMoving &&
-        (keys[SDL_SCANCODE_LSHIFT] != 0 || keys[SDL_SCANCODE_RSHIFT] != 0);
-
-    if (mPhase != ChallengePhase.Live)
-    {
-        mShootRequested = false;
-        return;
-    }
-
-    if (mShootRequested)
-    {
-        shoot();
-        mShootRequested = false;
-    }
-}
-
-
-
-
-
-
-    override void Update(double frameDt){
-        checkCollisions();
-
-    if (mPhase == ChallengePhase.Live)
-    {
-        mRoundTimer -= frameDt;
-        if (mRoundTimer < 0)
-            mRoundTimer = 0;
-
-        mTargetSpawnAccumulator += frameDt;
-        while (mTargetSpawnAccumulator >= kTargetSpawnInterval)
+        if (mGui.consumeRestartPressed())
         {
-            mTargetSpawnAccumulator -= kTargetSpawnInterval;
-            spawnFallingTarget();
+            mPhase = ChallengePhase.Intro;
+            mGui.phase = mPhase;
+            mGui.leaderboard = mLeaderboard.top10();
+            return;
         }
 
-        updateChallengeTargets(frameDt);
+        const(ubyte)* keys = SDL_GetKeyboardState(null);
+        mIsMoving =
+            keys[SDL_SCANCODE_W] != 0 ||
+            keys[SDL_SCANCODE_A] != 0 ||
+            keys[SDL_SCANCODE_S] != 0 ||
+            keys[SDL_SCANCODE_D] != 0;
 
-        if (mRoundTimer <= 0)
-            finishChallengeRound();
+        mIsSprinting = mIsMoving &&
+            (keys[SDL_SCANCODE_LSHIFT] != 0 || keys[SDL_SCANCODE_RSHIFT] != 0);
+
+        if (mPhase != ChallengePhase.Live)
+        {
+            mShootRequested = false;
+            return;
+        }
+
+        if (mShootRequested)
+        {
+            shoot();
+            mShootRequested = false;
+        }
     }
 
-    mCurrentSpread = computeWeaponSpread();
+    //================================================================
+    // Update
+    //================================================================
+    override void Update(double frameDt)
+    {
+        checkCollisions();
 
-    mGui.phase = mPhase;
-    mGui.score = mScore;
-    mGui.finalScore = mScore;
-    mGui.shotsFired = mShotsFired;
-    mGui.shotsHit = mShotsHit;
-    mGui.playerName = mPlayerName;
-    mGui.accuracy = mShotsFired > 0 ? cast(float)mShotsHit / mShotsFired * 100.0f : 0.0f;
-    mGui.currentAmmo = mCurrentAmmo;
-    mGui.maxAmmo = mMaxAmmo;
-    mGui.roundTimeSeconds = cast(int)mRoundTimer;
-    mGui.leaderboard = mLeaderboard.top10();
-    mGui.movementState = mIsSprinting ? "SPRINTING" : (mIsMoving ? "MOVING" : "STOPPED");
-    mGui.currentSpread = mCurrentSpread;
+        if (mPhase == ChallengePhase.Live)
+        {
+            mRoundTimer -= frameDt;
+            if (mRoundTimer < 0) mRoundTimer = 0;
 
+            // Combo decay
+            if (mComboTimer > 0)
+            {
+                mComboTimer -= frameDt;
+                if (mComboTimer <= 0)
+                    resetCombo();
+            }
 
-        //update our light object
+            // Cube spawn (ramping interval)
+            mCurrentSpawnInterval = rampedSpawnInterval();
+            mTargetSpawnAccumulator += frameDt;
+            while (mTargetSpawnAccumulator >= mCurrentSpawnInterval)
+            {
+                mTargetSpawnAccumulator -= mCurrentSpawnInterval;
+                spawnFallingCube();
+            }
+            updateChallengeCubes(frameDt);
+
+            // Enemy spawn (random intervals, capped at kMaxAliveEnemies alive)
+            mEnemySpawnTimer += frameDt;
+            if (mEnemySpawnTimer >= mNextEnemySpawnIn)
+            {
+                mEnemySpawnTimer = 0.0;
+                mNextEnemySpawnIn = uniform(kEnemySpawnMinInterval, kEnemySpawnMaxInterval);
+
+                if (mEnemies.length < kMaxAliveEnemies)
+                    trySpawnEnemy();
+            }
+            updateEnemies(frameDt);
+
+            if (mRoundTimer <= 0)
+                finishChallengeRound();
+        }
+
+        mCurrentSpread = computeWeaponSpread();
+
+        //----------------------------------------------------------------
+        // Push state to GUI
+        //----------------------------------------------------------------
+        mGui.phase              = mPhase;
+        mGui.score              = mScore;
+        mGui.finalScore         = mScore;
+        mGui.shotsFired         = mShotsFired;
+        mGui.shotsHit           = mShotsHit;
+        mGui.playerName         = mPlayerName;
+        mGui.accuracy           = mShotsFired > 0
+            ? cast(float)mShotsHit / mShotsFired * 100.0f
+            : 0.0f;
+        mGui.currentAmmo        = mCurrentAmmo;
+        mGui.maxAmmo            = mMaxAmmo;
+        mGui.roundTimeSeconds   = cast(int)mRoundTimer;
+        mGui.roundTimeRemaining = mRoundTimer;
+        mGui.roundTimeTotal     = kChallengeDuration;
+        mGui.leaderboard        = mLeaderboard.top10();
+        mGui.movementState      = mIsSprinting ? "SPRINTING"
+                                                : (mIsMoving ? "MOVING" : "STOPPED");
+        mGui.currentSpread      = mCurrentSpread;
+        mGui.comboCount         = mCombo;
+        mGui.comboMultiplier    = mComboMultiplier;
+        mGui.cubesHit           = mCubesHit;
+        mGui.enemiesKilled      = mEnemiesKilled;
+        mGui.enemiesAlive       = cast(int)mEnemies.length;
+
+        mGui.tick(frameDt);
+
+        //----------------------------------------------------------------
+        // Sun (lightbox) follow
+        //----------------------------------------------------------------
         MeshNode lightNode = cast(MeshNode)mSceneTree.FindNode("light");
-
-        if (lightNode !is null){
+        if (lightNode !is null)
+        {
             GLfloat x = gLight.mPosition[0];
             GLfloat y = gLight.mPosition[1];
             GLfloat z = gLight.mPosition[2];
-            
-            //move the lightbox that follows the point light and scale it to 15
             lightNode.mModelMatrix = MatrixMakeTranslation(vec3(x, y, z))
-                                    * MatrixMakeScale(vec3(15.0f, 15.0f, 15.0f));
+                                   * MatrixMakeScale(vec3(15.0f, 15.0f, 15.0f));
         }
 
-        MeshNode m2 = cast(MeshNode)mSceneTree.FindNode("terrain");
-        if (m2 is null) {
+        MeshNode terrain = cast(MeshNode)mSceneTree.FindNode("terrain");
+        if (terrain is null)
             writeln("[terrain] ERROR: terrain node not found in scene tree!");
-        } else {
-            m2.mModelMatrix = MatrixMakeTranslation(vec3(-256.0f, 0.0f, -256.0f));
+        else
+            terrain.mModelMatrix = MatrixMakeTranslation(vec3(-256.0f, 0.0f, -256.0f));
+    }
+
+    //================================================================
+    // Render
+    //================================================================
+    void Render()
+    {
+        if (mPhase == ChallengePhase.Live)
+        {
+            // Only draw collider boxes when the editor is active.
+            if (mCollisionEditor !is null && mCollisionEditor.isActive())
+                mCollisionEditor.render();
+
+            drawCrosshair();
         }
 
-        // Update view weapon animation
-        // mViewWeapon.update(frameDt);
+        mGui.Render();
     }
 
-    // void Render(){
-
-    //     // Render view weapon
-    //     // mViewWeapon.render();
-
-    //     mCollisionEditor.render();
-
-    //     //Render Cross Hair as it is like a GUI element
-    //     drawCrosshair();
-
-    //     //Render the games GUI last
-    //     mGui.Render();
-    // }
-
-
-    void Render()
-{
-    if (mPhase == ChallengePhase.Live)
+    //================================================================
+    // Setup
+    //================================================================
+    override void Setup()
     {
-        // Only draw collider boxes when the collision editor is active (CTRL+E).
-        // Otherwise keep the game view clean.
-        if (mCollisionEditor !is null && mCollisionEditor.isActive())
-            mCollisionEditor.render();
-        drawCrosshair();
-    }
-
-    mGui.Render();
-}
-
-
-    void drawCrosshair(){
-        if (!mCrosshairReady) return;
-
-        glDisable(GL_DEPTH_TEST);
-
-        glUseProgram(Pipeline.sPipeline["crosshair"]);
-        glBindVertexArray(mCrosshairVAO);
-        glLineWidth(2.0f);
-        glDrawArrays(GL_LINES, 0, 8);
-        glBindVertexArray(0);
-
-        glEnable(GL_DEPTH_TEST);
-    }
-
-    void printSpawnPoint(string type)
-    {
-        auto pos = mCamera.mEyePosition;
-        writeln("[spawn-marker] ", type, " at <", pos.x, ",", pos.y, ",", pos.z, ">");
-    }
-
-    //Setup the Scene for the Game
-    override void Setup(){
-        
         setUpLights();
-
         initCrosshair();
 
         mPhysicsWorld.setGravity(0.0, -1.0, 0.0);
 
         // Ground plane
-        // note: the plane.urdf determines how far wide the 
-        // physics body stretces, currently set to 3000 x and 300 z
         mGroundEntity = mEntityManager.create();
         mPhysicsWorld.addURDF(mGroundEntity, "plane.urdf",
-            0, 0, 0,
-            0, 0, 0, 1);
+            0, 0, 0,  0, 0, 0, 1);
         mEntityManager.markPhysics(mGroundEntity);
         TransformComponent planeTc;
         mEntityManager.addTransform(mGroundEntity, planeTc);
 
-        //Let Level Builder Set up the map
-        // mLevelBuilder.SetupMap();
-
+        // Build map WITHOUT batch-spawning soldiers — challenge mode drip-spawns
+        // them as jackpot enemies. Trees still spawn normally.
         mLevelBuilder.SetupMap(false, true);
-
-        
-
-        //Stress testing for Frustum culling
-        // spawnStressTest(300);
-
-        // mViewWeapon = new ViewWeapon();
-        // mViewWeapon.init(mCamera, 
-        //     "./assets/weapons/glock/Glock.fbx",
-        //     "./assets/modern_soldier/textures/material_0_baseColor.jpeg");
-
-        // mViewWeapon.loadClip("./assets/weapons/glock/Glock_Idle.fbx", "idle", true);
-        // mViewWeapon.loadClip("./assets/weapons/glock/Glock_Fire1.fbx", "fire");
-        // mViewWeapon.loadClip("./assets/weapons/glock/Glock_Reload.fbx", "reload");
-        // mViewWeapon.loadClip("./assets/weapons/glock/Glock_Draw.fbx", "draw");
-        // mViewWeapon.loadClip("./assets/weapons/glock/Glock_Walk.fbx", "walk");
-
 
         mCollisionEditor = new CollisionEditor();
         mCollisionEditor.init(mCamera);
-        
 
-        // Register tree collision boxes
+        // Tree collision boxes — static, not tied to entities.
         float th = 1.0f;
         foreach (i, p; mLevelBuilder.mTreePositions)
         {
-            mCollisionEditor.addBox(p.x - th, p.z - th, p.x + th, p.z + th,
-                                    "tree_" ~ (cast(int)i).to!string);
+            mCollisionEditor.addBox(
+                p.x - th, p.z - th, p.x + th, p.z + th,
+                "tree_" ~ (cast(int)i).to!string);
         }
 
-        // Register soldier collision boxes, tied to their entity ids so they
-        // are removed when the soldier is destroyed.
-        float sh = 0.4f;  // soldier half-size
-        foreach (i, p; mLevelBuilder.mSoldierPositions)
-        {
-            uint eid = (i < mLevelBuilder.mSoldierEntityIds.length)
-                ? mLevelBuilder.mSoldierEntityIds[i]
-                : 0;
-            mCollisionEditor.addBoxForEntity(eid,
-                p.x - sh, p.z - sh, p.x + sh, p.z + sh,
-                "soldier_" ~ (cast(int)i).to!string);
-
-            // Track soldiers as valid shoot targets so they can be killed.
-            if (eid != 0)
-                mSoldierIds[eid] = true;
-        }
-
-    //   mCollisionEditor.addBox(38.04f, -0.507f, 40.907f, 0.507f, "wall2");
-
-
-    // mCollisionEditor.addBox(-11.61f, -0.207f, -8.643f, 0.293f, "wall1");
-    // // mCollisionEditor.addBox(28.29f, -0.507f, 41.657f, 0.507f, "wall2");
-    // mCollisionEditor.addBox(7.82179f, -10.4576f, 12.3838f, -9.55355f, "sandbag1");
-    // mCollisionEditor.addBox(17.013f, -15.391f, 23.187f, -14.659f, "sandbag2");
-    // mCollisionEditor.addBox(2.477f, -29.664f, 7.573f, -29.086f, "sandbag3");
-    // mCollisionEditor.addBox(-12.17f, -41.914f, -8.228f, -41.414f, "cornerwall");
-    // mCollisionEditor.addBox(-5f, -25f, 5f, -15f, "cabin1");
-    // mCollisionEditor.addBox(25f, -25f, 35f, -15f, "cabin2");
-    // mCollisionEditor.addBox(10f, -47f, 20f, -33f, "building");
-    // mCollisionEditor.addBox(6.723f, -31.136f, 7.423f, -29.936f, "sandbag3_copy");
-    // mCollisionEditor.addBox(-8.82f, -41.114f, -8.128f, -38.114f, "cornerwall_copy");
-    // mCollisionEditor.addBox(56.3832f, -115.304f, 58.6332f, -113.804f, "new_11");
-
-
-    mCollisionEditor.addBox(38.04f, -0.507f, 40.907f, 0.507f, "wall2");
+        // Level geometry collision boxes — keep your existing hand-tuned layout.
+        mCollisionEditor.addBox(38.04f, -0.507f, 40.907f, 0.507f, "wall2");
         mCollisionEditor.addBox(-11.61f, -0.207f, -8.643f, 0.293f, "wall1");
         mCollisionEditor.addBox(7.82179f, -10.4576f, 12.3838f, -9.55355f, "sandbag1");
         mCollisionEditor.addBox(17.013f, -15.391f, 23.187f, -14.659f, "sandbag2");
         mCollisionEditor.addBox(2.477f, -29.664f, 7.573f, -29.086f, "sandbag3");
         mCollisionEditor.addBox(-12.17f, -41.914f, -8.228f, -41.414f, "cornerwall");
-        // mCollisionEditor.addBox(10.1f, -45.9f, 18.9f, -33f, "building");
         mCollisionEditor.addBox(6.723f, -31.136f, 7.423f, -29.936f, "sandbag3_copy");
         mCollisionEditor.addBox(-8.82f, -41.114f, -8.128f, -38.114f, "cornerwall_copy");
         mCollisionEditor.addBox(56.3832f, -115.304f, 58.6332f, -113.804f, "new_11");
@@ -390,71 +352,32 @@ class GameApplication : IGame{
         mCollisionEditor.addBox(11.4f, -36.9001f, 14f, -36.4001f, "building_copy_copy");
         mCollisionEditor.addBox(18.05f, -43.5251f, 18.65f, -36.7751f, "building_copy_copy");
         mCollisionEditor.addBox(11.55f, -43.5251f, 12.15f, -36.7751f, "building_copy_copy_copy");
-          mCollisionEditor.addBox(11.8217f, -43.5311f, 17.8217f, -43.0311f, "new_231_copy_copy");
+        mCollisionEditor.addBox(11.8217f, -43.5311f, 17.8217f, -43.0311f, "new_231_copy_copy");
 
-
-
-
-
-          mRoundTimer = kChallengeDuration;
-mGui.phase = mPhase;
-mGui.playerName = mPlayerName;
-mGui.roundTimeSeconds = cast(int)mRoundTimer;
-mGui.leaderboard = mLeaderboard.top10();
-mGui.setDefaultName("Player");
-// SDL_SetRelativeMouseMode(SDL_FALSE);
-
-
-
-
-
-
-
-
-
-
+        // Initial GUI state
+        mRoundTimer = kChallengeDuration;
+        mGui.phase = mPhase;
+        mGui.playerName = mPlayerName;
+        mGui.roundTimeSeconds = cast(int)mRoundTimer;
+        mGui.roundTimeRemaining = mRoundTimer;
+        mGui.roundTimeTotal = kChallengeDuration;
+        mGui.leaderboard = mLeaderboard.top10();
+        mGui.setDefaultName("Player");
         mGui.mCollisionEditor = mCollisionEditor;
-
-
-
-
-
     }
 
-    void debugTreeAsset(){
-
-        auto scene = aiImportFile(
-            "./assets/free-tree-downloadfbx/source/Tree test.fbx".toStringz,
-            aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs
-        );
-
-        if (scene is null){
-            writeln("[tree-debug] failed to import tree FBX");
-            return;
-        }
-
-        writeln("[tree-debug] mesh count = ", scene.mNumMeshes);
-        writeln("[tree-debug] material count = ", scene.mNumMaterials);
-
-        for (uint i = 0; i < scene.mNumMeshes; ++i){
-            auto mesh = scene.mMeshes[i];
-            writeln("[tree-debug] mesh ", i,
-                " materialIndex=", mesh.mMaterialIndex,
-                " vertexCount=", mesh.mNumVertices,
-                " faceCount=", mesh.mNumFaces);
-        }
-
-        aiReleaseImport(scene);
-    }
-
-    void attachAudio(AudioEngine* audio){
+    //================================================================
+    // Misc engine plumbing
+    //================================================================
+    void attachAudio(AudioEngine* audio)
+    {
         mAudio = audio;
         mAudioController.attach(audio);
         mAudioController.startBackground();
     }
 
-    void setUpLights(){
-
+    void setUpLights()
+    {
         GLuint shaderProgramID = Pipeline.sPipeline["basic"];
         glUseProgram(shaderProgramID);
 
@@ -465,16 +388,12 @@ mGui.setDefaultName("Player");
         GLint field5 = glGetUniformLocation(shaderProgramID, "uLight1.mSpecularExponent");
         GLint field6 = glGetUniformLocation(shaderProgramID, "viewpos");
 
-        foreach(value ; [field1,field2,field3,field4,field5]){
-            if(value < 0){
-                writeln("Failed to find: ",value);
-            }
-        }
-    
-        // Postion light to move in a circle
+        foreach (value; [field1, field2, field3, field4, field5])
+            if (value < 0) writeln("Failed to find: ", value);
+
         static float inc = 0.0f;
         float radius = 560.0f;
-        float speed  = 0.1f;   // controls day/night speed
+        float speed  = 0.1f;
         inc += 0.0002 * speed;
 
         gLight.mPosition = [
@@ -483,307 +402,393 @@ mGui.setDefaultName("Player");
             radius * sin(inc)
         ];
 
-        glUniform1fv(field1,3,gLight.mColor.ptr);
-        glUniform1fv(field2,3,gLight.mPosition.ptr);
-        glUniform1f (field3,gLight.mAmbientIntensity);
-        glUniform1f (field4,gLight.mSpecularIntensity);
-        glUniform1f (field5,gLight.mSpecularExponent);
-        glUniform3f(field6, mCamera.mEyePosition.x, mCamera.mEyePosition.y, mCamera.mEyePosition.z);
-
-
-        // if ("lit_textured" in Pipeline.sPipeline)
-        // {
-
-            
-        //     GLuint litTexID = Pipeline.sPipeline["lit_textured"];
-        //     glUseProgram(litTexID);
-
-        //     glUniform3f(glGetUniformLocation(litTexID, "uLightPos"),
-        //         gLight.mPosition[0], gLight.mPosition[1], gLight.mPosition[2]);
-        //     glUniform3f(glGetUniformLocation(litTexID, "viewpos"),
-        //         mCamera.mEyePosition.x, mCamera.mEyePosition.y, mCamera.mEyePosition.z);
-        // }
+        glUniform1fv(field1, 3, gLight.mColor.ptr);
+        glUniform1fv(field2, 3, gLight.mPosition.ptr);
+        glUniform1f (field3, gLight.mAmbientIntensity);
+        glUniform1f (field4, gLight.mSpecularIntensity);
+        glUniform1f (field5, gLight.mSpecularExponent);
+        glUniform3f(field6,
+            mCamera.mEyePosition.x, mCamera.mEyePosition.y, mCamera.mEyePosition.z);
 
         if ("lit_textured" in Pipeline.sPipeline)
-{
-    GLuint litTexID = Pipeline.sPipeline["lit_textured"];
-    glUseProgram(litTexID);
+        {
+            GLuint litTexID = Pipeline.sPipeline["lit_textured"];
+            glUseProgram(litTexID);
 
-    glUniform3f(glGetUniformLocation(litTexID, "uLightPos"),
-        gLight.mPosition[0], gLight.mPosition[1], gLight.mPosition[2]);
-    glUniform3f(glGetUniformLocation(litTexID, "viewpos"),
-        mCamera.mEyePosition.x, mCamera.mEyePosition.y, mCamera.mEyePosition.z);
-
-    // TEMP probe: force fog to obviously-magenta and push it far away
-    glUniform3f(glGetUniformLocation(litTexID, "uFogColor"), 1.0f, 0.0f, 1.0f);
-    glUniform1f(glGetUniformLocation(litTexID, "uFogStart"), 1000.0f);
-    glUniform1f(glGetUniformLocation(litTexID, "uFogEnd"),   2000.0f);
-}
-
-
-
+            glUniform3f(glGetUniformLocation(litTexID, "uLightPos"),
+                gLight.mPosition[0], gLight.mPosition[1], gLight.mPosition[2]);
+            glUniform3f(glGetUniformLocation(litTexID, "viewpos"),
+                mCamera.mEyePosition.x, mCamera.mEyePosition.y, mCamera.mEyePosition.z);
+        }
     }
-   
-    // void requestShoot(){
-    //     mShootRequested = true;
-    // }
 
+    //================================================================
+    // Shooting
+    //================================================================
     void requestShoot()
-{
-    if (mPhase != ChallengePhase.Live)
-        return;
-
-    if (mCollisionEditor !is null && mCollisionEditor.isActive())
-        return;
-
-    mShootRequested = true;
-}
-
-    // void reload(){
-    //     mCurrentAmmo = mMaxAmmo;
-    //     writeln("[reload] ammo restored to ", mMaxAmmo);
-    //     // mViewWeapon.playReload();
-
-    // }
+    {
+        if (mPhase != ChallengePhase.Live) return;
+        if (mCollisionEditor !is null && mCollisionEditor.isActive()) return;
+        mShootRequested = true;
+    }
 
     void reload()
-{
-    if (mPhase != ChallengePhase.Live)
-        return;
-
-    mCurrentAmmo = mMaxAmmo;
-    writeln("[reload] ammo restored to ", mMaxAmmo);
-}
-
-
-    // private void shoot(){
-    //     // Ammo check
-    //     if (mCurrentAmmo <= 0)
-    //     {
-    //         writeln("[shoot] EMPTY — press R to reload");
-    //         return;
-    //     }
-    //     mCurrentAmmo--;
-
-    //     vec3 from = mCamera.mEyePosition;
-    //     vec3 dir  = Normalize(mCamera.mForwardVector);
-
-    //     // Weapon spread
-    //     float spread = 0.02f;
-    //     dir.x += uniform(-spread, spread);
-    //     dir.y += uniform(-spread, spread);
-    //     dir.z += uniform(-spread, spread);
-    //     dir = Normalize(dir);
-
-    //     vec3 to = from + dir * 1000.0f;
-
-    //     mShotsFired++;
-
-    //     mAudioController.playGunshot();
-    //     // mViewWeapon.playFire();
-
-            
-    //     auto result = mPhysicsWorld.raycast(
-    //         from.x, from.y, from.z,
-    //         to.x, to.y, to.z);
-
-    //     auto now = Clock.currTime();
-
-    //     if (result.hit){
-    //         mShotsHit++;
-    //         // writeln("[shoot] ", now.toSimpleString(),
-    //         //     " HIT entity=", result.entityId,
-    //         //     " at pos=[", result.hitPosition[0],
-    //         //     ", ", result.hitPosition[1],
-    //         //     ", ", result.hitPosition[2], "]");
-
-    //         if (result.entityId != mGroundEntity && result.entityId != 0){
-    //             destroyEntity(result.entityId);
-    //         }
-    //     } else{
-    //         // writeln("[shoot] ", now.toSimpleString(), " MISS");
-    //     }
-
-    //     float accuracy = mShotsFired > 0 ? cast(float)mShotsHit / mShotsFired * 100.0f : 0.0f;
-    //     writeln("[stats] shots=", mShotsFired, " hits=", mShotsHit,
-    //             " accuracy=", accuracy, "%");
-    // }
-
-
-    private void shoot()
-{
-    if (mPhase != ChallengePhase.Live)
-        return;
-
-    if (mCurrentAmmo <= 0)
     {
-        writeln("[shoot] EMPTY — press R to reload");
-        return;
+        if (mPhase != ChallengePhase.Live) return;
+        mCurrentAmmo = mMaxAmmo;
+        writeln("[reload] ammo restored to ", mMaxAmmo);
     }
 
-    mCurrentAmmo--;
-    mShotsFired++;
-
-    vec3 from = mCamera.mEyePosition;
-    vec3 dir  = Normalize(mCamera.mForwardVector);
-
-    float spread = computeWeaponSpread();
-    dir.x += uniform(-spread, spread);
-    dir.y += uniform(-spread, spread);
-    dir.z += uniform(-spread, spread);
-    dir = Normalize(dir);
-
-    vec3 to = from + dir * 1000.0f;
-
-    mAudioController.playGunshot();
-
-    auto result = mPhysicsWorld.raycast(
-        from.x, from.y, from.z,
-        to.x, to.y, to.z);
-
-    if (result.hit)
+    private void shoot()
     {
-        if ((result.entityId in mActiveTargetIds) !is null)
+        if (mPhase != ChallengePhase.Live) return;
+
+        if (mCurrentAmmo <= 0)
         {
-            mShotsHit++;
-            mScore += kPointsPerHit;
-
-            writeln("[challenge] HIT target entity=", result.entityId,
-                " score=", mScore);
-
-            removeChallengeTarget(result.entityId);
-            destroyEntity(result.entityId);
+            writeln("[shoot] EMPTY — press R to reload");
+            return;
         }
-        else if ((result.entityId in mSoldierIds) !is null)
+
+        mCurrentAmmo--;
+        mShotsFired++;
+
+        vec3 from = mCamera.mEyePosition;
+        vec3 dir  = Normalize(mCamera.mForwardVector);
+
+        float spread = computeWeaponSpread();
+        dir.x += uniform(-spread, spread);
+        dir.y += uniform(-spread, spread);
+        dir.z += uniform(-spread, spread);
+        dir = Normalize(dir);
+
+        vec3 to = from + dir * 1000.0f;
+
+        mAudioController.playGunshot();
+
+        auto result = mPhysicsWorld.raycast(
+            from.x, from.y, from.z,
+            to.x, to.y, to.z);
+
+        if (result.hit)
         {
-            mShotsHit++;
-            mScore += kPointsPerHit;
+            if ((result.entityId in mActiveTargetIds) !is null)
+            {
+                registerHit(false);
+                int awarded = cast(int)(kPointsPerHit * mComboMultiplier + 0.5f);
+                mScore += awarded;
+                mCubesHit++;
+                mGui.pushScorePopup(awarded, mCombo, /*isEnemy=*/false);
+                mAudioController.playCubeHit();
 
-            writeln("[shoot] HIT soldier entity=", result.entityId,
-                " score=", mScore);
+                writeln("[challenge] CUBE hit eid=", result.entityId,
+                    " +", awarded, " combo=x", mCombo, " score=", mScore);
 
-            mSoldierIds.remove(result.entityId);
-            destroyEntity(result.entityId);
+                removeChallengeCube(result.entityId);
+                destroyEntity(result.entityId);
+            }
+            else if ((result.entityId in mSoldierIds) !is null)
+            {
+                registerHit(true);
+                int awarded = cast(int)(kPointsPerEnemy * mComboMultiplier + 0.5f);
+                mScore += awarded;
+                mEnemiesKilled++;
+                mGui.pushScorePopup(awarded, mCombo, /*isEnemy=*/true);
+                mAudioController.playHumanHit();
+
+                writeln("[challenge] ENEMY hit eid=", result.entityId,
+                    " +", awarded, " combo=x", mCombo, " score=", mScore);
+
+                // Free up that pool slot so a new enemy can appear there later.
+                if (auto idxPtr = result.entityId in mEnemyBoxIndexByEid)
+                {
+                    size_t i = *idxPtr;
+                    if (i < mEnemies.length)
+                        mEnemyPoolInUse.remove(mEnemies[i].positionIndex);
+                }
+                removeEnemyByEntity(result.entityId);
+                mSoldierIds.remove(result.entityId);
+                destroyEntity(result.entityId);
+            }
+            else
+            {
+                writeln("[shoot] hit non-target eid=", result.entityId);
+                breakCombo();
+            }
         }
         else
         {
-            writeln("[shoot] hit non-target entity=", result.entityId);
+            writeln("[shoot] MISS");
+            breakCombo();
         }
     }
-    else
+
+    private void registerHit(bool isEnemy)
     {
-        writeln("[shoot] MISS");
+        mShotsHit++;
+        mCombo++;
+        mComboTimer = kComboWindow;
+
+        float m = 1.0f + 0.5f * (mCombo - 1);
+        if (m > kComboMaxMultiplier) m = kComboMaxMultiplier;
+        mComboMultiplier = m;
+
+        mGui.onComboAdvanced(mCombo);
     }
 
-    float acc = mShotsFired > 0 ? cast(float)mShotsHit / mShotsFired * 100.0f : 0.0f;
-    writeln("[stats] shots=", mShotsFired, " hits=", mShotsHit,
-        " accuracy=", acc, "% score=", mScore);
-}
-
-
-
-
-    // to do: refactor so that this does not check hard coded pairs but rather loops over every object
-    private void checkCollisions(){
-        if ((mCubeEntity in mPhysicsWorld.entityToBody) is null) return;
-        if ((mGroundEntity in mPhysicsWorld.entityToBody) is null) return;
-
-        b3ContactInformation contactInfo;
-        mPhysicsWorld.getContacts(mCubeEntity, mGroundEntity, contactInfo);
+    private void breakCombo()
+    {
+        if (mCombo > 1)
+            writeln("[combo] broken at x", mCombo);
+        resetCombo();
     }
 
-    void initCrosshair(){
-        // Create the crosshair shader
-        new Pipeline("crosshair", "./pipelines/crosshair/crosshair.vert",
-                                    "./pipelines/crosshair/crosshair.frag");
+    private void resetCombo()
+    {
+        mCombo = 0;
+        mComboMultiplier = 1.0f;
+        mComboTimer = 0.0;
+    }
 
-        // Crosshair geometry in NDC (-1 to 1 range)
-        // Gap in center, 4 line segments forming a + shape
-        float size = 0.03f;
-        float gap  = 0.008f;
+    //================================================================
+    // Cubes
+    //================================================================
+    private double rampedSpawnInterval()
+    {
+        // t: 0 at start, 1 at end
+        double t = 1.0 - (mRoundTimer / kChallengeDuration);
+        if (t < 0) t = 0;
+        if (t > 1) t = 1;
+        return kCubeSpawnIntervalStart * (1.0 - t)
+             + kCubeSpawnIntervalEnd   * t;
+    }
 
-        float[] verts = [
-            // Horizontal left
-            -size, 0.0f,
-            -gap,  0.0f,
-            // Horizontal right
-                gap,  0.0f,
-                size, 0.0f,
-            // Vertical top
-                0.0f, size,
-                0.0f, gap,
-            // Vertical bottom
-                0.0f, -gap,
-                0.0f, -size,
+    private void rampedSpawnY(out float yMin, out float yMax)
+    {
+        float t = cast(float)(1.0 - (mRoundTimer / kChallengeDuration));
+        if (t < 0) t = 0;
+        if (t > 1) t = 1;
+        yMin = kCubeSpawnYMinStart * (1.0f - t) + kCubeSpawnYMinEnd * t;
+        yMax = kCubeSpawnYMaxStart * (1.0f - t) + kCubeSpawnYMaxEnd * t;
+    }
+
+    private void spawnFallingCube()
+    {
+        auto spawner = mLevelBuilder.getSpawner();
+        if (spawner is null) return;
+
+        vec3[] scales = [
+            vec3(1.00f, 1.00f, 1.00f),
+            vec3(0.75f, 1.35f, 0.75f),
+            vec3(1.35f, 0.65f, 0.65f)
         ];
 
-        glGenVertexArrays(1, &mCrosshairVAO);
-        glGenBuffers(1, &mCrosshairVBO);
+        vec3[] colors = [
+            vec3(0.94f, 0.58f, 0.17f),
+            vec3(0.45f, 0.85f, 0.38f),
+            vec3(0.35f, 0.75f, 1.00f)
+        ];
 
-        glBindVertexArray(mCrosshairVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, mCrosshairVBO);
-        glBufferData(GL_ARRAY_BUFFER, verts.length * float.sizeof,
-                        verts.ptr, GL_STATIC_DRAW);
+        int idx = uniform(0, cast(int)scales.length);
 
-        // aPos at location 0, 2 floats per vertex
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, null);
+        float yMin, yMax;
+        rampedSpawnY(yMin, yMax);
 
-        glBindVertexArray(0);
-        mCrosshairReady = true;
+        float x = uniform(-6.0f, 38.0f);
+        float z = uniform(-42.0f, 4.0f);
+        float y = uniform(yMin, yMax);
+
+        uint eid = spawner.spawnChallengeProjectile(
+            vec3(x, y, z),
+            scales[idx],
+            colors[idx],
+            "cube.urdf"
+        );
+
+        mChallengeTargets ~= ChallengeTarget(eid, kTargetLifetime);
+        mActiveTargetIds[eid] = true;
     }
 
+    private void updateChallengeCubes(double dt)
+    {
+        for (int i = cast(int)mChallengeTargets.length - 1; i >= 0; --i)
+        {
+            size_t idx = cast(size_t)i;
+            mChallengeTargets[idx].ttl -= dt;
 
-    private float computeWeaponSpread()
-{
-    if (mIsSprinting) return 0.055f;
-    if (mIsMoving)    return 0.030f;
-    return 0.008f;
-}
+            if (mChallengeTargets[idx].ttl <= 0)
+            {
+                uint eid = mChallengeTargets[idx].entityId;
+                mActiveTargetIds.remove(eid);
+                destroyEntity(eid);
 
-private void startChallengeRound()
-{
-    clearChallengeTargets();
+                if (idx != mChallengeTargets.length - 1)
+                    mChallengeTargets[idx] = mChallengeTargets[$ - 1];
+                mChallengeTargets.length = mChallengeTargets.length - 1;
+            }
+        }
+    }
 
-    mPlayerName = mGui.enteredName();
-    if (mPlayerName.length == 0)
-        mPlayerName = "Player";
+    private void removeChallengeCube(uint entityId)
+    {
+        mActiveTargetIds.remove(entityId);
+        foreach (i, t; mChallengeTargets)
+        {
+            if (t.entityId == entityId)
+            {
+                if (i != mChallengeTargets.length - 1)
+                    mChallengeTargets[i] = mChallengeTargets[$ - 1];
+                mChallengeTargets.length = mChallengeTargets.length - 1;
+                break;
+            }
+        }
+    }
 
-    mShotsFired = 0;
-    mShotsHit = 0;
-    mScore = 0;
-    mCurrentAmmo = mMaxAmmo;
-    mRoundTimer = kChallengeDuration;
-    mTargetSpawnAccumulator = 0.0;
+    private void clearAllCubes()
+    {
+        foreach (t; mChallengeTargets)
+            destroyEntity(t.entityId);
+        mChallengeTargets.length = 0;
+        mActiveTargetIds = null;
+    }
 
-    mPhase = ChallengePhase.Live;
-    mGui.phase = mPhase;
-    mGui.playerName = mPlayerName;
+    //================================================================
+    // Jackpot enemies
+    //================================================================
+    private void trySpawnEnemy()
+    {
+        if (mLevelBuilder.mEnemySpawnPool.length == 0)
+        {
+            writeln("[enemy] no spawn pool positions available");
+            return;
+        }
 
-    // SDL_SetRelativeMouseMode(SDL_TRUE);
-    writeln("[challenge] started for ", mPlayerName);
-}
+        // Find an unused pool slot. Up to 20 tries to avoid infinite loops
+        // when the pool is small and mostly full.
+        size_t chosen = size_t.max;
+        foreach (attempt; 0 .. 20)
+        {
+            size_t idx = uniform(0, mLevelBuilder.mEnemySpawnPool.length);
+            if ((idx in mEnemyPoolInUse) is null)
+            {
+                chosen = idx;
+                break;
+            }
+        }
+        if (chosen == size_t.max) return;
 
-private void finishChallengeRound()
-{
-    if (mPhase != ChallengePhase.Live)
-        return;
+        vec3 pos = mLevelBuilder.mEnemySpawnPool[chosen];
 
-    clearChallengeTargets();
+        auto spawner = mLevelBuilder.getSpawner();
+        if (spawner is null) return;
 
-    mLeaderboard.addScore(mPlayerName, mScore, mShotsFired, mShotsHit);
-    mGui.leaderboard = mLeaderboard.top10();
+        uint eid = spawner.spawnEnemyAt(pos);
 
-    mPhase = ChallengePhase.Results;
-    mGui.phase = mPhase;
-    mGui.finalScore = mScore;
+        // Register enemy
+        ChallengeEnemy e;
+        e.entityId = eid;
+        e.positionIndex = chosen;
+        e.aliveTime = 0;
+        mEnemies ~= e;
+        mEnemyBoxIndexByEid[eid] = mEnemies.length - 1;
+        mSoldierIds[eid] = true;
+        mEnemyPoolInUse[chosen] = true;
 
-    // SDL_SetRelativeMouseMode(SDL_FALSE);
-    writeln("[challenge] finished for ", mPlayerName, " score=", mScore);
-}
+        // Collision box for the enemy — bumped to 1.0 half-size so shots feel fair.
+        float sh = 1.0f;
+        mCollisionEditor.addBoxForEntity(eid,
+            pos.x - sh, pos.z - sh, pos.x + sh, pos.z + sh,
+            "enemy_" ~ eid.to!string);
 
+        writeln("[enemy] spawned eid=", eid,
+            " at (", pos.x, ",", pos.z, ") alive=", mEnemies.length);
+    }
 
-bool wantsGameMouseLook()
+    private void updateEnemies(double dt)
+    {
+        foreach (ref e; mEnemies)
+            e.aliveTime += dt;
+    }
+
+    private void removeEnemyByEntity(uint eid)
+    {
+        auto idxPtr = eid in mEnemyBoxIndexByEid;
+        if (idxPtr is null) return;
+        size_t idx = *idxPtr;
+        if (idx >= mEnemies.length) return;
+
+        // Swap-and-pop
+        size_t last = mEnemies.length - 1;
+        if (idx != last)
+        {
+            mEnemies[idx] = mEnemies[last];
+            // fix up the swapped element's index
+            mEnemyBoxIndexByEid[mEnemies[idx].entityId] = idx;
+        }
+        mEnemies.length = mEnemies.length - 1;
+        mEnemyBoxIndexByEid.remove(eid);
+    }
+
+    private void clearAllEnemies()
+    {
+        foreach (e; mEnemies)
+            destroyEntity(e.entityId);
+        mEnemies.length = 0;
+        mEnemyBoxIndexByEid = null;
+        mSoldierIds = null;
+        mEnemyPoolInUse = null;
+    }
+
+    //================================================================
+    // Phase transitions
+    //================================================================
+    private void startChallengeRound()
+    {
+        clearAllCubes();
+        clearAllEnemies();
+
+        mPlayerName = mGui.enteredName();
+        if (mPlayerName.length == 0) mPlayerName = "Player";
+
+        mShotsFired = 0;
+        mShotsHit   = 0;
+        mCubesHit   = 0;
+        mEnemiesKilled = 0;
+        mScore      = 0;
+        mCurrentAmmo = mMaxAmmo;
+        mRoundTimer  = kChallengeDuration;
+        mTargetSpawnAccumulator = 0.0;
+        mEnemySpawnTimer = 0.0;
+        mNextEnemySpawnIn = uniform(kEnemySpawnMinInterval, kEnemySpawnMaxInterval);
+        resetCombo();
+
+        mPhase = ChallengePhase.Live;
+        mGui.phase = mPhase;
+        mGui.playerName = mPlayerName;
+
+        writeln("[challenge] started for ", mPlayerName);
+    }
+
+    private void finishChallengeRound()
+    {
+        if (mPhase != ChallengePhase.Live) return;
+
+        clearAllCubes();
+        clearAllEnemies();
+
+        mLeaderboard.addScore(mPlayerName, mScore, mShotsFired, mShotsHit);
+        mGui.leaderboard = mLeaderboard.top10();
+
+        mPhase = ChallengePhase.Results;
+        mGui.phase = mPhase;
+        mGui.finalScore = mScore;
+
+        writeln("[challenge] finished for ", mPlayerName, " score=", mScore);
+    }
+
+    //================================================================
+    // Cursor / input gating
+    //================================================================
+    bool wantsGameMouseLook()
     {
         return mPhase == ChallengePhase.Live &&
                mCollisionEditor !is null &&
@@ -799,132 +804,112 @@ bool wantsGameMouseLook()
         return false;
     }
 
-
-
-private void spawnFallingTarget()
-{
-        writeln("[debug] spawnFallingTarget called");
-    auto spawner = mLevelBuilder.getSpawner();
-    writeln("[debug] got spawner: ", spawner !is null);
-    // auto spawner = mLevelBuilder.getSpawner();
-
-    vec3[] scales = [
-        vec3(1.0f, 1.0f, 1.0f),
-        vec3(0.75f, 1.35f, 0.75f),
-        vec3(1.35f, 0.65f, 0.65f)
-    ];
-
-    vec3[] colors = [
-        vec3(0.94f, 0.58f, 0.17f),
-        vec3(0.45f, 0.85f, 0.38f),
-        vec3(0.35f, 0.75f, 1.00f)
-    ];
-
-    int idx = uniform(0, cast(int)scales.length);
-
-    float x = uniform(-6.0f, 38.0f);
-    float z = uniform(-42.0f, 4.0f);
-    float y = uniform(18.0f, 25.0f);
-
-    uint eid = spawner.spawnChallengeProjectile(
-        vec3(x, y, z),
-        scales[idx],
-        colors[idx],
-        "cube.urdf"
-    );
-
-    mChallengeTargets ~= ChallengeTarget(eid, kTargetLifetime);
-    mActiveTargetIds[eid] = true;
-}
-
-private void updateChallengeTargets(double dt)
-{
-    for (int i = cast(int)mChallengeTargets.length - 1; i >= 0; --i)
+    //================================================================
+    // Spread
+    //================================================================
+    private float computeWeaponSpread()
     {
-        size_t idx = cast(size_t)i;
-        mChallengeTargets[idx].ttl -= dt;
-
-        if (mChallengeTargets[idx].ttl <= 0)
-        {
-            uint eid = mChallengeTargets[idx].entityId;
-            mActiveTargetIds.remove(eid);
-            destroyEntity(eid);
-
-            if (idx != mChallengeTargets.length - 1)
-                mChallengeTargets[idx] = mChallengeTargets[$ - 1];
-
-            mChallengeTargets.length = mChallengeTargets.length - 1;
-        }
+        if (mIsSprinting) return 0.055f;
+        if (mIsMoving)    return 0.030f;
+        return 0.008f;
     }
-}
 
-private void removeChallengeTarget(uint entityId)
-{
-    mActiveTargetIds.remove(entityId);
-
-    foreach (i, t; mChallengeTargets)
+    //================================================================
+    // Crosshair
+    //================================================================
+    void drawCrosshair()
     {
-        if (t.entityId == entityId)
-        {
-            if (i != mChallengeTargets.length - 1)
-                mChallengeTargets[i] = mChallengeTargets[$ - 1];
+        if (!mCrosshairReady) return;
 
-            mChallengeTargets.length = mChallengeTargets.length - 1;
-            break;
-        }
+        glDisable(GL_DEPTH_TEST);
+        glUseProgram(Pipeline.sPipeline["crosshair"]);
+        glBindVertexArray(mCrosshairVAO);
+        glLineWidth(2.0f);
+        glDrawArrays(GL_LINES, 0, 8);
+        glBindVertexArray(0);
+        glEnable(GL_DEPTH_TEST);
     }
-}
 
-private void clearChallengeTargets()
-{
-    foreach (t; mChallengeTargets)
-        destroyEntity(t.entityId);
+    void initCrosshair()
+    {
+        new Pipeline("crosshair",
+            "./pipelines/crosshair/crosshair.vert",
+            "./pipelines/crosshair/crosshair.frag");
 
-    mChallengeTargets.length = 0;
-    mActiveTargetIds = null;
-}
+        float size = 0.03f;
+        float gap  = 0.008f;
 
-    /// Fully destroy an entity: physics body + scene tree node + entity manager + collision box
+        float[] verts = [
+            -size, 0.0f,  -gap,  0.0f,
+             gap,  0.0f,   size, 0.0f,
+             0.0f, size,   0.0f, gap,
+             0.0f, -gap,   0.0f, -size
+        ];
+
+        glGenVertexArrays(1, &mCrosshairVAO);
+        glGenBuffers(1, &mCrosshairVBO);
+
+        glBindVertexArray(mCrosshairVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, mCrosshairVBO);
+        glBufferData(GL_ARRAY_BUFFER,
+            verts.length * float.sizeof,
+            verts.ptr, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, null);
+        glBindVertexArray(0);
+
+        mCrosshairReady = true;
+    }
+
+    //================================================================
+    // Physics/collision queries
+    //================================================================
+    private void checkCollisions()
+    {
+        if ((mCubeEntity in mPhysicsWorld.entityToBody) is null) return;
+        if ((mGroundEntity in mPhysicsWorld.entityToBody) is null) return;
+
+        b3ContactInformation contactInfo;
+        mPhysicsWorld.getContacts(mCubeEntity, mGroundEntity, contactInfo);
+    }
+
+    void printSpawnPoint(string type)
+    {
+        auto pos = mCamera.mEyePosition;
+        writeln("[spawn-marker] ", type, " at <", pos.x, ",", pos.y, ",", pos.z, ">");
+    }
+
+    //================================================================
+    // Entity destruction — also drops any collision box bound to the entity
+    //================================================================
     void destroyEntity(uint entityId)
     {
-        // 0. Remove any collision editor box bound to this entity (e.g. soldiers)
+        // Collision box first
         if (mCollisionEditor !is null)
             mCollisionEditor.removeBoxForEntity(entityId);
 
-        // 1. Remove from Bullet physics
-        if (entityId in mPhysicsWorld.entityToBody){
+        // Physics body
+        if (entityId in mPhysicsWorld.entityToBody)
             mPhysicsWorld.removeBody(entityId);
-        }
 
-        if (auto nodes = entityId in mEntityManager.renderables){
-            foreach(node; *nodes){
-                // Find parent and remove this child
+        // Scene graph nodes
+        if (auto nodes = entityId in mEntityManager.renderables)
+        {
+            foreach (node; *nodes)
+            {
                 auto parent = node.GetParentSceneNode();
-                if (parent !is null){
-                    // Filter this node out of parent's children
+                if (parent !is null)
+                {
                     ISceneNode[] remaining;
-                    foreach (child; parent.mChildren){
-                        if (child !is node){
-                            remaining ~= child;
-                        }   
-                    }
+                    foreach (child; parent.mChildren)
+                        if (child !is node) remaining ~= child;
                     parent.mChildren = remaining;
                 }
             }
         }
 
-        // 3. Remove from entity manager
+        // Entity manager
         mEntityManager.destroy(entityId);
         writeln("[destroy] entity=", entityId);
     }
 }
-
-
-// top links:
-// https://www.cgtrader.com/3d-models/exterior/other/lowpoly-fps-modular-map-kit
-// https://www.cgtrader.com/3d-models/military/gun/fps-animations-single-pistol
-// https://www.cgtrader.com/3d-models/military/gun/fps-automatic-rifle-01-animations
-
-
-
-// to do: look at architecture from 2D game and try to get nifty game strategies here
