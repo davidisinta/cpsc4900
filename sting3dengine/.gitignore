@@ -21,7 +21,7 @@ libbullet_capi_shim.dylib
 /bin
 # Ignore local build output binaries inside the engine folder.
 
-dist/
+distribution_package/
 # Ignore packaged release builds, duplicated assets, and zip-ready game distributions.
 
 *.zip
