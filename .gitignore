@@ -3,3 +3,5 @@
 # git ignore .DS_Store file which is one created by macOS when you open a folder
 # in finder, not needed at all
 .DS_Store
+
+/privatefiles
