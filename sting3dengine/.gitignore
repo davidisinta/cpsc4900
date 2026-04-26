@@ -51,3 +51,6 @@ matrix_convention_tests
 
 matrix_convention_tests.o
 # Ignore object file produced while compiling the matrix convention test.
+
+#ignore cache folder
+cache
