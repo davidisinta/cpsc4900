@@ -1,7 +1,6 @@
 #version 410 core
 
 in vec2 TexCoord;
-
 uniform sampler2D uTexture;
 
 out vec4 fragColor;

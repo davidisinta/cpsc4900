@@ -11,5 +11,3 @@ void main()
 	vec4 finalPosition = uProjection * uView * uModel * vec4(aPosition,1.0f);
 	gl_Position = vec4(finalPosition.x, finalPosition.y, finalPosition.z, finalPosition.w);
 }
-
-

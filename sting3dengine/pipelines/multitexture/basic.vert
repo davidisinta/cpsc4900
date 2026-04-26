@@ -20,5 +20,3 @@ void main()
 	// Note: Something subtle, but we need to use the finalPosition.w to do the perspective divide
 	gl_Position = vec4(finalPosition.x, finalPosition.y, finalPosition.z, finalPosition.w);
 }
-
-

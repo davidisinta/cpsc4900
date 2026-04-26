@@ -21,7 +21,7 @@ libbullet_capi_shim.dylib
 /bin
 # Ignore local build output binaries inside the engine folder.
 
-dist/
+distribution_package/
 # Ignore packaged release builds, duplicated assets, and zip-ready game distributions.
 
 *.zip
@@ -45,3 +45,12 @@ imgui.ini
 # KEEP third_party dylibs
 !third_party/**/*.dylib
 # Allow intentionally vendored third-party runtime libraries under third_party/.
+
+matrix_convention_tests
+# Ignore locally compiled matrix convention test executable.
+
+matrix_convention_tests.o
+# Ignore object file produced while compiling the matrix convention test.
+
+#ignore cache folder
+cache

@@ -37,7 +37,6 @@ import std.array : appender;
 import std.conv : to;
 import std.math : min, max;
 import assimp_c_api;
-// import std.math;
 import std.math : min, max;
 import std.string : toStringz, toLower;
 
