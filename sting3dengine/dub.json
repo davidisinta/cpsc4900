@@ -1,0 +1,47 @@
+{
+	"authors": [
+		"David Isinta Nyakawa"
+	],
+	"copyright": "Copyright © 2026, David Isinta Nyakawa",
+	"dependencies": {
+		"bindbc-opengl": "~>1.1.1",
+		"bindbc-sdl": "~>1.5.1"
+	},
+	"description": "3D game engine",
+	"dflags": [
+		"-mixin=cache/mixin.txt",
+		"-I/opt/homebrew/include"
+	],
+
+	"copyFiles": [
+		"third_party/bullet/lib/libbullet_capi_shim.dylib",
+		"third_party/fmod/lib/libfmod.dylib",
+		"third_party/cimgui/lib/cimgui.dylib"
+	],
+
+	"sourceFiles": [
+		"third_party/stb/stb_image_impl.c"
+	],
+	  
+	"lflags-osx": [
+		"-L/opt/homebrew/lib",
+		"-Wl,-rpath,@executable_path/",
+		"third_party/bullet/lib/libbullet_capi_shim.dylib",
+		"third_party/fmod/lib/libfmod.dylib",
+		"third_party/cimgui/lib/cimgui.dylib"
+	],
+
+	"libs": [
+		"assimp"
+	],
+	"license": "proprietary",
+	"name": "prog",
+	"stringImportPaths": [
+		"."
+	],
+	"targetPath": "local_build",
+	"versions": [
+		"GL_41",
+		"SDL_2016"
+	]
+}

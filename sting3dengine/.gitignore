@@ -1,0 +1,57 @@
+prog
+cimgui.dylib
+/bin
+libbullet_capi_shim.dylib
+
+
+# KEEP third_party dylibs
+!third_party/**/*.dylib
+
+
+
+prog
+# Ignore the compiled game/program binary produced by local builds.
+
+cimgui.dylib
+# Ignore the root-level copied cimgui runtime library; keep only the intentional third_party copy.
+
+libbullet_capi_shim.dylib
+# Ignore the root-level copied Bullet shim library; keep only the intentional third_party copy.
+
+/bin
+# Ignore local build output binaries inside the engine folder.
+
+distribution_package/
+prod_distribution_package
+# Ignore packaged release builds, duplicated assets, and zip-ready game distributions.
+
+*.zip
+# Ignore compressed release packages; upload these to GitHub Releases/itch/Steam instead.
+
+*.rar
+# Ignore raw compressed asset/source packs from downloaded marketplace assets.
+
+*.o
+# Ignore compiled object files generated during local builds.
+
+matrix_convention_tests
+# Ignore locally compiled test binary.
+
+matrix_convention_tests.o
+# Ignore object file produced when compiling matrix convention tests.
+
+imgui.ini
+# Ignore local Dear ImGui layout/settings because it changes per machine/session.
+
+# KEEP third_party dylibs
+!third_party/**/*.dylib
+# Allow intentionally vendored third-party runtime libraries under third_party/.
+
+matrix_convention_tests
+# Ignore locally compiled matrix convention test executable.
+
+matrix_convention_tests.o
+# Ignore object file produced while compiling the matrix convention test.
+
+#ignore cache folder
+cache
